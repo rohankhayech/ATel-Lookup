@@ -1,0 +1,55 @@
+<mat-card>
+  <mat-card-content>
+    <h2>Checkbox configuration</h2>
+
+    <section>
+      <mat-checkbox [(ngModel)]="radio">Radio</mat-checkbox>
+      <mat-checkbox [(ngModel)]="millimeter">Millimeter</mat-checkbox>
+      <mat-checkbox [(ngModel)]="optical">Optical</mat-checkbox>
+    </section>
+
+    <section>
+      <label>Object:</label>
+      <mat-radio-group [(ngModel)]="object">
+        <mat-radio-button value="asteroid">Asteroid</mat-radio-button>
+        <mat-radio-button value="star">Star</mat-radio-button>
+        <mat-radio-button value="planet">Planet</mat-radio-button>
+      </mat-radio-group>
+    </section>
+
+    <section>
+      <mat-form-field>
+        <mat-label>Keywords</mat-label>
+        <input matInput type="text" [(ngModel)]="keywords" />
+        <button
+          mat-button
+          *ngIf="keywords"
+          matSuffix
+          mat-icon-button
+          aria-label="Clear"
+          (click)="keywords = ''"
+        >
+          <mat-icon>close</mat-icon>
+        </button>
+      </mat-form-field>
+    </section>
+  </mat-card-content>
+</mat-card>
+
+<dx-chart
+  id="chart"
+  [dataSource]="dataSource"
+  (onSeriesClick)="handleSeriesClick($event)"
+  (onPointClick)="handlePointClick($event)"
+>
+  <dxi-series
+    argumentField="day"
+    valueField="oranges"
+    name="My oranges"
+    type="bar"
+    color="#ffaa66"
+  >
+  </dxi-series>
+</dx-chart>
+
+<router-outlet></router-outlet>
