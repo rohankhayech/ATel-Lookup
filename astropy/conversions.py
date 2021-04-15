@@ -33,3 +33,11 @@ print ('Galactic example:', galactic)
 
 # Convert this from galactic to ICRS:
 print ('Converted to ICRS:', galactic.icrs)
+
+# An simple example function that would convert to ICRS:
+
+def convert_to_icrs(skycoord):
+    if isinstance(skycoord, SkyCoord):
+        return skycoord.icrs 
+    else:
+        return None 
