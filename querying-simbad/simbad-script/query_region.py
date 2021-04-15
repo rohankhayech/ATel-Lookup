@@ -1,10 +1,10 @@
 from astroquery.simbad import Simbad 
 from astropy.coordinates import SkyCoord 
 
-# RA = Right ascension, hour angle. 
+# RA = Right ascension, sexagesimal hms format. 
 coords_ra   = '18 20 21.9424'
 
-# DEC = Declination, decimal degrees. 
+# DEC = Declination, sexagesimal dms format
 coords_dec  = '+07 11 07.278'
 
 # Radius, degrees.
