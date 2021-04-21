@@ -76,7 +76,22 @@ def protected():
     )
 
 
+def create_admin():
+    email = 'admin@example.com'
+
+    admin = User.query.filter_by(email=email).one_or_none()
+    if not admin:
+        admin = User(
+            email=email,
+            password=generate_password_hash(os.environ['ADMIN_PASSWORD']),
+        )
+
+        db.session.add(admin)
+        db.session.commit()
+
+
 db.create_all()
+create_admin()
 
 if __name__ == '__main__':
     app.run()
