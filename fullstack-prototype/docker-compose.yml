@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  database:
+    image: mysql
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=p@ssw0rd1
+    volumes:
+      - "./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql"
+
+  backend:
+    build: ./backend
+    ports:
+      - 8080:8080
+    volumes:
+      - ./backend:/app
+
+  frontend:
+    build: ./frontend
+    ports:
+      - 80:80
+    volumes:
+      - ./frontend:/app
