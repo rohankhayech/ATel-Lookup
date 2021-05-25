@@ -9,7 +9,7 @@ def hello_world():
     connection = mysql.connector.connect(
         host="database",
         user="root",
-        password="p@ssw0rd1",
+        password="password",
         database="Astronomy"
     )
 
