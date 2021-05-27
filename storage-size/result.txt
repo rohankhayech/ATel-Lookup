@@ -1,0 +1,21 @@
+Size of 14 atel htmls: 378KB
+Extrapolated size of 14,000: 378,000KB = ~378MB
+
+atelNum – 4 bytes
+title ~ 100 bytes
+authors ~300 bytes
+body – 6000 bytes
+submissionDate – 4 bytes
+keywords – 8 bytes
+total – ~6416 bytes
+6416 bytes* 14000 reports = 89,824,000 bytes = ~89.82MB
+
+Objects:
+objectID – 4 bytes
+ra - 10
+dec -10
+aliases – max 50 * 10 bytes = 500 bytes
+524 bytes
+
+Say 1 referred to by 10 reports
+524 bytes*(14000 reports/10 reports/obj) = 733600 bytes = ~733kb
