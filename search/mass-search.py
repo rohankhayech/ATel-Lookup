@@ -7,6 +7,15 @@ from progress.bar import ChargingBar
 from astroquery.simbad import Simbad 
 from astropy.coordinates import SkyCoord 
 
+#
+# Test script for mass SIMBAD querying.
+# Usage: mass-search.py [NUM-QUERIES] 
+# Do not do more than 10,000 queries. 
+# WARNING: there is a chance you may get banned from the SIMBAD server temporarily if you decrease the
+# DELAY_INTERVAL value. Continue at your own risk. 
+#
+# Author: Ryan Martin. 
+#
 
 DELAY_INTERVAL = 0.25 # Equivalent to 4 queries per second. 
 
@@ -54,7 +63,7 @@ def main():
 
 
 def run_test(num_queries: int): 
-    if not num_queries in range(1, 10000):
+    if not num_queries in range(1, 10001):
         raise RuntimeError('NUM-QUERIES not in range 1 -> 10,000')
     prev_time = time.time()
     with ChargingBar('Executing queries', max=num_queries) as bar:
@@ -69,8 +78,10 @@ def run_test(num_queries: int):
     time_taken = time.time() - prev_time
     print ('TEST SUCCESSFUL: executed', num_queries, 'queries in', time_taken, 'seconds.')
 
+
 def do_query(q: SkyCoord):
     Simbad.query_region(q, radius=0.00277778*u.deg) # == 10 arcseconds
+
 
 if __name__ == '__main__':
     main()
