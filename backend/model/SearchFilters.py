@@ -58,7 +58,7 @@ class SearchFilters:
         """
         A free-text search term.
         """
-        return term
+        return self.__term
 
     @term.setter
     def term(self, term:str):
@@ -68,14 +68,14 @@ class SearchFilters:
         Args:
             term (str): String representing a free-text search term. 
         """
-        self._term = term
+        self.__term = term
 
     @property
     def keywords(self)->List[str]:
         """
         The mode to use for filtering on keywords.
         """
-        return self._keywords.copy()
+        return self.__keywords.copy()
 
     @keywords.setter
     def keywords(self, keywords:List[str]):
@@ -85,14 +85,14 @@ class SearchFilters:
         Args:
             keywords (List[str]): List of strings representing fixed keywords.
         """
-        self._keywords = keywords
+        self.__keywords = keywords
 
     @property 
     def keyword_mode(self)->KeywordMode:
         """
         The mode to use for filtering on keywords.
         """
-        return self._keyword_mode
+        return self.__keyword_mode
 
     @keyword_mode.setter
     def keyword_mode(self, mode:KeywordMode):
@@ -106,7 +106,7 @@ class SearchFilters:
             TypeError: If the keyword mode is not valid.
         """
         if KeywordMode.has_value(mode):
-            self._keyword_mode = mode
+            self.__keyword_mode = mode
         else:
             raise TypeError("Keyword mode must be a valid value of the KeywordMode enum.")
 
@@ -115,7 +115,7 @@ class SearchFilters:
         """
         The start of the date range to filter by.
         """
-        return self._start_date
+        return self.__start_date
 
     @start_date.setter
     def start_date(self, date:datetime):
@@ -125,16 +125,16 @@ class SearchFilters:
         Args:
             date (datetime): The start of the date range to filter by.
         """
-        self._start_date = date
+        self.__start_date = date
 
     @property
     def end_date(self)->datetime:
         """
         The end of the date range to filter by.
         """
-        return self._end_date
+        return self.__end_date
 
-    @start_date.setter
+    @end_date.setter
     def end_date(self, date:datetime):
         """
         Sets the end date to filter by.
@@ -142,4 +142,4 @@ class SearchFilters:
         Args:
             date (datetime): The end of the date range to filter by.
         """
-        self._start_date = date
+        self.__end_date = date

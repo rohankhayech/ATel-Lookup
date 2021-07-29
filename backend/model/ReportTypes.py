@@ -45,7 +45,7 @@ class ReportResult:
         """
         The ATel number associated with the report.
         """
-        return self._atel_num
+        return self.__atel_num
 
     @atel_num.setter
     def atel_num(self, atel_num:int):
@@ -58,7 +58,7 @@ class ReportResult:
             ValueError: When the given ATel number is not a valid positive integer.
         """
         if atel_num>0 and atel_num<999999:
-            self._atel_num = atel_num
+            self.__atel_num = atel_num
         else:
             raise ValueError("ATel Number must be a valid positive integer.")
 
@@ -67,7 +67,7 @@ class ReportResult:
         """
         The title of the report.
         """
-        return self._title
+        return self.__title
 
     @title.setter
     def title(self, title:str):
@@ -77,14 +77,14 @@ class ReportResult:
         Args:
             title (str): The title of the report.
         """
-        self._title = title
+        self.__title = title
 
     @property
     def authors(self)->str:
         """
         A string representing the authors of the report.
         """
-        return self._authors
+        return self.__authors
 
     @authors.setter
     def authors(self, authors:str):
@@ -93,14 +93,14 @@ class ReportResult:
         Args:
             authors (str): A string representing the authors of the report.
         """
-        self._authors = authors
+        self.__authors = authors
 
     @property
     def body(self)->str:
         """
         The body text of the report.
         """
-        return self._body
+        return self.__body
 
     @body.setter
     def body(self, body:str):
@@ -114,7 +114,7 @@ class ReportResult:
             ValueError: When the given body text exceeds 4000 characters.
         """
         if (len(body)<=4000):
-            self._body = body
+            self.__body = body
         else:
             raise ValueError("Body must be <= 4000 characters.")
 
@@ -132,14 +132,14 @@ class ReportResult:
         Args:
             date (datetime): A Datetime object representing the date and time that the report was submitted to The Astronomer's Telegram.
         """
-        self._submission_date = date
+        self.__submission_date = date
 
     @property
     def referenced_reports(self)->List[int]:
         """
         List of integers representing the ATel numbers of reports that this report references. 
         """
-        return self._referenced_reports.copy()
+        return self.__referenced_reports.copy()
 
     @referenced_reports.setter
     def referenced_reports(self, reports:List[int]):
@@ -149,7 +149,7 @@ class ReportResult:
         Args:
             reports (List[int]): List of integers representing the ATel numbers of reports that this report references. 
         """
-        self.referenced_reports = reports
+        self.__referenced_reports = reports
 
     def add_referenced_report(self, atel_num:int):
         """
@@ -158,7 +158,7 @@ class ReportResult:
         Args:
             atel_num (int): The ATel number of the referenced report to add. 
         """
-        self._referenced_reports.append(atel_num)
+        self.__referenced_reports.append(atel_num)
 
     def remove_referenced_report(self, atel_num:int):
         """
@@ -225,7 +225,7 @@ class ImportedReport(ReportResult):
         """
         List of integers representing the ATel numbers of reports that this report references. 
         """
-        return self._referenced_reports.copy()
+        return self.__referenced_reports.copy()
 
     @referenced_by.setter
     def referenced_by(self, reports:List[int]):
@@ -235,7 +235,7 @@ class ImportedReport(ReportResult):
         Args:
             reports (List[int]): List of integers representing the ATel numbers of reports that reference this report. 
         """
-        self._referenced_by = reports
+        self.__referenced_by = reports
 
     def add_referenced_by(self, atel_num:int):
         """
@@ -244,7 +244,7 @@ class ImportedReport(ReportResult):
         Args:
             atel_num (int): The ATel number of the referenced report to add. 
         """
-        self._referenced_by.append(atel_num)
+        self.__referenced_by.append(atel_num)
 
     def remove_referenced_by(self, atel_num:int):
         """
@@ -257,7 +257,7 @@ class ImportedReport(ReportResult):
             ValueError: If the given ATel number is not contained in the list.
         """
         try:
-            self._referenced_by.remove(atel_num)
+            self.__referenced_by.remove(atel_num)
         except ValueError:
             raise ValueError("The list does not contain a report with the given ATel Number.")
 
@@ -266,7 +266,7 @@ class ImportedReport(ReportResult):
         """
         List of datetime objects representing observation dates of the reported event/s.
         """
-        return self._observation_dates.copy()
+        return self.__observation_dates.copy()
 
     @observation_dates.setter
     def observation_dates(self, dates:List[datetime]):
@@ -276,14 +276,14 @@ class ImportedReport(ReportResult):
         Args:
             dates (List[datetime]): List of datetime objects representing observation dates of the reported event/s.
         """
-        self._observation_dates = dates
+        self.__observation_dates = dates
 
     @property
     def keywords(self)->List[str]:
         """
         List of strings representing the fixed keywords associated with the report.
         """
-        return self._keywords.copy()
+        return self.__keywords.copy()
 
     @keywords.setter
     def keywords(self, keywords:List[str]):
@@ -293,14 +293,14 @@ class ImportedReport(ReportResult):
         Args:
             keywords (List[str]): List of strings representing the fixed keywords associated with the report.
         """
-        self._keywords = keywords
+        self.__keywords = keywords
 
     @property
     def objects(self)->List[str]:
         """
         List of strings representing main IDs of objects associated with the report.
         """
-        return self._objects.copy()
+        return self.__objects.copy()
 
     @objects.setter
     def objects(self, objects:List[str]):
@@ -310,14 +310,14 @@ class ImportedReport(ReportResult):
         Args:
             objects (List[str]): List of strings representing main IDs of objects associated with the report.
         """
-        self._objects = objects
+        self.__objects = objects
 
     @property
     def coordinates(self)->List[SkyCoord]:
         """
         List of SkyCoord objects representing coordinates extracted from the report.
         """
-        return self._coordinates.copy()
+        return self.__coordinates.copy()
 
     @objects.setter
     def coordinates(self, coords:List[SkyCoord]):
@@ -327,4 +327,4 @@ class ImportedReport(ReportResult):
         Args:
             coords (List[SkyCoord]): List of SkyCoord objects representing coordinates extracted from the report.
         """
-        self._coordinates = coords
+        self.__coordinates = coords
