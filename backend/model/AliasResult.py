@@ -1,5 +1,3 @@
-
-
 class AliasResult:
     """
     An object representing an alias and the object it is associated with.
@@ -7,7 +5,7 @@ class AliasResult:
 
     def __init__(self, alias:str, object_ID:str):
         """
-        Creates an object alias
+        Creates an object alias.
 
         Args:
             alias (str): String representing an alternative name of the object.
