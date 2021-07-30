@@ -15,8 +15,8 @@ class AliasResult:
         """
 
         #TODO: type/value checking in constructor as object is immutable
-        self.__alias = alias
-        self.__object_ID = object_ID
+        self._alias = alias
+        self._object_ID = object_ID
 
     def __str__(self) -> str:
         return f"{self.alias} refers to object: {self.objectID}"
@@ -26,7 +26,7 @@ class AliasResult:
         """
         String representing an alternative name of the object.
         """
-        return self.__alias
+        return self._alias
 
     @alias.setter
     def alias(self, x):
@@ -36,14 +36,14 @@ class AliasResult:
         raise TypeError("Cannot modify alias (AliasResult is an immutable object.)")
 
     @property
-    def objectID(self)->str:
+    def object_ID(self)->str:
         """
         String representing an alternative name of the object.
         """
-        return self.__alias
+        return self._object_ID
 
-    @alias.setter
-    def objectID(self, x):
+    @object_ID.setter
+    def object_ID(self, x):
         """
         Modifying object ID is unsupported.
         """

@@ -313,7 +313,3 @@ class ImportedReport(ReportResult):
             coords (List[SkyCoord]): List of SkyCoord objects representing coordinates extracted from the report.
         """
         self.__coordinates = coords
-
-
-r = ImportedReport(14000, "Title of Report", "R. Khayech, R. Martin","body"+"",datetime(2021,12,20),[1400,345,323],keywords=["Black Hole"])
-print(r)
