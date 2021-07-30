@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import List
 from astropy.coordinates import SkyCoord
-
 class ReportResult:
     """
     An object representing a report returned from the local database as a result of a search query. Contains all the information needed for displaying the report as a search result and on both the timeline and network graphs.
@@ -23,7 +22,7 @@ class ReportResult:
         self.title = title
         self.authors = authors
         self.body = body
-        self._referenced_reports = referenced_reports
+        self.referenced_reports = referenced_reports
         self.submission_date = submission_date
 
     def __str__(self)->str:
@@ -31,14 +30,7 @@ class ReportResult:
         Returns:
             str: A description of the report.
         """
-        return ""
-
-    def __repr__(self)->str:
-        """
-        Returns:
-            str:  A string representation of the report.
-        """
-        return ""
+        return f"ATel #{self.atel_num}: {self.title} ({self.authors}). Body length: {len(self.body)} chars. Submitted: {self.submission_date}. Referenced Reports: {self.referenced_reports}"
 
     @property
     def atel_num(self)->int:
@@ -123,6 +115,7 @@ class ReportResult:
         """
         A Datetime object representing the date and time that the report was submitted to The Astronomer's Telegram.
         """
+        return self.__submission_date
 
     @submission_date.setter
     def submission_date(self, date:datetime):
@@ -139,7 +132,7 @@ class ReportResult:
         """
         List of integers representing the ATel numbers of reports that this report references. 
         """
-        return self.__referenced_reports.copy()
+        return self._referenced_reports.copy()
 
     @referenced_reports.setter
     def referenced_reports(self, reports:List[int]):
@@ -149,7 +142,7 @@ class ReportResult:
         Args:
             reports (List[int]): List of integers representing the ATel numbers of reports that this report references. 
         """
-        self.__referenced_reports = reports
+        self._referenced_reports = reports
 
     def add_referenced_report(self, atel_num:int):
         """
@@ -158,7 +151,7 @@ class ReportResult:
         Args:
             atel_num (int): The ATel number of the referenced report to add. 
         """
-        self.__referenced_reports.append(atel_num)
+        self._referenced_reports.append(atel_num)
 
     def remove_referenced_report(self, atel_num:int):
         """
@@ -198,7 +191,6 @@ class ImportedReport(ReportResult):
             referenced_by (List[int], optional): List of ATel numbers representing reports that reference this report.
         """
         super().__init__(atel_num, title, authors, body, submission_date, referenced_reports)
-        self.observation_dates = observation_dates
         self.keywords = keywords
         self.referenced_by = referenced_by
         self.observation_dates = observation_dates
@@ -211,21 +203,14 @@ class ImportedReport(ReportResult):
         Returns:
             str: A description of the report.
         """
-        return ""
-
-    def __repr__(self)->str:
-        """
-        Returns:
-            str:  A string representation of the report.
-        """
-        return ""
+        return f"{super().__str__()} Observation Date/s: {self.observation_dates}. Keywords: {self.keywords}. Objects: {self.objects}. Coords: {self.coordinates}. Referenced by: {self.referenced_by}"
 
     @property
     def referenced_by(self)->List[int]:
         """
         List of integers representing the ATel numbers of reports that this report references. 
         """
-        return self.__referenced_reports.copy()
+        return self.__referenced_by.copy()
 
     @referenced_by.setter
     def referenced_by(self, reports:List[int]):
@@ -328,3 +313,7 @@ class ImportedReport(ReportResult):
             coords (List[SkyCoord]): List of SkyCoord objects representing coordinates extracted from the report.
         """
         self.__coordinates = coords
+
+
+r = ImportedReport(14000, "Title of Report", "R. Khayech, R. Martin","body"+"",datetime(2021,12,20),[1400,345,323],keywords=["Black Hole"])
+print(r)

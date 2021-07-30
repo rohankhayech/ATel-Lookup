@@ -51,7 +51,7 @@ class SearchFilters:
         Returns:
             str: A string describing the search filters specified by this object.
         """
-        return ""
+        return f"Free text: {self.term}, Keywords ({self.keyword_mode.name}): {self.keywords}, Submitted between {self.start_date} and {self.end_date}"
 
     @property
     def term(self)->str:
