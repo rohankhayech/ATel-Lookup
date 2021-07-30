@@ -19,7 +19,7 @@ class AliasResult:
         self._object_ID = object_ID
 
     def __str__(self) -> str:
-        return f"{self.alias} refers to object: {self.objectID}"
+        return f"{self.alias} refers to object: {self.object_ID}"
 
     @property
     def alias(self)->str:
