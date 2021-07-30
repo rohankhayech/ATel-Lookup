@@ -4,7 +4,7 @@ from astropy.coordinates.sky_coordinate import SkyCoord
 from SearchFilters import KeywordMode
 from SearchFilters import SearchFilters
 from ReportTypes import ReportResult, ImportedReport
-from DBHelper import AliasResult
+from AliasResult import AliasResult
 import unittest
 
 class TestAliasResult(unittest.TestCase):
