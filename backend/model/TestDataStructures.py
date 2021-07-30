@@ -1,4 +1,6 @@
 from datetime import datetime
+
+from astropy.coordinates.sky_coordinate import SkyCoord
 from SearchFilters import KeywordMode
 from SearchFilters import SearchFilters
 from ReportTypes import ReportResult, ImportedReport
@@ -80,6 +82,60 @@ class TestSearchFilters(unittest.TestCase):
             self.assertEqual(self.sf._keyword_mode,KeywordMode(i))
         with self.assertRaises(TypeError):
             self.sf.keyword_mode = 5
+
+class TestReportTypes(unittest.TestCase):
+    def setUp(self):
+        self.ir = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30), [14001], [datetime(2021,8,30)], ["key", "words"], ["X1"], [], [13000])
+
+    #test creation, setters
+    def test_creation(self):
+        self.assertEqual(self.ir._atel_num, 14000)
+        self.assertEqual(self.ir._title, "ATel Title")
+        self.assertEqual(self.ir._authors, "R. Khayech")
+        self.assertEqual(self.ir._body, "Body text")
+        self.assertEqual(self.ir._submission_date, datetime(2021,7,30))
+        self.assertListEqual(self.ir._referenced_reports, [14001])
+        self.assertListEqual(self.ir._observation_dates, [datetime(2021,8,30)])
+        self.assertListEqual(self.ir._keywords, ["key", "words"])
+        self.assertListEqual(self.ir._objects, ["X1"])
+        self.assertListEqual(self.ir._coordinates, [])
+        self.assertListEqual(self.ir._referenced_by, [13000])
+
+    #test getters
+    def test_getters(self):
+        self.assertEqual(self.ir.atel_num, 14000)
+        self.assertEqual(self.ir.title, "ATel Title")
+        self.assertEqual(self.ir.authors, "R. Khayech")
+        self.assertEqual(self.ir.body, "Body text")
+        self.assertEqual(self.ir.submission_date, datetime(2021,7,30))
+        self.assertListEqual(self.ir.referenced_reports, [14001])
+        self.assertListEqual(self.ir.observation_dates, [datetime(2021,8,30)])
+        self.assertListEqual(self.ir.keywords, ["key", "words"])
+        self.assertListEqual(self.ir.objects, ["X1"])
+        self.assertListEqual(self.ir.coordinates, [])
+        self.assertListEqual(self.ir.referenced_by, [13000])
+
+    def test_defaults(self):
+        ir2 = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30))
+        self.assertEqual(ir2._atel_num, 14000)
+        self.assertEqual(ir2._title, "ATel Title")
+        self.assertEqual(ir2._authors, "R. Khayech")
+        self.assertEqual(ir2._body, "Body text")
+        self.assertEqual(ir2._submission_date, datetime(2021,7,30))
+        self.assertListEqual(ir2._referenced_reports, [])
+        self.assertListEqual(ir2._observation_dates, [])
+        self.assertListEqual(ir2._keywords, [])
+        self.assertListEqual(ir2._objects, [])
+        self.assertListEqual(ir2._coordinates, [])
+        self.assertListEqual(ir2._referenced_by, [])
+
+    def test_invalid_atel_num(self):
+        with self.assertRaises(ValueError):
+            self.ir.atel_num = 0
+
+    def test_invalid_body_len(self):
+        with self.assertRaises(ValueError):
+            self.ir.body = "a"*4001
 
 if __name__ == '__main__':
     unittest.main()
