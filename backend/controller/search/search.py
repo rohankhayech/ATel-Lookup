@@ -26,7 +26,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
             raised as a connection to the server is required to perform a coordinate
             search. 
     '''
-    return []
+    return [] # Stub
 
 
 def search_reports_by_id(search_filters: SearchFilters, name: str) -> List[ReportResult]:
@@ -41,7 +41,7 @@ def search_reports_by_id(search_filters: SearchFilters, name: str) -> List[Repor
         List[ReportResult]: The reports found in the local database that match
             the name. 
     '''
-    return []
+    return [] # Stub
 
 
 def check_object_updates(alias: str, last_update: datetime):
@@ -53,7 +53,7 @@ def check_object_updates(alias: str, last_update: datetime):
         alias (str): The object's identifier (can be an alias or MAIN_ID). 
         last_update (datetime): The date and time the object was last updated. 
     '''
-    pass
+    pass # Stub
 
 
 def _get_coords_from_table(table: Table) -> SkyCoord:
@@ -66,4 +66,4 @@ def _get_coords_from_table(table: Table) -> SkyCoord:
     Returns: 
         SkyCoord: The coordinates of the object retrieved from the table.
     '''
-    return SkyCoord(0.0, 0.0)
+    return SkyCoord(0.0, 0.0) # Stub

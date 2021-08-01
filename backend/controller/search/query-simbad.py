@@ -21,7 +21,7 @@ def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> Dict[str, Li
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package.     
     '''
-    return dict("", [])
+    return dict("", []) # Stub
 
 
 def _query_simbad_by_name(object_name: str, 
@@ -44,4 +44,4 @@ def _query_simbad_by_name(object_name: str,
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package. 
     '''
-    return "default", SkyCoord(0.0, 0.0), []
+    return "default", SkyCoord(0.0, 0.0), [] # Stub
