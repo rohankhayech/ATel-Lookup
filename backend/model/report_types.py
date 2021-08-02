@@ -1,6 +1,31 @@
+"""
+Contains local data structures representing ATel reports imported and returned by the application.
+
+Author:
+    Rohan Khayech
+
+License Terms and Copyright:
+    Copyright (C) 2021 Rohan Khayech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from datetime import datetime
 from typing import List
+
 from astropy.coordinates import SkyCoord
+
 class ReportResult:
     """
     An object representing a report returned from the local database as a result of a search query. Contains all the information needed for displaying the report as a search result and on both the timeline and network graphs.
