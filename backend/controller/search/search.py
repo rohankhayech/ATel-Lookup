@@ -1,3 +1,31 @@
+"""The main search interface. 
+
+The public function in this file perform the search processes for each
+type of search (name or coordinate search). Both functions have a different
+process for searching, including when and how they access the SIMBAD database. 
+For accessing/searching using the SIMBAD database directly, see query_simbad.py. 
+
+Author:
+    Ryan Martin
+
+License Terms and Copyright:
+    Copyright (C) 2021 Ryan Martin
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
+
 from typing import List
 from datetime import datetime
 from astropy.coordinates import SkyCoord
