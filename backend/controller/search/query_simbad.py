@@ -28,8 +28,15 @@ from typing import Dict, Tuple, List
 from astropy.coordinates import SkyCoord
 
 
+"""
+Error class for a failed connection to the SIMBAD database.
+"""
+class QuerySimbadError(Exception):
+    pass
+
+
 def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> Dict[str, List[str]]:
-    ''' Queries the SIMBAD database by an exact coordinate if the radius is zero, 
+    """ Queries the SIMBAD database by an exact coordinate if the radius is zero, 
         or a regional area if the radius is non-zero. 
 
     Args:
@@ -46,7 +53,7 @@ def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> Dict[str, Li
         ValueError: If the radius is invalid. 
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package.     
-    '''
+    """
     return dict("", []) # Stub
 
 
