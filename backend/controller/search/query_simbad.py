@@ -26,6 +26,7 @@ License Terms and Copyright:
 
 from typing import Dict, Tuple, List
 from astropy.coordinates import SkyCoord
+from astropy.table import Table
 
 
 """
@@ -33,6 +34,31 @@ Error class for a failed connection to the SIMBAD database.
 """
 class QuerySimbadError(Exception):
     pass
+
+
+def _get_coords_from_table(table: Table) -> SkyCoord:
+    ''' Retrieve the coordinates of an object from an Astropy Table 
+        data structure. 
+
+    Args:
+        table (astropy.table.Table): The data structure.
+
+    Returns: 
+        SkyCoord: The coordinates of the object retrieved from the table.
+    '''
+    return SkyCoord(0.0, 0.0) # Stub
+
+
+def _table_to_list(table: Table) -> List[str]:
+    """ Convert an Astroquery Table data structure to a Python list. 
+
+    Args:
+        table (Table): Table data structure
+
+    Returns:
+        List[str]: List of object identifiers extracted from the table. 
+    """
+    return []
 
 
 def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> Dict[str, List[str]]:
@@ -60,7 +86,7 @@ def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> Dict[str, Li
 def _query_simbad_by_name(object_name: str, 
                           get_aliases: bool=True
 ) -> Tuple[str, SkyCoord, List[str]]:
-    ''' Queries the SIMBAD database by an object identifier string. 
+    """ Queries the SIMBAD database by an object identifier string. 
 
     Args:
         object_name (str): An object MAIN_ID or alias. 
@@ -76,5 +102,5 @@ def _query_simbad_by_name(object_name: str,
     Raises:
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package. 
-    '''
+    """
     return "default", SkyCoord(0.0, 0.0), [] # Stub
