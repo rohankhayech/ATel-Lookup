@@ -23,14 +23,15 @@ License Terms and Copyright:
 
 import unittest
 
-def list_is_type(lst:list,typ:type,allow_empty:bool=True)->bool:
+def list_is_type(lst:list,typ:type,allow_empty:bool=True,allow_none:bool=False)->bool:
     """
     Checks if a given list is of a single type.
 
     Args:
         lst (list): The list to check.
         typ (type): The type to check.
-        allow_empty (bool, optional): Returns true for empty lists if true. Defaults to true.
+        allow_empty (bool, optional): Returns true for empty lists if true. Defaults to True.
+        allow_none (bool, optional): Returns true if the list is None if true. Defaults to False.
 
     Returns:
         bool: True if all elements in the list are of the specified type.
@@ -40,6 +41,8 @@ def list_is_type(lst:list,typ:type,allow_empty:bool=True)->bool:
             return all(isinstance(e, typ) for e in lst)
         else:
             return allow_empty
+    elif lst==None:
+        return allow_none
     else:   
         return False
 
@@ -48,7 +51,8 @@ def list_is_type(lst:list,typ:type,allow_empty:bool=True)->bool:
 #Test suite
 class _Test(unittest.TestCase):
     def testEmpty(self):
-        self.assertFalse(list_is_type([],int))
+        self.assertTrue(list_is_type([],int))
+        self.assertFalse(list_is_type([],int,allow_empty=False))
     
     def testAllInt(self):
         self.assertTrue(list_is_type([1,2],int))
@@ -66,8 +70,12 @@ class _Test(unittest.TestCase):
         self.assertFalse(list_is_type(5, int))
 
     def testNotAType(self):
-        self.assertFalse(list_is_type([1,2], 5))
+        with self.assertRaises(TypeError):
+            list_is_type([1,2], 5)
 
+    def testNone(self):
+        self.assertFalse(list_is_type(None,int))
+        self.assertTrue(list_is_type(None, int,allow_none=True))
 
 if __name__ == '__main__':
     unittest.main()
