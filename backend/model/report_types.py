@@ -81,7 +81,7 @@ class ReportResult:
         except ValueError:
             raise TypeError("ATel Number must be a valid positive integer.")
 
-        if atel_num>0: #and atel_num<sys.maxint: - check int overflow in python?
+        if atel_num>0:
             self._atel_num = atel_num
         else:
             raise ValueError("ATel Number must be a valid positive integer.")

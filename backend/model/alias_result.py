@@ -34,8 +34,6 @@ class AliasResult:
             alias (str): String representing an alternative name of the object.
             object_ID (str): String representing the main object ID associated with the alias.
         """
-
-        #TODO: type/value checking in constructor as object is immutable
         self._alias = str(alias)
         self._object_ID = str(object_ID)
 
