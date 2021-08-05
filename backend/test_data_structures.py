@@ -26,9 +26,9 @@ import unittest
 
 from astropy.coordinates.sky_coordinate import SkyCoord
 
-from alias_result import AliasResult
-from search_filters import SearchFilters, KeywordMode
-from report_types import ImportedReport
+from model.alias_result import AliasResult
+from model.search_filters import SearchFilters, KeywordMode
+from model.report_types import ImportedReport
 
 class TestAliasResult(unittest.TestCase):
     

@@ -23,23 +23,24 @@ License Terms and Copyright:
 
 import unittest
 
-def list_is_type(lst:list,typ:type)->bool:
+def list_is_type(lst:list,typ:type,allow_empty:bool=True)->bool:
     """
     Checks if a given list is of a single type.
 
     Args:
         lst (list): The list to check.
         typ (type): The type to check.
+        allow_empty (bool, optional): Returns true for empty lists if true. Defaults to true.
 
     Returns:
         bool: True if all elements in the list are of the specified type.
     """
-    if type(lst) == list and type(typ) == type:
+    if type(lst) == list:
         if lst:
             return all(isinstance(e, typ) for e in lst)
         else:
-            return False
-    else:
+            return allow_empty
+    else:   
         return False
 
 
