@@ -110,10 +110,10 @@ class SearchFilters:
         Args:
             keywords (list[str]): List of strings representing fixed keywords.
         """
-        if list_is_type(keywords, str, allow_none=True):
+        if list_is_type(keywords, str, allow_empty=False, allow_none=True):
             self._keywords = keywords
         else:
-            raise TypeError("Keywords must be a valid list of strings.")
+            raise TypeError("Keywords must be a valid list of strings or None.")
 
     @property 
     def keyword_mode(self)->KeywordMode:

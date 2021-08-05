@@ -76,7 +76,10 @@ class ReportResult:
         Raises:
             ValueError: When the given ATel number is not a valid positive integer.
         """
-        atel_num = int(atel_num)
+        try:
+            atel_num = int(atel_num)
+        except ValueError:
+            raise TypeError("ATel Number must be a valid positive integer.")
 
         if atel_num>0: #and atel_num<sys.maxint: - check int overflow in python?
             self._atel_num = atel_num
