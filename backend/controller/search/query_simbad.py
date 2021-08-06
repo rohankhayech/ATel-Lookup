@@ -24,7 +24,6 @@ License Terms and Copyright:
 """
 
 
-from typing import Dict, Tuple, List
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 
@@ -49,7 +48,7 @@ def _get_coords_from_table(table: Table) -> SkyCoord:
     return SkyCoord(0.0, 0.0) # Stub
 
 
-def _table_to_list(table: Table) -> List[str]:
+def _table_to_list(table: Table) -> list[str]:
     """ Convert an Astroquery Table data structure to a Python list. 
 
     Args:
@@ -61,7 +60,7 @@ def _table_to_list(table: Table) -> List[str]:
     return []
 
 
-def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> Dict[str, List[str]]:
+def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> dict[str, list[str]]:
     """ Queries the SIMBAD database by an exact coordinate if the radius is zero, 
         or a regional area if the radius is non-zero. 
 
@@ -85,7 +84,7 @@ def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> Dict[str, Li
 
 def _query_simbad_by_name(object_name: str, 
                           get_aliases: bool=True
-) -> Tuple[str, SkyCoord, List[str]]:
+) -> tuple[str, SkyCoord, list[str]]:
     """ Queries the SIMBAD database by an object identifier string. 
 
     Args:

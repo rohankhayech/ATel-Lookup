@@ -26,16 +26,14 @@ License Terms and Copyright:
 """
 
 
-from typing import List
 from datetime import datetime
 from astropy.coordinates import SkyCoord
-from astropy.table import Table
 
 
 def search_reports_by_coords(search_filters: SearchFilters, 
                              coords: SkyCoord, 
                              radius: float=10.0
-) -> List[ReportResult]:
+) -> list[ReportResult]:
     """ Performs an immediate query of the SIMBAD database by the coordinate
         range and retrieves matching reports from the local database. 
 
@@ -57,7 +55,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
     return [] # Stub
 
 
-def search_reports_by_id(search_filters: SearchFilters, name: str) -> List[ReportResult]:
+def search_reports_by_id(search_filters: SearchFilters, name: str) -> list[ReportResult]:
     """ Query the local database and the SIMBAD database by an object identifier
         and return the reports that match. 
 

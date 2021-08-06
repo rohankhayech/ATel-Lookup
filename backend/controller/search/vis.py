@@ -1,14 +1,13 @@
-from typing import List, Tuple 
 from datetime import datetime 
 
 
 # Type aliasing for the list data structures. 
-ReportsList = List[Tuple[int, datetime]]
-EdgesList = List[Tuple[int, int]]
+ReportsList = list[tuple[int, datetime]]
+EdgesList = list[tuple[int, int]]
 
 
-def create_nodes_list(reports_list: List[ReportResult]
-) -> Tuple[ReportsList, EdgesList]:
+def create_nodes_list(reports_list: list[ReportResult]
+) -> tuple[ReportsList, EdgesList]:
     ''' Constructs the data structures required to graph relations between
         ATel reports. The data is structured like a standard graph, involving
         a list of nodes and edges. Reports are considered related by their 
