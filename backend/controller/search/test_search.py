@@ -36,17 +36,29 @@ from astropy.table.column import Column
 """
 class TestNameExtraction(ut.TestCase):
     def setUp(self):
-        # Create a numpy array for data storage.
-        # 5 rows, 1 columns.
         # This way of storing strings mirrors how the astroquery query 
         # function works. 
-        col = Column(name="ID", data=[b"id1", b"id2", b"id3", b"id4"])
+        col_1 = Column(name="ID", data=[b"id1", b"id2", b"id3", b"id4"])
         self.alias_table = Table()
-        self.alias_table.add_column(col)
+        self.alias_table.add_column(col_1)
+
+        col_2 = Column(name="MAIN_ID", data=["id1", "id2", "id3", "id4"], dtype=np.object0)
+        col_3 = Column(name="RA", data=["", "", "", ""], dtype=np.str0)
+        self.region_table = Table()
+        self.region_table.add_column(col_2)
+        self.region_table.add_column(col_3)
 
 
     def test_alias_table(self):
         lst = query_simbad._get_names_from_table(self.alias_table)
+        self.assertEqual(lst[0], "id1")
+        self.assertEqual(lst[1], "id2")
+        self.assertEqual(lst[2], "id3")
+        self.assertEqual(lst[3], "id4")
+
+
+    def test_region_table(self):
+        lst = query_simbad._get_names_from_table(self.region_table)
         self.assertEqual(lst[0], "id1")
         self.assertEqual(lst[1], "id2")
         self.assertEqual(lst[2], "id3")
