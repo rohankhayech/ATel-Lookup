@@ -82,8 +82,11 @@ def _get_names_from_table(table: Table) -> list[str]:
     # Convert byte string to str
     # This is needed as the numpy array used by the Table encodes the 
     # strings in bytes. 
-    for bytestring in list(column):
-        lst.append(bytestring.decode('UTF-8'))
+    for item in list(column):
+        if type(item) is not str:
+            lst.append(item.astype('str'))
+        else:
+            lst.append(item)
 
     return lst
 
