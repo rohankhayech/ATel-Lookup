@@ -32,6 +32,8 @@ from astroquery.simbad import Simbad as simbad
 # The name of the object ID column in the Astroquery Table data structure. 
 IDS_COLUMN = "ID"
 MAIN_IDS_COLUMN = "MAIN_ID"
+RA_COLUMN = "RA"
+DEC_COLUMN = "DEC"
 
 
 """
@@ -50,8 +52,20 @@ def _get_coords_from_table(table: Table) -> SkyCoord:
 
     Returns: 
         SkyCoord: The coordinates of the object retrieved from the table.
+
+    Raises:
+        ValueError: if the table does not provide right ascension and 
+        declination columns. 
     '''
-    return SkyCoord(0.0, 0.0) # Stub
+    if RA_COLUMN in table.colnames and DEC_COLUMN in table.colnames:
+        # The table will always have one row in it, as if the object
+        # was not found by SIMBAD, a UserWarning is raised. 
+        ra = table[RA_COLUMN][0].astype('str')
+        dec = table[DEC_COLUMN][0].astype('str')
+
+        return SkyCoord(ra, dec, frame='icrs', unit=('hourangle', 'deg'))
+    else:
+        raise ValueError("Table does not contain the RA and DEC columns")
 
 
 def _get_names_from_table(table: Table) -> list[str]:
@@ -79,9 +93,8 @@ def _get_names_from_table(table: Table) -> list[str]:
     column = table[column_name].data
     lst = []
 
-    # Convert byte string to str
-    # This is needed as the numpy array used by the Table encodes the 
-    # strings in bytes. 
+    # The type is converted to str. 
+    # Astropy will either return the IDs as an array of bytes or an object. 
     for item in list(column):
         if type(item) is not str:
             lst.append(item.astype('str'))
