@@ -26,6 +26,12 @@ License Terms and Copyright:
 
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
+from astroquery.simbad import Simbad as simbad
+
+
+# The name of the object ID column in the Astroquery Table data structure. 
+IDS_COLUMN = "ID"
+MAIN_IDS_COLUMN = "MAIN_IDS"
 
 
 """
@@ -48,8 +54,10 @@ def _get_coords_from_table(table: Table) -> SkyCoord:
     return SkyCoord(0.0, 0.0) # Stub
 
 
-def _table_to_list(table: Table) -> list[str]:
-    """ Convert an Astroquery Table data structure to a Python list. 
+def _get_names_from_table(table: Table) -> list[str]:
+    """ Retrieve the list of names stored in a Table data structure. 
+    The table must contain the columns identifed by the IDS_COLUMN or the 
+    MAIN_IDS_COLUMN constants in this file to contain the list of names. 
 
     Args:
         table (Table): Table data structure
@@ -57,7 +65,27 @@ def _table_to_list(table: Table) -> list[str]:
     Returns:
         list[str]: List of object identifiers extracted from the table. 
     """
-    return []
+    # The table contains aliases (list of IDS)
+    if IDS_COLUMN in table.colnames:
+        column_name = IDS_COLUMN
+    # The table only contains MAIN_IDS
+    elif MAIN_IDS_COLUMN in table.colnames:
+        column_name = MAIN_IDS_COLUMN
+    # The table does not contain any names
+    else:
+        return []
+    
+    # Retrieve the names column.
+    column = table[column_name].data
+    lst = []
+
+    # Convert byte string to str
+    # This is needed as the numpy array used by the Table encodes the 
+    # strings in bytes. 
+    for bytestring in list(column):
+        lst.append(bytestring.decode('UTF-8'))
+
+    return lst
 
 
 def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> dict[str, list[str]]:
