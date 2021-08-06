@@ -37,11 +37,13 @@ from astropy.table.column import Column
 class TestNameExtraction(ut.TestCase):
     def setUp(self):
         # This way of storing strings mirrors how the astroquery query 
-        # function works. 
+        # function works. The string is represented as bytes. 
         col_1 = Column(name="ID", data=[b"id1", b"id2", b"id3", b"id4"])
         self.alias_table = Table()
         self.alias_table.add_column(col_1)
 
+        # For region queries, astropy returns a column of objects for the 
+        # main ID. This is different to an alias search which is an array of bytes. 
         col_2 = Column(name="MAIN_ID", data=["id1", "id2", "id3", "id4"], dtype=np.object0)
         col_3 = Column(name="RA", data=["", "", "", ""], dtype=np.str0)
         self.region_table = Table()
@@ -49,6 +51,7 @@ class TestNameExtraction(ut.TestCase):
         self.region_table.add_column(col_3)
 
 
+    # Test the alias table (dtype is bytes30)
     def test_alias_table(self):
         lst = query_simbad._get_names_from_table(self.alias_table)
         self.assertEqual(lst[0], "id1")
@@ -57,6 +60,7 @@ class TestNameExtraction(ut.TestCase):
         self.assertEqual(lst[3], "id4")
 
 
+    # Test the region table (dtype is object)
     def test_region_table(self):
         lst = query_simbad._get_names_from_table(self.region_table)
         self.assertEqual(lst[0], "id1")
@@ -65,5 +69,6 @@ class TestNameExtraction(ut.TestCase):
         self.assertEqual(lst[3], "id4")
 
 
+# Run suite. 
 if __name__ == '__main__':
     ut.main()
