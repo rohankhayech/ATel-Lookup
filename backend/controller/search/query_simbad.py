@@ -31,7 +31,7 @@ from astroquery.simbad import Simbad as simbad
 
 # The name of the object ID column in the Astroquery Table data structure. 
 IDS_COLUMN = "ID"
-MAIN_IDS_COLUMN = "MAIN_IDS"
+MAIN_IDS_COLUMN = "MAIN_ID"
 
 
 """
