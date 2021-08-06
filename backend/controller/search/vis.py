@@ -40,7 +40,7 @@ def create_nodes_list(reports_list: list[ReportResult]
         data type).
 
     Args:
-        reports_list (List[ReportResult]): A list of ReportResult objects
+        reports_list (list[ReportResult]): A list of ReportResult objects
         returned from a successful search. 
 
     Returns:

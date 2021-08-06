@@ -44,7 +44,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
             region. 10.0 arcsecs by default. Should be validated beforehand. 
 
     Returns:
-        List[ReportResult]: The reports found in the local database that match
+        list[ReportResult]: The reports found in the local database that match
             the coordinate/region criteria. 
 
     Raises:
@@ -60,11 +60,11 @@ def search_reports_by_id(search_filters: SearchFilters, name: str) -> list[Repor
         and return the reports that match. 
 
     Args:
-        search_filters (SearchFilters): Filters for the frontend search. 
+        search_filters (SearchFilters): Filters for the front-end search. 
         name (str): The object identifier. 
 
     Returns:
-        List[ReportResult]: The reports found in the local database that match
+        list[ReportResult]: The reports found in the local database that match
             the name. 
     """
     return [] # Stub

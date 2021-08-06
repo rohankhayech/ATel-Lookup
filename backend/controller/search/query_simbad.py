@@ -55,7 +55,7 @@ def _table_to_list(table: Table) -> list[str]:
         table (Table): Table data structure
 
     Returns:
-        List[str]: List of object identifiers extracted from the table. 
+        list[str]: List of object identifiers extracted from the table. 
     """
     return []
 
@@ -71,7 +71,7 @@ def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> dict[str, li
             region. By default, the radius is set to 10.0 arcsecs, however it
             can be between 0.0 (exact coordinates) and 20.0 (maximum allowed). 
     Returns:
-        Dict[str, List[str]]: A dictionary where the key is the MAIN_ID of an 
+        dict[str, list[str]]: A dictionary where the key is the MAIN_ID of an 
             object found in the coordinate range, and the value is a list of 
             aliases retrieved from SIMBAD related to the MAIN_ID. 
     Raises:
@@ -96,7 +96,7 @@ def _query_simbad_by_name(object_name: str,
     Returns:
         str: The object's MAIN_ID as listed in the SIMBAD database. 
         SkyCoord: The object's coordinates, retrieved from SIMBAD. 
-        List[str]: A list of aliases for the object, returned only if 
+        list[str]: A list of aliases for the object, returned only if 
             get_aliases == True.
     Raises:
         QuerySimbadError: if a network error occurs while contacting the 
