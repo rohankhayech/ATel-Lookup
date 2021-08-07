@@ -30,6 +30,9 @@ from typing import List
 
 from astropy.coordinates import SkyCoord
 import mysql.connector
+from mysql.connector import errorcode
+from mysql.connector.connection import MySQLConnection
+from mysql.connector.cursor import CursorBase, MySQLCursor
 
 from model.report_types import ImportedReport, ReportResult
 from model.search_filters import SearchFilters
@@ -49,7 +52,19 @@ def get_hashed_password(username:str)->str:
     Raises:
         UserNotFoundError: When the specified user is not found in the database. This can be avoided by calling the userExists() method beforehand.
     """
-    return "" #stub
+    # Connect to mysql server
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = ("select passwordHash from AdminUsers where username = %s")
+
+    cur.execute(query, (username,))
+    result = cur.fetchone()
+    
+    if result is not None:
+        return result[0]
+    else:
+        raise UserNotFoundError()
 
 def user_exists(username:str)->bool:
     """
@@ -61,7 +76,18 @@ def user_exists(username:str)->bool:
     Returns:
         bool: True if the user was found, False otherwise.
     """
-    return False #stub
+    # Connect to mysql server
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
+
+    query = ("select username from AdminUsers where username = %s")
+    
+    cur.execute(query,(username,))
+
+    if cur.fetchone() == None:
+        return False
+    else:
+        return True
 
 def add_admin_user(username:str, password:str):
     """
@@ -74,7 +100,26 @@ def add_admin_user(username:str, password:str):
     Raises:
         ExistingUserError: When the specified username is already associated with another user stored in the database. The new user cannot be added.
     """
-    pass #stub
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
+
+    query = ("insert into AdminUsers "
+            "(username, passwordHash) "
+            "values (%s, %s)")
+
+    data = (username, password)
+
+    try:
+        cur.execute(query, data)
+    except mysql.connector.Error as e:
+        if e.errno == errorcode.ER_DUP_ENTRY:
+            raise ExistingUserError()
+        else:
+            raise e
+    finally:
+        cn.commit()
+        cur.close()
+        cn.close()
 
 def add_report(report:ImportedReport):
     """
@@ -210,27 +255,35 @@ def init_db():
     """
     Connects to the database and creates the schema if not already created.
     """
-    cn = mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST"), 
-        user=os.getenv("MYSQL_USER"), 
-        password=os.getenv("MYSQL_PASSWORD"), 
-        database=os.getenv("MYSQL_DB")
-    )
-
-    print(os.path.abspath(os.getcwd()))
-
-    file = open(os.path.join("..","model","schema.sql"))
-    schema = file.read()
-
+    # Connect to mysql server
+    cn = _connect()
     cur = cn.cursor()
 
-    cur.execute(schema)
+    # Load table schema from file
+    user_table = open(os.path.join("..","model","schema","AdminUser.sql")).read()
 
+    # Add tables
+    try:
+        cur.execute(user_table)
+    except mysql.connector.Error as err:
+        print(err.msg)
+
+    # Close connection
     cur.close()
-
     cn.close()
 
-#Private functions
+# Exceptions
+class ExistingUserError(Exception):
+    """
+    Raised when the specified username is already associated with another user stored in the database.
+    """
+
+class UserNotFoundError(Exception):
+    """
+    Raised when the specified user is not found in the database.
+    """
+
+# Private functions
 def _link_reports(object_id:str, aliases:List[str]):
     """
     Adds records relating reports and the specified object ID, where the report contains one or more of the specified aliases.
@@ -243,3 +296,17 @@ def _link_reports(object_id:str, aliases:List[str]):
         ObjectNotFoundError: Raised when the specified object ID is not stored in the database.
     """
     pass
+
+def _connect()->MySQLConnection:
+    """
+    Connects to the MySQL server and database and returns the connection object.
+
+    Returns:
+        MySQLConnection: Connection to the MySQL Server. Must be closed by the calling method once finished. 
+    """
+    return mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST"), 
+        user=os.getenv("MYSQL_USER"), 
+        password=os.getenv("MYSQL_PASSWORD"), 
+        database=os.getenv("MYSQL_DB")
+    )
