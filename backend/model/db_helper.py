@@ -80,7 +80,8 @@ def user_exists(username:str)->bool:
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
 
-    query = ("select username from AdminUsers where username = %s")
+    query = ("select username from AdminUsers"
+            " where username = %s")
     
     cur.execute(query,(username,))
 
@@ -103,9 +104,9 @@ def add_admin_user(username:str, password:str):
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
 
-    query = ("insert into AdminUsers "
-            "(username, passwordHash) "
-            "values (%s, %s)")
+    query = ("insert into AdminUsers"
+            " (username, passwordHash)"
+            " values (%s, %s)")
 
     data = (username, password)
 

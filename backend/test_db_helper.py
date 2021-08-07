@@ -24,13 +24,13 @@ from typing import Tuple
 import unittest
 
 from mysql.connector.cursor import MySQLCursor
+from mysql.connector.errors import IntegrityError
 
 from model import db_helper
 
 class TestInitTables(unittest.TestCase):
+    #Verify tables exist/were created on container init
     def testTables(self):
-        db_helper.init_db()
-        
         cn = db_helper._connect()
         cur:MySQLCursor = cn.cursor()
 
@@ -44,26 +44,32 @@ class TestInitTables(unittest.TestCase):
         self.assertTrue(result)
 
 class TestAuth(unittest.TestCase):
+    
     def testAddUser(self):
         db_helper.add_admin_user("test","hash")
         self.assertTrue(db_helper.user_exists("test"))
     
     def testDupeUser(self):
-        db_helper.add_admin_user("test","")
+        db_helper.add_admin_user("test", "hash")
+        with (self.assertRaises(db_helper.ExistingUserError)):
+            db_helper.add_admin_user("test","")
 
     def testUserNotExists(self):
         self.assertFalse(db_helper.user_exists("test2"))
 
     def testGetPassword(self):
+        db_helper.add_admin_user("test", "hash")
         self.assertEqual(db_helper.get_hashed_password("test"),"hash")
         with (self.assertRaises(db_helper.UserNotFoundError)):
             db_helper.get_hashed_password("test2")
 
-    def cleanUp(self):
+    def tearDown(self):
+        #remove test user
         cn = db_helper._connect()
-        cur = cn.cursor()
+        cur:MySQLCursor = cn.cursor()
         cur.execute("delete from AdminUsers where username = 'test'")
         cur.close()
+        cn.commit()
         cn.close()
 
 if __name__ == '__main__':
