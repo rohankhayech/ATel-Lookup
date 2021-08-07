@@ -25,13 +25,15 @@ License Terms and Copyright:
 """
 
 from datetime import datetime
+import os
 from typing import List
 
 from astropy.coordinates import SkyCoord
+import mysql.connector
 
-from report_types import ImportedReport, ReportResult
-from search_filters import SearchFilters
-from alias_result import AliasResult
+from model.report_types import ImportedReport, ReportResult
+from model.search_filters import SearchFilters
+from model.alias_result import AliasResult
 
 # Public functions
 def get_hashed_password(username:str)->str:
@@ -202,6 +204,31 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:i
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
     return None # stub
+
+
+def init_db():
+    """
+    Connects to the database and creates the schema if not already created.
+    """
+    cn = mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST"), 
+        user=os.getenv("MYSQL_USER"), 
+        password=os.getenv("MYSQL_PASSWORD"), 
+        database=os.getenv("MYSQL_DB")
+    )
+
+    print(os.path.abspath(os.getcwd()))
+
+    file = open(os.path.join("..","model","schema.sql"))
+    schema = file.read()
+
+    cur = cn.cursor()
+
+    cur.execute(schema)
+
+    cur.close()
+
+    cn.close()
 
 #Private functions
 def _link_reports(object_id:str, aliases:List[str]):
