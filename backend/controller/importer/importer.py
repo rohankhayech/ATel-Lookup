@@ -68,12 +68,16 @@ def download_report(atel_num: int) -> str:
 
     # Makes a GET request to ATel page
     session = HTMLSession()
+    request = session.get(url)
 
-    request = session.get()
     # Fully loads the HTML of ATel page
-    request.html.render()
+    request.html.render(timeout=20)
+    html = request.html.raw_html
 
-    return request.html.raw_html
+    # Closes connection
+    session.close()
+
+    return html
 
 def parse_report(html_string: str) -> ImportedReport:
     """
