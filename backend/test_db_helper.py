@@ -52,7 +52,7 @@ class TestAuth(unittest.TestCase):
     def testDupeUser(self):
         db_helper.add_admin_user("test", "hash")
         with (self.assertRaises(db_helper.ExistingUserError)):
-            db_helper.add_admin_user("test","")
+            db_helper.add_admin_user("test","hash")
 
     def testUserNotExists(self):
         self.assertFalse(db_helper.user_exists("test2"))
@@ -62,6 +62,16 @@ class TestAuth(unittest.TestCase):
         self.assertEqual(db_helper.get_hashed_password("test"),"hash")
         with (self.assertRaises(db_helper.UserNotFoundError)):
             db_helper.get_hashed_password("test2")
+
+    def testExceedsMax(self):
+        with (self.assertRaises(ValueError)):
+            db_helper.add_admin_user("a"*26,"hash")
+        with (self.assertRaises(ValueError)):
+            db_helper.add_admin_user("test","a"*256)
+        with (self.assertRaises(ValueError)):
+            db_helper.add_admin_user("","hash")
+        with (self.assertRaises(ValueError)):
+            db_helper.add_admin_user("test","")
 
     def tearDown(self):
         #remove test user

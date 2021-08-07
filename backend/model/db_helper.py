@@ -95,32 +95,44 @@ def add_admin_user(username:str, password:str):
     Stores a new admin user with the specified username and password if the user does not already exist.
 
     Args:
-        username (str): The unique username of the admin user to add.
-        password (str): The hashed password of the admin user to add.
+        username (str): The unique username of the admin user to add. Max 24 chars.
+        password (str): The hashed password of the admin user to add. Max 255 chars.
 
     Raises:
         ExistingUserError: When the specified username is already associated with another user stored in the database. The new user cannot be added.
+        ValueError: When username or password are empty strings or exceed the specified max lengths.
     """
-    cn = _connect()
-    cur:MySQLCursor = cn.cursor()
+    # Type conversion
+    username = str(username)
+    password = str(password)
 
-    query = ("insert into AdminUsers"
-            " (username, passwordHash)"
-            " values (%s, %s)")
+    # Check length is valid
+    if (len(username) in range(1,25) and len(password) in range(1,255)):
+        # connect to database
+        cn = _connect()
+        cur:MySQLCursor = cn.cursor()
 
-    data = (username, password)
+        #setup query
+        query = ("insert into AdminUsers"
+                " (username, passwordHash)"
+                " values (%s, %s)")
 
-    try:
-        cur.execute(query, data)
-    except mysql.connector.Error as e:
-        if e.errno == errorcode.ER_DUP_ENTRY:
-            raise ExistingUserError()
-        else:
-            raise e
-    finally:
-        cn.commit()
-        cur.close()
-        cn.close()
+        data = (username, password)
+
+        #execute query and handle errors
+        try:
+            cur.execute(query, data)
+        except mysql.connector.Error as e:
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                raise ExistingUserError()
+            else:
+                raise e
+        finally:
+            cn.commit()
+            cur.close()
+            cn.close()
+    else:
+        raise ValueError("Specified username and password must be valid lengths and non-empty.")
 
 def add_report(report:ImportedReport):
     """
