@@ -23,8 +23,9 @@ License Terms and Copyright:
 """
 
 from datetime import datetime
-from typing import List
 from astropy.coordinates import SkyCoord
+from requests_html import HTMLSession
+from backend.model.report_types import ImportedReport
 
 # Public functions
 def import_report(atel_num: int):
@@ -62,8 +63,17 @@ def download_report(atel_num: int) -> str:
         DownloadFailException: Thrown when the HTML could not be downloaded.
     """
 
+    # Generates the URL of ATel page
+    url = 'https://www.astronomerstelegram.org/?read=' + str(atel_num)
 
-    return ''
+    # Makes a GET request to ATel page
+    session = HTMLSession()
+
+    request = session.get()
+    # Fully loads the HTML of ATel page
+    request.html.render()
+
+    return request.html.raw_html
 
 def parse_report(html_string: str) -> ImportedReport:
     """
