@@ -156,7 +156,7 @@ class SearchFilters:
         Args:
             date (datetime): The start of the date range to filter by.
         """
-        if date == None or type(date) == datetime:
+        if date is None or type(date) == datetime:
             self._start_date = date
         else:
             raise TypeError("Start date must be a valid datetime object.")
@@ -176,7 +176,7 @@ class SearchFilters:
         Args:
             date (datetime): The end of the date range to filter by.
         """
-        if date == None or type(date) == datetime:
+        if date is None or type(date) == datetime:
             self._end_date = date
         else:
             raise TypeError("End date must be a valid datetime object.")
