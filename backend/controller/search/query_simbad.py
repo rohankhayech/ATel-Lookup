@@ -28,6 +28,10 @@ from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
 
+from urllib3.exceptions import NewConnectionError
+
+from requests import ConnectionError, HTTPError
+
 
 # The name of the object ID column in the Astroquery Table data structure. 
 IDS_COLUMN = "ID"
@@ -36,11 +40,19 @@ RA_COLUMN = "RA"
 DEC_COLUMN = "DEC"
 
 
+# Mirror for the SIMBAD database.
+# Using the Harvard mirror.
+MIRROR = "http://simbad.cfa.harvard.edu/simbad/sim-script"
+
+
 """
 Error class for a failed connection to the SIMBAD database.
 """
 class QuerySimbadError(Exception):
     pass
+
+
+# Helper functions (private)
 
 
 def _get_coords_from_table(table: Table) -> SkyCoord:
@@ -104,6 +116,9 @@ def _get_names_from_table(table: Table) -> list[str]:
     return lst
 
 
+# Public functions. 
+
+
 def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> dict[str, list[str]]:
     """ Queries the SIMBAD database by an exact coordinate if the radius is zero, 
         or a regional area if the radius is non-zero. 
@@ -126,7 +141,7 @@ def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> dict[str, li
     return dict("", []) # Stub
 
 
-def _query_simbad_by_name(object_name: str, 
+def query_simbad_by_name(object_name: str, 
                           get_aliases: bool=True
 ) -> tuple[str, SkyCoord, list[str]]:
     """ Queries the SIMBAD database by an object identifier string. 
@@ -146,4 +161,32 @@ def _query_simbad_by_name(object_name: str,
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package. 
     """
-    return "default", SkyCoord(0.0, 0.0), [] # Stub
+    # Set the mirror. 
+    simbad.SIMBAD_URL = MIRROR
+
+    try:
+        table = simbad.query_object(object_name)
+
+        if table == None:
+            # The object does not exist.
+            return None 
+
+        # Get the MAIN_ID and the coordinates from the table. 
+        # The table may be empty (non-result), which means these 
+        # functions will return 
+        main_id = _get_names_from_table(table)
+        coords = _get_coords_from_table(table)
+
+        if get_aliases:
+            aliases_table = simbad.query_objectids(object_name)
+            aliases_list = _get_names_from_table(aliases_table)
+            
+            return main_id, coords, aliases_list
+
+        return main_id, coords
+    except NewConnectionError:
+        raise QuerySimbadError("Failed to establish a network connection.")
+    except ConnectionError:
+        raise QuerySimbadError("Host may be blacklisted from the SIMBAD server.")
+    except HTTPError as e:
+        raise QuerySimbadError(str(e))
