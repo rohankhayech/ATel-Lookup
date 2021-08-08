@@ -22,8 +22,8 @@ License Terms and Copyright:
 """
 
 import unittest
-import importer
 
+from controller.importer import importer
 from bs4 import BeautifulSoup
 
 class TestImporterFunctions(unittest.TestCase):
