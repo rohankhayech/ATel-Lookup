@@ -17,11 +17,12 @@ services:
       - 8080:8080
     volumes:
       - ./backend:/app
-    environment: 
+    environment:
       MYSQL_HOST: mysql
       MYSQL_USER: root
       MYSQL_PASSWORD: p@ssw0rd1
       MYSQL_DB: db
+      JWT_SECRET_KEY: s3cr3tk3y
 
   frontend:
     build: ./frontend
