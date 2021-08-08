@@ -25,6 +25,7 @@ License Terms and Copyright:
 
 
 import unittest as ut
+from astropy.coordinates.sky_coordinate import SkyCoord
 import numpy as np
 import query_simbad
 
@@ -32,7 +33,9 @@ from astropy.table import Table
 from astropy.table.column import Column
 
 
-""" Test the get_names_from_table(Table) function.
+""" Test the get_names_from_table(Table) function. To test the real-world
+    process, this test will construct a manual Table data structure using
+    the same data types returned by the SIMBAD query functions. 
 """
 class TestNameExtraction(ut.TestCase):
     def setUp(self):
@@ -67,6 +70,25 @@ class TestNameExtraction(ut.TestCase):
         self.assertEqual(lst[1], "id2")
         self.assertEqual(lst[2], "id3")
         self.assertEqual(lst[3], "id4")
+
+
+class TestCoordExtraction(ut.TestCase):
+    def setUp(self):
+        table_columns = ("MAIN_ID", "RA", "DEC", "COO_WAVELENGTH", "COO_BIBCODE")
+        table_dtypes = ("object", "str", "str", "str", "object")
+
+        # Reference objects are m13 and m1 respectively. 
+        # COO_WAVE_LENGTH and COO_BIBCODE are excluded for simplicity. 
+        table_ids = ("M 13", "M 1")
+        table_ra = ("16 41 41.634", "05 34 31.94")
+        table_dec = ("+36 27 40.75", "+22 00 52.2") 
+        self.test_table_1 = Table(names=table_columns, dtype=table_dtypes)
+        self.test_table_1.add_row(vals=(table_ids[0], table_ra[0], table_dec[0], "", None))
+        
+
+    def test_table_1(self):
+        coords = query_simbad._get_coords_from_table(self.test_table_1)
+        print(coords)
 
 
 # Run suite. 
