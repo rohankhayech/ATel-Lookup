@@ -25,12 +25,14 @@ License Terms and Copyright:
 
 
 import unittest as ut
-from astropy.coordinates.sky_coordinate import SkyCoord
 import numpy as np
+
 from controller.search import query_simbad
 
 from astropy.table import Table
 from astropy.table.column import Column
+from astropy.coordinates.angles import Angle
+from astropy.coordinates.sky_coordinate import SkyCoord
 
 
 """ Test the get_names_from_table(Table) function. To test the real-world
@@ -72,6 +74,9 @@ class TestNameExtraction(ut.TestCase):
         self.assertEqual(lst[3], "id4")
 
 
+""" Test the coordinate extraction function. Like the TestNameExtraction class, 
+    a mock table is created to mimic the format used by astroquery. 
+"""
 class TestCoordExtraction(ut.TestCase):
     def setUp(self):
         table_columns = ("MAIN_ID", "RA", "DEC", "COO_WAVELENGTH", "COO_BIBCODE")
@@ -84,11 +89,24 @@ class TestCoordExtraction(ut.TestCase):
         table_dec = ("+36 27 40.75", "+22 00 52.2") 
         self.test_table_1 = Table(names=table_columns, dtype=table_dtypes)
         self.test_table_1.add_row(vals=(table_ids[0], table_ra[0], table_dec[0], "", None))
+        self.test_table_2 = Table(names=table_columns, dtype=table_dtypes)
+        self.test_table_2.add_row(vals=(table_ids[1], table_ra[1], table_dec[1], "", None))
+
+        self.expected_coords_1 = SkyCoord(table_ra[0], table_dec[0], frame='icrs', unit=('hourangle', 'deg'))
+        self.expected_coords_2 = SkyCoord(table_ra[1], table_dec[1], frame='icrs', unit=('hourangle', 'deg'))
         
 
     def test_table_1(self):
-        coords = query_simbad._get_coords_from_table(self.test_table_1)
-        print(coords)
+        # Extract the coordinates from the Table data structure. 
+        coords_1 = query_simbad._get_coords_from_table(self.test_table_1)
+        self.assertEqual(coords_1.ra, self.expected_coords_1.ra)
+        self.assertEqual(coords_1.dec, self.expected_coords_1.dec)
+
+
+    def test_table_2(self):
+        coords_2 = query_simbad._get_coords_from_table(self.test_table_2)
+        self.assertEqual(coords_2.ra, self.expected_coords_2.ra)
+        self.assertEqual(coords_2.dec, self.expected_coords_2.dec)
 
 
 # Run suite. 
