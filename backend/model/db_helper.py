@@ -26,7 +26,6 @@ License Terms and Copyright:
 
 from datetime import datetime
 import os
-from typing import List
 
 from astropy.coordinates import SkyCoord
 import mysql.connector
@@ -249,7 +248,7 @@ def find_reports_by_object(filters:SearchFilters, object_name:str=None)->list[Re
     """
     return None #stub
 
-def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->List[ReportResult]:
+def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -296,8 +295,8 @@ class UserNotFoundError(Exception):
     Raised when the specified user is not found in the database.
     """
 
-# Private functions
-def _link_reports(object_id:str, aliases:List[str]):
+#Private functions
+def _link_reports(object_id:str, aliases:list[str]):
     """
     Adds records relating reports and the specified object ID, where the report contains one or more of the specified aliases.
 
