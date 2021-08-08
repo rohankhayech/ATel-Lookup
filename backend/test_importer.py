@@ -23,7 +23,7 @@ License Terms and Copyright:
 
 import unittest
 
-from controller.importer import importer
+from controller.importer.importer import download_report
 from bs4 import BeautifulSoup
 
 class TestImporterFunctions(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestImporterFunctions(unittest.TestCase):
 
         # Tests HTML downloader for 3 ATels by comparing title outputs
         for i in range(3):
-            html = importer.download_report(i + 1)
+            html = download_report(i + 1)
             soup = BeautifulSoup(html, 'html.parser')
             self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])
 
