@@ -386,12 +386,13 @@ def valid_keyword(keyword:str)->bool:
     """
     if not _FIXED_KEYWORDS:
         _load_keywords()
-    return keyword.lower in _FIXED_KEYWORDS
+    return keyword.lower() in _FIXED_KEYWORDS
 
 def _load_keywords():
     """
     Loads the list of fixed ATel Keywords from file.
     """
-    with open(os.path.join("..", "model", "keywords.txt")) as f:
+    with open(os.path.join("model", "keywords.txt")) as f:
         for line in f.readlines():
-            _FIXED_KEYWORDS.append(line.lower())
+            _FIXED_KEYWORDS.append(line.lower().strip("\n"))
+            print(_FIXED_KEYWORDS)
