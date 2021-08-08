@@ -28,7 +28,7 @@ from astropy.coordinates.sky_coordinate import SkyCoord
 
 from model.alias_result import AliasResult
 from model.search_filters import SearchFilters, KeywordMode
-from model.report_types import ImportedReport
+from model.report_types import ImportedReport, valid_keyword
 
 class TestAliasResult(unittest.TestCase):
     
@@ -201,6 +201,15 @@ class TestReportTypes(unittest.TestCase):
             self.ir.referenced_by = ["str"]
         with self.assertRaises(TypeError):
             self.ir.referenced_reports = ["str"]
+
+class TestKeywords(unittest.TestCase):
+    def testValid(self):
+        self.assertTrue(valid_keyword("Radio"))
+        self.assertTrue(valid_keyword("request for observations"))
+        self.assertTrue(valid_keyword("sTAR"))
+    
+    def testInvalid(self):
+        self.assertFalse(valid_keyword("test"))
 
 if __name__ == '__main__':
     unittest.main()

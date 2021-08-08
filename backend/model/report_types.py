@@ -22,6 +22,7 @@ License Terms and Copyright:
 """
 
 from datetime import datetime
+import os
 
 from astropy.coordinates import SkyCoord
 
@@ -369,3 +370,28 @@ class ImportedReport(ReportResult):
         else:
             raise TypeError(
                 "Coordinates must be a valid list of SkyCoord objects.")
+
+# List of keywords
+_FIXED_KEYWORDS = []
+
+def valid_keyword(keyword:str)->bool:
+    """
+    Checks if the given string is a valid fixed ATel keyword. This is case insensitive. 
+
+    Args:
+        keyword (str): The keyword to check.
+
+    Returns:
+        bool: True if the string is a valid keyword, False otherwise.
+    """
+    if not _FIXED_KEYWORDS:
+        _load_keywords()
+    return keyword.lower in _FIXED_KEYWORDS
+
+def _load_keywords():
+    """
+    Loads the list of fixed ATel Keywords from file.
+    """
+    with open(os.path.join("..", "model", "keywords.txt")) as f:
+        for line in f.readlines():
+            _FIXED_KEYWORDS.append(line.lower())
