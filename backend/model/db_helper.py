@@ -218,7 +218,7 @@ def init_db():
 
     print(os.path.abspath(os.getcwd()))
 
-    file = open(os.path.join("..","model","schema.sql"))
+    file = open(os.path.join("..","model","schema","schema.sql"))
     schema = file.read()
 
     cur = cn.cursor()
