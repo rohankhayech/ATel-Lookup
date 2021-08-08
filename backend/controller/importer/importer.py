@@ -22,10 +22,10 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from model.report_types import ImportedReport
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession
-from backend.model.report_types import ImportedReport
 
 # Public functions
 def import_report(atel_num: int):
@@ -64,7 +64,7 @@ def download_report(atel_num: int) -> str:
     """
 
     # Generates the URL of ATel page
-    url = 'https://www.astronomerstelegram.org/?read=' + str(atel_num)
+    url = f'https://www.astronomerstelegram.org/?read={atel_num}'
 
     # Makes a GET request to ATel page
     session = HTMLSession()
