@@ -1,25 +1,18 @@
 import mysql.connector
 from flask import Flask, jsonify
 
+from model.db_helper import init_db
 
 app = Flask(__name__)
 
+#Initialise the database
+init_db()
 
 @app.route("/")
 def index():
-    connection = mysql.connector.connect(
-        host="database", user="root", password="p@ssw0rd1", database="Astronomy"
-    )
 
-    cursor = connection.cursor()
 
-    cursor.execute("SELECT * FROM Reports")
-
-    results = cursor.fetchall()
-
-    cursor.close()
-
-    return jsonify(results)
+    return jsonify("")
 
 
 if __name__ == "__main__":
