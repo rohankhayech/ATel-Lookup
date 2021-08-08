@@ -25,9 +25,14 @@ License Terms and Copyright:
 
 
 import unittest as ut
+import warnings
 import numpy as np
+import random
+from unittest import mock
+import requests
 
 from controller.search import query_simbad
+from controller.search.query_simbad import QuerySimbadError
 
 from astropy.table import Table
 from astropy.table.column import Column
@@ -107,6 +112,75 @@ class TestCoordExtraction(ut.TestCase):
         coords_2 = query_simbad._get_coords_from_table(self.test_table_2)
         self.assertEqual(coords_2.ra, self.expected_coords_2.ra)
         self.assertEqual(coords_2.dec, self.expected_coords_2.dec)
+
+
+# Mock the situations where a network error occurs. 
+# See the reference below. 
+# Reference: https://github.com/astropy/astroquery/blob/main/astroquery/simbad/core.py 
+
+
+def mocked_no_network(*args, **kwargs):
+    raise requests.exceptions.HTTPError("Mocked error message.")
+
+
+def mocked_blacklist(*args, **kwargs):
+    raise requests.exceptions.ConnectionError("Mocked error message.")
+
+
+# A table is returned as None when no object is found. 
+def mocked_no_result(*args, **kwargs):
+    return None 
+
+
+class TestNameSearch(ut.TestCase):
+    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
+    def test_no_network(self, mock_get):
+        with self.assertRaises(QuerySimbadError): 
+            query_simbad.query_simbad_by_name("test")
+
+
+    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
+    def test_blacklist(self, mock_get):
+        with self.assertRaises(QuerySimbadError):
+            query_simbad.query_simbad_by_name("test")
+
+
+    @mock.patch('astroquery.simbad.Simbad.query_object', side_effect=mocked_no_result)
+    def test_no_object_found(self, mock_get):
+        self.assertIsNone(query_simbad.query_simbad_by_name("fake_object"))
+
+
+    def test_query_object(self):
+        """ This test uses a real-world object listed in the SIMBAD database. 
+            While this is not the ideal way to conduct unit testing, it is 
+            required in order to test real data and use cases. 
+        """
+        main_id, coords, aliases = query_simbad.query_simbad_by_name('M 1', get_aliases=True)
+        self.assertIsNotNone(main_id)
+        self.assertIsNotNone(coords)
+        self.assertIsNotNone(aliases)
+        self.assertIsNot(len(aliases), 0)
+        self.assertEqual(main_id, "M   1")
+        # This test assumes that no astronomical object is ever called 
+        # "bogus_object_name", which is a reasonable assumption...
+        with self.assertWarns(UserWarning):
+            # Random object name to avoid caching. 
+            query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}")
+
+
+    def test_mass_query(self):
+        """ Query a random object identifier 100 times in immediate succession. 
+            The SIMBAD server may blacklist the host IP address when 'spamming' is
+            suspected. 
+        """
+        warnings.simplefilter('ignore')
+        try:
+            for _ in range(0, 100):
+                query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}")
+        except QuerySimbadError as e:
+            self.fail(f"Mass query failed due to error: {str(e)}")
+        except Exception as e2:
+            self.fail(f"An unexpected exception occurred due to a network failure: ${str(e2)}")
 
 
 # Run suite. 

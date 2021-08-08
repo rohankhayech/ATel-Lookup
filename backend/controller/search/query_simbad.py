@@ -174,7 +174,7 @@ def query_simbad_by_name(object_name: str,
         # Get the MAIN_ID and the coordinates from the table. 
         # The table may be empty (non-result), which means these 
         # functions will return 
-        main_id = _get_names_from_table(table)
+        main_id = _get_names_from_table(table)[0]
         coords = _get_coords_from_table(table)
 
         if get_aliases:
@@ -184,9 +184,7 @@ def query_simbad_by_name(object_name: str,
             return main_id, coords, aliases_list
 
         return main_id, coords
-    except NewConnectionError:
-        raise QuerySimbadError("Failed to establish a network connection.")
-    except ConnectionError:
-        raise QuerySimbadError("Host may be blacklisted from the SIMBAD server.")
+    except ConnectionError as e:
+        raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
     except HTTPError as e:
         raise QuerySimbadError(str(e))
