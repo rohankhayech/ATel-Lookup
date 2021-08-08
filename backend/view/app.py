@@ -43,6 +43,9 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 @app.route("/signup", methods=["POST"])
 def signup():
+    """
+    Creates a new admin user with specified username and password.
+    """
     email = request.json.get("email", None)
     password = request.json.get("password", None)
 
@@ -61,6 +64,9 @@ def signup():
 
 @app.route("/login", methods=["POST"])
 def login():
+    """
+    Creates an access token if given credentials are valid.
+    """
     email = request.json.get("email", None)
     password = request.json.get("password", None)
 
@@ -78,6 +84,9 @@ def login():
 @app.route("/user", methods=["GET"])
 @jwt_required()
 def protected():
+    """
+    Return the email of the current user if they are authenticated.
+    """
     return current_user
 
 
