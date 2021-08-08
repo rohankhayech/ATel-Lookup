@@ -84,7 +84,7 @@ def user_exists(username:str)->bool:
     
     cur.execute(query,(username,))
 
-    if cur.fetchone() == None:
+    if cur.fetchone() is None:
         return False
     else:
         return True
