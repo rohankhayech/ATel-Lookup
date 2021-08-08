@@ -25,13 +25,17 @@ License Terms and Copyright:
 """
 
 from datetime import datetime
-from typing import List
+import os
 
 from astropy.coordinates import SkyCoord
+import mysql.connector
+from mysql.connector import errorcode
+from mysql.connector.connection import MySQLConnection
+from mysql.connector.cursor import CursorBase, MySQLCursor
 
-from report_types import ImportedReport, ReportResult
-from search_filters import SearchFilters
-from alias_result import AliasResult
+from model.report_types import ImportedReport, ReportResult
+from model.search_filters import SearchFilters
+from model.alias_result import AliasResult
 
 # Public functions
 def get_hashed_password(username:str)->str:
@@ -47,7 +51,19 @@ def get_hashed_password(username:str)->str:
     Raises:
         UserNotFoundError: When the specified user is not found in the database. This can be avoided by calling the userExists() method beforehand.
     """
-    return "" #stub
+    # Connect to mysql server
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = ("select passwordHash from AdminUsers where username = %s")
+
+    cur.execute(query, (username,))
+    result = cur.fetchone()
+    
+    if result is not None:
+        return result[0]
+    else:
+        raise UserNotFoundError()
 
 def user_exists(username:str)->bool:
     """
@@ -59,20 +75,63 @@ def user_exists(username:str)->bool:
     Returns:
         bool: True if the user was found, False otherwise.
     """
-    return False #stub
+    # Connect to mysql server
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
+
+    query = ("select username from AdminUsers"
+            " where username = %s")
+    
+    cur.execute(query,(username,))
+
+    if cur.fetchone() is None:
+        return False
+    else:
+        return True
 
 def add_admin_user(username:str, password:str):
     """
     Stores a new admin user with the specified username and password if the user does not already exist.
 
     Args:
-        username (str): The unique username of the admin user to add.
-        password (str): The hashed password of the admin user to add.
+        username (str): The unique username of the admin user to add. Max 24 chars.
+        password (str): The hashed password of the admin user to add. Max 255 chars.
 
     Raises:
         ExistingUserError: When the specified username is already associated with another user stored in the database. The new user cannot be added.
+        ValueError: When username or password are empty strings or exceed the specified max lengths.
     """
-    pass #stub
+    # Type conversion
+    username = str(username)
+    password = str(password)
+
+    # Check length is valid
+    if (len(username) in range(1,25) and len(password) in range(1,255)):
+        # connect to database
+        cn = _connect()
+        cur:MySQLCursor = cn.cursor()
+
+        #setup query
+        query = ("insert into AdminUsers"
+                " (username, passwordHash)"
+                " values (%s, %s)")
+
+        data = (username, password)
+
+        #execute query and handle errors
+        try:
+            cur.execute(query, data)
+        except mysql.connector.Error as e:
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                raise ExistingUserError()
+            else:
+                raise e
+        finally:
+            cn.commit()
+            cur.close()
+            cn.close()
+    else:
+        raise ValueError("Specified username and password must be valid lengths and non-empty.")
 
 def add_report(report:ImportedReport):
     """
@@ -189,7 +248,7 @@ def find_reports_by_object(filters:SearchFilters, object_name:str=None)->list[Re
     """
     return None #stub
 
-def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->List[ReportResult]:
+def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -203,8 +262,41 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:i
     """
     return None # stub
 
+
+def init_db():
+    """
+    Connects to the database and creates the schema if not already created.
+    """
+    # Connect to mysql server
+    cn = _connect()
+    cur = cn.cursor()
+
+    # Load table schema from file
+    user_table = open(os.path.join("..","model","schema","AdminUsers.sql")).read()
+
+    # Add tables
+    try:
+        cur.execute(user_table)
+    except mysql.connector.Error as err:
+        print(err.msg)
+
+    # Close connection
+    cur.close()
+    cn.close()
+
+# Exceptions
+class ExistingUserError(Exception):
+    """
+    Raised when the specified username is already associated with another user stored in the database.
+    """
+
+class UserNotFoundError(Exception):
+    """
+    Raised when the specified user is not found in the database.
+    """
+
 #Private functions
-def _link_reports(object_id:str, aliases:List[str]):
+def _link_reports(object_id:str, aliases:list[str]):
     """
     Adds records relating reports and the specified object ID, where the report contains one or more of the specified aliases.
 
@@ -216,3 +308,17 @@ def _link_reports(object_id:str, aliases:List[str]):
         ObjectNotFoundError: Raised when the specified object ID is not stored in the database.
     """
     pass
+
+def _connect()->MySQLConnection:
+    """
+    Connects to the MySQL server and database and returns the connection object.
+
+    Returns:
+        MySQLConnection: Connection to the MySQL Server. Must be closed by the calling method once finished. 
+    """
+    return mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST"), 
+        user=os.getenv("MYSQL_USER"), 
+        password=os.getenv("MYSQL_PASSWORD"), 
+        database=os.getenv("MYSQL_DB")
+    )
