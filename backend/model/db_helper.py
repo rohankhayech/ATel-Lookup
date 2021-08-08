@@ -1,6 +1,40 @@
+"""
+The database interface handles all interactions with the local database including adding, modifying and querying data. This component is responsible for all database operations and provides the complete set of methods needed to access the application’s stored data.
+
+Other components do not have to describe raw SQL queries and data/criteria should be imported in the format that makes sense for the application. The database component handles translating this data into the format defined in the data schema or required by SQL queries.
+The database should not be accessed directly outside of this component.
+
+Author:
+    Rohan Khayech
+
+License Terms and Copyright:
+    Copyright (C) 2021 Rohan Khayech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from datetime import datetime
-from typing import List
+import os
+
 from astropy.coordinates import SkyCoord
+import mysql.connector
+
+from model.report_types import ImportedReport, ReportResult
+from model.search_filters import SearchFilters
+from model.alias_result import AliasResult
+
+# Public functions
 def get_hashed_password(username:str)->str:
     """
     Retrieves the stored hashed password for the specified user if the user exists.
@@ -168,7 +202,32 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:i
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
-    return None  # stub
+    return None # stub
+
+
+def init_db():
+    """
+    Connects to the database and creates the schema if not already created.
+    """
+    cn = mysql.connector.connect(
+        host=os.getenv("MYSQL_HOST"), 
+        user=os.getenv("MYSQL_USER"), 
+        password=os.getenv("MYSQL_PASSWORD"), 
+        database=os.getenv("MYSQL_DB")
+    )
+
+    print(os.path.abspath(os.getcwd()))
+
+    file = open(os.path.join("..","model","schema","schema.sql"))
+    schema = file.read()
+
+    cur = cn.cursor()
+
+    cur.execute(schema)
+
+    cur.close()
+
+    cn.close()
 
 #Private functions
 def _link_reports(object_id:str, aliases:list[str]):

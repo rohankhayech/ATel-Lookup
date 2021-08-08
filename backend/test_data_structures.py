@@ -1,11 +1,34 @@
+"""
+Test suite for all local data structures.
+
+Author:
+    Rohan Khayech
+
+License Terms and Copyright:
+    Copyright (C) 2021 Rohan Khayech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
 from datetime import datetime
+import unittest
 
 from astropy.coordinates.sky_coordinate import SkyCoord
-from SearchFilters import KeywordMode
-from SearchFilters import SearchFilters
-from ReportTypes import ReportResult, ImportedReport
-from AliasResult import AliasResult
-import unittest
+
+from model.alias_result import AliasResult
+from model.search_filters import SearchFilters, KeywordMode
+from model.report_types import ImportedReport
 
 class TestAliasResult(unittest.TestCase):
     
@@ -17,6 +40,12 @@ class TestAliasResult(unittest.TestCase):
     def test_creation(self):
         self.assertEqual(self.ar._alias,"Name")
         self.assertEqual(self.ar._object_ID, "OBJ")
+
+    #Test type conversion/checking
+    def test_type_safety(self):
+        ar2 = AliasResult(1,2)
+        self.assertEqual(ar2._alias,"1")
+        self.assertEqual(ar2._object_ID,"2")
 
     #Test getters
     def test_getters(self):
@@ -74,6 +103,17 @@ class TestSearchFilters(unittest.TestCase):
         self.assertEqual(self.sf.keyword_mode, KeywordMode.ALL)
         self.assertEqual(self.sf.start_date, datetime(2021,7,30))
         self.assertEqual(self.sf.end_date, datetime(2021,7,31))
+
+    #test type conversion/safety
+    def test_type_safety(self):
+        self.sf.term = 1
+        self.assertEqual(self.sf.term, "1")
+        with self.assertRaises(TypeError):
+            self.sf.keywords = [1]
+        with self.assertRaises(TypeError):
+            self.sf.start_date = 1
+        with self.assertRaises(TypeError):
+            self.sf.end_date = 1
 
     #test kw mode enum setter
     def test_enum(self):
@@ -136,6 +176,31 @@ class TestReportTypes(unittest.TestCase):
     def test_invalid_body_len(self):
         with self.assertRaises(ValueError):
             self.ir.body = "a"*4001
+
+    #Test type conversion/checking
+    def test_type_safety(self):
+        with self.assertRaises(TypeError):
+            self.ir.atel_num = "str"
+        self.ir.title = 1
+        self.assertEqual(self.ir.title, "1")
+        self.ir.authors = 1
+        self.assertEqual(self.ir.authors, "1")
+        self.ir.body = 1
+        self.assertEqual(self.ir.body, "1")
+        with self.assertRaises(TypeError):
+            self.ir.submission_date = 1
+        with self.assertRaises(TypeError):
+            self.ir.coordinates = [1]
+        with self.assertRaises(TypeError):
+            self.ir.keywords = [1]
+        with self.assertRaises(TypeError):
+            self.ir.objects = [1]
+        with self.assertRaises(TypeError):
+            self.ir.observation_dates = [1]
+        with self.assertRaises(TypeError):
+            self.ir.referenced_by = ["str"]
+        with self.assertRaises(TypeError):
+            self.ir.referenced_reports = ["str"]
 
 if __name__ == '__main__':
     unittest.main()
