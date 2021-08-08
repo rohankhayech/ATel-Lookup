@@ -27,7 +27,7 @@ License Terms and Copyright:
 import unittest as ut
 from astropy.coordinates.sky_coordinate import SkyCoord
 import numpy as np
-import query_simbad
+from controller.search import query_simbad
 
 from astropy.table import Table
 from astropy.table.column import Column
