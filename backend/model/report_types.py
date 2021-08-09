@@ -22,7 +22,6 @@ License Terms and Copyright:
 """
 
 from datetime import datetime
-import os
 
 from astropy.coordinates import SkyCoord
 

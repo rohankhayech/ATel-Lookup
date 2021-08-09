@@ -32,10 +32,10 @@ def valid_keyword(keyword: str) -> bool:
     Returns:
         bool: True if the string is a valid keyword, False otherwise.
     """
-    return keyword.lower() in _FIXED_KEYWORDS
+    return keyword.lower() in FIXED_KEYWORDS
 
 # List of fixed keywords.
-_FIXED_KEYWORDS = ["radio",
+FIXED_KEYWORDS = ["radio",
                    "millimeter",
                    "sub-millimeter",
                    "far-infra-red",
