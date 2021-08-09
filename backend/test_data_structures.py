@@ -126,7 +126,7 @@ class TestSearchFilters(unittest.TestCase):
 
 class TestReportTypes(unittest.TestCase):
     def setUp(self):
-        self.ir = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30), [14001], [datetime(2021,8,30)], ["key", "words"], ["X1"], [], [13000])
+        self.ir = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30), [14001], [datetime(2021,8,30)], ["Radio", "sTAR"], ["X1"], [], [13000])
 
     #test creation, setters
     def test_creation(self):
@@ -137,7 +137,7 @@ class TestReportTypes(unittest.TestCase):
         self.assertEqual(self.ir._submission_date, datetime(2021,7,30))
         self.assertListEqual(self.ir._referenced_reports, [14001])
         self.assertListEqual(self.ir._observation_dates, [datetime(2021,8,30)])
-        self.assertListEqual(self.ir._keywords, ["key", "words"])
+        self.assertListEqual(self.ir._keywords, ["Radio", "sTAR"])
         self.assertListEqual(self.ir._objects, ["X1"])
         self.assertListEqual(self.ir._coordinates, [])
         self.assertListEqual(self.ir._referenced_by, [13000])
@@ -151,7 +151,7 @@ class TestReportTypes(unittest.TestCase):
         self.assertEqual(self.ir.submission_date, datetime(2021,7,30))
         self.assertListEqual(self.ir.referenced_reports, [14001])
         self.assertListEqual(self.ir.observation_dates, [datetime(2021,8,30)])
-        self.assertListEqual(self.ir.keywords, ["key", "words"])
+        self.assertListEqual(self.ir.keywords, ["Radio", "sTAR"])
         self.assertListEqual(self.ir.objects, ["X1"])
         self.assertListEqual(self.ir.coordinates, [])
         self.assertListEqual(self.ir.referenced_by, [13000])
@@ -177,6 +177,10 @@ class TestReportTypes(unittest.TestCase):
     def test_invalid_body_len(self):
         with self.assertRaises(ValueError):
             self.ir.body = "a"*4001
+
+    def test_invalid_keyword(self):
+        with self.assertRaises(ValueError):
+            self.ir.keywords = ["test"]
 
     #Test type conversion/checking
     def test_type_safety(self):
