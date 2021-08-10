@@ -22,7 +22,10 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+import re
+
 from model.report_types import ImportedReport
+from model.constants import FIXED_KEYWORDS
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession
@@ -164,4 +167,14 @@ def extract_keywords(body_text: str) -> list[str]:
     Returns:
         list[str]: List of keywords found.
     """
+
+    regex = ''
+
+    # Regex to match all keywords
+    for keyword in FIXED_KEYWORDS:
+        regex = f'{regex}{keyword}|'
+
+    # Removes the last OR operator from regex
+    regex = regex.rstrip(regex[-1])
+
     return []
