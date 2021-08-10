@@ -273,8 +273,9 @@ def init_db():
     cur = cn.cursor()
 
     # Load table schema from file
-    user_table = open(os.path.join("..","model","schema","AdminUsers.sql")).read()
-    reports_table = open(os.path.join("..","model","schema","Reports.sql")).read()
+    user_table = _read_table("AdminUsers")
+    reports_table = _read_table("Reports")
+    metadata_table = _read_table("Metadata")
 
     # Add keywords to reports schema
     sep = "', '"
@@ -285,6 +286,7 @@ def init_db():
     try:
         cur.execute(user_table)
         cur.execute(reports_table)
+        cur.execute(metadata_table)
     except mysql.connector.Error as err:
         print(err.msg)
 
@@ -330,3 +332,15 @@ def _connect()->MySQLConnection:
         password=os.getenv("MYSQL_PASSWORD"), 
         database=os.getenv("MYSQL_DB")
     )
+
+def _read_table(table_name:str)->str:
+    """Reads schema for the given table from it's SQL file.
+
+    Args:
+        table_name (str): The name of the table to import.
+
+    Returns:
+        str: The SQL schema for the given table.
+    """
+    schema_path = os.path.join("..", "model", "schema", f"{table_name}.sql")
+    return open(schema_path).read()
