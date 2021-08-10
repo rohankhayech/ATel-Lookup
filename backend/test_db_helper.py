@@ -31,17 +31,22 @@ from model import db_helper
 class TestInitTables(unittest.TestCase):
     #Verify tables exist/were created on container init
     def testTables(self):
-        cn = db_helper._connect()
-        cur:MySQLCursor = cn.cursor()
+        _verifyTable(self,"AdminUsers")
+        _verifyTable(self, "Reports")
+        _verifyTable(self,"Metadata")
 
-        cur.execute("show tables like 'AdminUsers'")
+def _verifyTable(self, table_name):
+    cn = db_helper._connect()
+    cur:MySQLCursor = cn.cursor()
 
-        result = cur.fetchone()
+    cur.execute(f"show tables like '{table_name}'")
 
-        cur.close()
-        cn.close()
+    result = cur.fetchone()
 
-        self.assertTrue(result)
+    cur.close()
+    cn.close()
+
+    self.assertTrue(result)
 
 class TestAuth(unittest.TestCase):
     
