@@ -36,6 +36,7 @@ from mysql.connector.cursor import CursorBase, MySQLCursor
 from model.report_types import ImportedReport, ReportResult
 from model.search_filters import SearchFilters
 from model.alias_result import AliasResult
+from model.constants import FIXED_KEYWORDS
 
 # Public functions
 def get_hashed_password(username:str)->str:
@@ -273,10 +274,17 @@ def init_db():
 
     # Load table schema from file
     user_table = open(os.path.join("..","model","schema","AdminUsers.sql")).read()
+    reports_table = open(os.path.join("..","model","schema","Reports.sql")).read()
+
+    # Add keywords to reports schema
+    sep = "', '"
+    kw_set = sep.join(FIXED_KEYWORDS)
+    reports_table = reports_table.format(kw_set)
 
     # Add tables
     try:
         cur.execute(user_table)
+        cur.execute(reports_table)
     except mysql.connector.Error as err:
         print(err.msg)
 

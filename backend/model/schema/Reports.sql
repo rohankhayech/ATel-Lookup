@@ -4,5 +4,5 @@ create table if not exists Reports (
     authors varchar(255) not null,
     body varchar(4000) not null,
     submissionDate timestamp not null,
-    keywords set({}) not null default '',
-);
+    keywords set('{}') not null default ''
+)
