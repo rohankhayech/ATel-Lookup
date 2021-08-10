@@ -33,9 +33,9 @@ from mysql.connector import errorcode
 from mysql.connector.connection import MySQLConnection
 from mysql.connector.cursor import CursorBase, MySQLCursor
 
-from model.report_types import ImportedReport, ReportResult
-from model.search_filters import SearchFilters
-from model.alias_result import AliasResult
+from model.ds.report_types import ImportedReport, ReportResult
+from model.ds.search_filters import SearchFilters
+from model.ds.alias_result import AliasResult
 
 # Public functions
 def get_hashed_password(username:str)->str:
