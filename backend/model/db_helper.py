@@ -270,7 +270,7 @@ def init_db():
     """
     # Connect to mysql server
     cn = _connect()
-    cur = cn.cursor()
+    cur:MySQLCursor = cn.cursor()
 
     # Load table schema from file
     user_table = _read_table("AdminUsers")
@@ -282,15 +282,20 @@ def init_db():
     kw_set = sep.join(FIXED_KEYWORDS)
     reports_table = reports_table.format(kw_set)
 
-    # Add tables
+   
     try:
+        # Add tables
         cur.execute(user_table)
         cur.execute(reports_table)
         cur.execute(metadata_table)
+
+        #Add single metadata entry
+        cur.execute("insert into Metadata (metadata) values ('metadata');")
     except mysql.connector.Error as err:
         print(err.msg)
 
     # Close connection
+    cn.commit()
     cur.close()
     cn.close()
 
