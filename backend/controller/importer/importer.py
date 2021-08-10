@@ -25,7 +25,7 @@ License Terms and Copyright:
 import re
 
 from model.report_types import ImportedReport
-from model.constants import FIXED_KEYWORDS
+from model.constants import FIXED_KEYWORDS_REGEX
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession
@@ -171,10 +171,14 @@ def extract_keywords(body_text: str) -> list[str]:
     regex = ''
 
     # Regex to match all keywords
-    for keyword in FIXED_KEYWORDS:
+    for keyword in FIXED_KEYWORDS_REGEX:
         regex = f'{regex}{keyword}|'
 
     # Removes the last OR operator from regex
     regex = regex.rstrip(regex[-1])
 
-    return []
+    # Finds all keywords in the body text using regex
+    keywords_regex = re.compile(regex)
+    keywords = keywords_regex.findall(body_text.lower())
+
+    return list(dict.fromkeys(keywords))
