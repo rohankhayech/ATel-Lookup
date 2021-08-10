@@ -272,7 +272,7 @@ def init_db():
     cur = cn.cursor()
 
     # Load table schema from file
-    user_table = open(os.path.join("..","model","schema","AdminUsers.sql")).read()
+    user_table = open(os.path.join("model","schema","AdminUsers.sql")).read()
 
     # Add tables
     try:
