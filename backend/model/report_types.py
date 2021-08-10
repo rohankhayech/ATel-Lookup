@@ -26,6 +26,7 @@ from datetime import datetime
 from astropy.coordinates import SkyCoord
 
 from helper.type_checking import list_is_type
+from model.constants import valid_keyword
 
 class ReportResult:
     """
@@ -322,9 +323,16 @@ class ImportedReport(ReportResult):
         Sets the list of fixed keywords.
 
         Args:
-            keywords (list[str]): List of strings representing the fixed keywords associated with the report.
+            keywords (list[str]): List of strings representing the fixed keywords associated with the report. All strings must be valid fixed keywords from The Astronomer's Telegram. Use model.constants.valid_keyword() to verify strings.
         """
+        # Check valid types
         if list_is_type(keywords, str):
+            # Check valid keywords
+            for kw in keywords:
+                if not valid_keyword(kw):
+                    raise ValueError("All keywords must be valid fixed keywords from The Astronomer's Telegram.")
+                    
+            # Set keyword list if valid
             self._keywords = keywords
         else:
             raise TypeError("Keywords must be a valid list of strings.")
