@@ -76,19 +76,7 @@ def user_exists(username:str)->bool:
     Returns:
         bool: True if the user was found, False otherwise.
     """
-    # Connect to mysql server
-    cn = _connect()
-    cur:MySQLCursor = cn.cursor()
-
-    query = ("select username from AdminUsers"
-            " where username = %s")
-    
-    cur.execute(query,(username,))
-
-    if cur.fetchone() is None:
-        return False
-    else:
-        return True
+    return _record_exists("AdminUsers", "username", username)
 
 def add_admin_user(username:str, password:str):
     """
@@ -188,19 +176,7 @@ def report_exists(atel_num:int)->bool:
     Returns:
         bool: True if the report was found, False otherwise.
     """
-    # Connect to mysql server
-    cn = _connect()
-    cur: MySQLCursor = cn.cursor()
-
-    query = ("select count(*) from Reports"
-             " where atelNum = %s")
-
-    cur.execute(query, (atel_num,))
-
-    if cur.fetchone() is None:
-        return False
-    else:
-        return True
+    return _record_exists("Reports","atel_num",atel_num)
 
 def get_all_aliases()->list[AliasResult]:
     """
@@ -397,3 +373,25 @@ def _read_table(table_name:str)->str:
     """
     schema_path = os.path.join("..", "model", "schema", f"{table_name}.sql")
     return open(schema_path).read()
+
+def _record_exists(table_name:str,primary_key:str,id:str)->bool:
+    """
+    Checks if the given record exists.
+
+    Args:
+        table_name (str): Name of the table.
+        primary_key (str): Primary key of the table.
+        id (str): ID of the record to check.
+    """
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = (f"select count(*) from {table_name}"
+             f" where {primary_key} = %s")
+
+    cur.execute(query, (id,))
+
+    if cur.fetchone() is None:
+        return False
+    else:
+        return True
