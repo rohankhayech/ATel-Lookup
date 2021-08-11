@@ -23,7 +23,7 @@ License Terms and Copyright:
 
 import unittest
 
-from controller.importer.importer import download_report
+from controller.importer.importer import *
 from bs4 import BeautifulSoup
 
 class TestImporterFunctions(unittest.TestCase):
@@ -37,6 +37,16 @@ class TestImporterFunctions(unittest.TestCase):
             html = download_report(i + 1)
             soup = BeautifulSoup(html, 'html.parser')
             self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])
+
+    # Tests extract_keywords function
+    def test_keywords_extractor(self):
+        self.assertEqual(extract_keywords('This is a test'), [])
+        self.assertEqual(extract_keywords('The planet, exoplanet, planet(minor) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertEqual(extract_keywords('The PlAnet, exoPlAnEt, plANet(MINoR) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertEqual(extract_keywords('far-infra-red and infra-red'), ['far-infra-red', 'infra-red'])
+        self.assertEqual(extract_keywords('comment'), [])
+        self.assertEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
+        self.assertEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
 
 if __name__ == "__main__":
     unittest.main()
