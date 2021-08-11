@@ -144,7 +144,39 @@ def add_report(report:ImportedReport):
     Raises:
         ExistingReportError: When the ATel number of the specified report is already associated with a report stored in the database.
     """
-    pass #stub
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
+
+    # Format keywords
+    sep = ','
+    keywords = sep.join(report.keywords)  
+    sub_date = report.submission_date.strftime("%Y-%m-%d %H:%M:%S")
+
+
+    query = ("insert into Reports "
+                    "(atelNum, title, authors, body, submissionDate, keywords) "
+                    "values (%s, %s, %s, %s, %s, %s)")                     
+
+    data = (report.atel_num, report.title, report.authors, report.body, sub_date, keywords)
+
+    #execute query and handle errors
+    try:
+        cur.execute(query, data)
+    except mysql.connector.Error as e:
+        if e.errno == errorcode.ER_DUP_ENTRY:
+            raise ExistingReportError()
+        else:
+            raise e
+    finally:
+        cn.commit()
+        cur.close()
+        cn.close()
+
+    #TODO: Add objects.
+    #TODO: Add observation dates.
+    #TODO: Convert and and coordinates.
+    #TODO: Add referenced reports/by. 
+
 
 def report_exists(atel_num:int)->bool:
     """
@@ -156,7 +188,19 @@ def report_exists(atel_num:int)->bool:
     Returns:
         bool: True if the report was found, False otherwise.
     """
-    return False
+    # Connect to mysql server
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = ("select count(*) from Reports"
+             " where atelNum = %s")
+
+    cur.execute(query, (atel_num,))
+
+    if cur.fetchone() is None:
+        return False
+    else:
+        return True
 
 def get_all_aliases()->list[AliasResult]:
     """
@@ -303,6 +347,10 @@ def init_db():
 class ExistingUserError(Exception):
     """
     Raised when the specified username is already associated with another user stored in the database.
+    """
+class ExistingReportError(Exception):
+    """
+    When the ATel number of the specified report is already associated with a report stored in the database.
     """
 
 class UserNotFoundError(Exception):
