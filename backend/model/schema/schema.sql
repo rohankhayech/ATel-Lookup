@@ -1,1 +1,0 @@
-create table if not exists reports (id int);
