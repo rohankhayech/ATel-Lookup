@@ -1,20 +1,17 @@
 import os
-from model.db_helper import (
-    add_admin_user,
-    get_hashed_password,
-    UserNotFoundError,
-    ExistingUserError,
-)
+
 from flask import Flask, jsonify, request
 from flask_jwt_extended import (
     JWTManager,
-    create_access_token,
     current_user,
     jwt_required,
 )
-from werkzeug.security import check_password_hash, generate_password_hash
 
-from model.db_helper import init_db
+from model.db_helper import UserNotFoundError, init_db
+from controller.authentication.authentication import (
+    InvalidCredentialsError,
+    enter_credentials,
+)
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -41,49 +38,25 @@ def user_lookup_callback(_jwt_header, jwt_data):
     return identity
 
 
-@app.route("/signup", methods=["POST"])
-def signup():
-    """
-    Creates a new admin user with specified username and password.
-    """
-    email = request.json.get("email", None)
-    password = request.json.get("password", None)
-
-    try:
-        add_admin_user(
-            username=email,
-            password=generate_password_hash(password),
-        )
-
-        return login()
-    except ExistingUserError:
-        return "Username is taken", 400
-    except ValueError:
-        return "Invalid values", 400
-
-
 @app.route("/login", methods=["POST"])
 def login():
     """
     Creates an access token if given credentials are valid.
     """
-    email = request.json.get("email", None)
+    username = request.json.get("username", None)
     password = request.json.get("password", None)
 
     try:
-        hashed = get_hashed_password(username=email)
-        if not check_password_hash(hashed, password):
-            return "Invalid credentials", 401
-
-        access_token = create_access_token(identity=email)
-        return access_token
+        return enter_credentials(username, password)
+    except InvalidCredentialsError:
+        return jsonify("Invalid credentials"), 401
     except UserNotFoundError:
         return jsonify("Invalid credentials"), 401
 
 
 @app.route("/user", methods=["GET"])
 @jwt_required()
-def protected():
+def get_user():
     """
     Return the email of the current user if they are authenticated.
     """
