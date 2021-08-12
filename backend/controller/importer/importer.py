@@ -22,7 +22,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from model.report_types import ImportedReport
+from model.ds.report_types import ImportedReport
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession

@@ -33,10 +33,10 @@ from mysql.connector import errorcode
 from mysql.connector.connection import MySQLConnection
 from mysql.connector.cursor import CursorBase, MySQLCursor
 
-from model.report_types import ImportedReport, ReportResult
-from model.search_filters import SearchFilters
-from model.alias_result import AliasResult
 from model.constants import FIXED_KEYWORDS
+from model.ds.report_types import ImportedReport, ReportResult
+from model.ds.search_filters import SearchFilters
+from model.ds.alias_result import AliasResult
 
 # Public functions
 def get_hashed_password(username:str)->str:
@@ -210,6 +210,8 @@ def get_next_atel_num()->int:
         cur.close()
         cn.close()
 
+    return next_atel_num
+
 def set_next_atel_num(nextNum:int):
     """
     Sets the number of the next ATel report to start auto import from. This method should be called after the auto import function has finished.
@@ -330,7 +332,6 @@ def init_db():
     sep = "', '"
     kw_set = sep.join(FIXED_KEYWORDS)
     reports_table = reports_table.format(kw_set)
-
    
     try:
         # Add tables
