@@ -40,13 +40,13 @@ class TestImporterFunctions(unittest.TestCase):
 
     # Tests extract_keywords function
     def test_keywords_extractor(self):
-        self.assertEqual(extract_keywords('This is a test'), [])
-        self.assertEqual(extract_keywords('The planet, exoplanet, planet(minor) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
-        self.assertEqual(extract_keywords('The PlAnet, exoPlAnEt, plANet(MINoR) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
-        self.assertEqual(extract_keywords('far-infra-red and infra-red'), ['far-infra-red', 'infra-red'])
-        self.assertEqual(extract_keywords('comment'), [])
-        self.assertEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
-        self.assertEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
+        self.assertCountEqual(extract_keywords('This is a test'), [])
+        self.assertCountEqual(extract_keywords('The planet, exoplanet, planet(minor) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertCountEqual(extract_keywords('The PlAnet, exoPlAnEt, plANet(MINoR) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertCountEqual(extract_keywords('far-infra-red and infra-red'), ['far-infra-red', 'infra-red'])
+        self.assertCountEqual(extract_keywords('comment'), [])
+        self.assertCountEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
+        self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
 
 if __name__ == "__main__":
     unittest.main()
