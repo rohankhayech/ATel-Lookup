@@ -108,7 +108,7 @@ def enter_credentials(credentials: json) -> json:
 
 
     #If username is valid and password is valid, call login() from authentication module
-    #login(username_in, password_in)
+    login(username_in, password_in)
     
 
     #generate JSON auth token
