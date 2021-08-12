@@ -1,4 +1,6 @@
 from typing import Tuple
+
+import flask
 import mysql.connector
 import json
 import jwt
@@ -83,7 +85,7 @@ if __name__ == "__main__":
 
 #Tully's Pulbic Web Interface Functions
 
-def enter_credentials(credentials: json) -> json:
+def enter_credentials() -> json:
     '''Validate user input and call login() function.
     
     Args:
@@ -94,7 +96,7 @@ def enter_credentials(credentials: json) -> json:
 
     '''
     #loading imported credentials
-    json_object = json.loads(credentials)
+    json_object = flask.request.json
 
     #parsing JSON object into string username and password
     username_in = json_object["username"]
