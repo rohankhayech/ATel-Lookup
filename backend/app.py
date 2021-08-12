@@ -162,7 +162,7 @@ def load_metadata() -> Tuple[datetime, int]:
             number we have stored, as ATel reports are numbered increasingly)
 
     '''
-    return 1/1/2000, 0 #stub
+    return datetime.datetime, 0 #stub
 
 
 def encode_auth_token(self, username_in):
