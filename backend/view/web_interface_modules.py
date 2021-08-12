@@ -25,7 +25,7 @@ from datetime import datetime
 from astropy.coordinates import SkyCoord
 import json
 from typing import Tuple
-from backend.model.search_filters import KeywordMode
+from backend.model.ds.search_filters import KeywordMode
 from enum import Enum
 import enum
 
@@ -41,7 +41,7 @@ def parse_date_input(date_string: str) -> datetime:
         datetime: A Python datetime object based on the parsed string. 
 
     '''
-    return 1/1/2000 #stub
+    return datetime.datetime() #stub
 
 
 def parse_search_coords(ra: str, dec: str, radius: str) -> SkyCoord:
