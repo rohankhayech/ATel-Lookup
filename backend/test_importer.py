@@ -42,6 +42,16 @@ class TestImporterFunctions(unittest.TestCase):
             soup = BeautifulSoup(html, 'html.parser')
             self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])
 
+    # Tests extract_keywords function
+    def test_keywords_extractor(self):
+        self.assertCountEqual(extract_keywords('This is a test'), [])
+        self.assertCountEqual(extract_keywords('The planet, exoplanet, planet(minor) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertCountEqual(extract_keywords('The PlAnet, exoPlAnEt, plANet(MINoR) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertCountEqual(extract_keywords('far-infra-red and infra-red'), ['far-infra-red', 'infra-red'])
+        self.assertCountEqual(extract_keywords('comment'), [])
+        self.assertCountEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
+        self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
+
 # Importer exceptions
 class TestImporterExceptions(unittest.TestCase):
     # Tests that NetworkError is being raised
