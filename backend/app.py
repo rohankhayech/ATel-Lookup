@@ -48,12 +48,15 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 @app.route("/login", methods=["POST"])
 def enter_credentials():
-    """
-    Creates an access token if given credentials are valid.
+    '''Validate user input and call login() function.
+    
+    Args:
+        credentials (json): A JSON object representing a username and password.
 
     Returns:
-        string: An access token for the account
-    """
+        json: JSON authentication token.
+
+    '''
     username = request.json.get("username", None)
     password = request.json.get("password", None)
 
@@ -84,42 +87,6 @@ if __name__ == "__main__":
 
 
 #Tully's Pulbic Web Interface Functions
-
-def enter_credentials() -> json:
-    '''Validate user input and call login() function.
-    
-    Args:
-        credentials (json): A JSON object representing a username and password.
-
-    Returns:
-        json: JSON authentication token.
-
-    '''
-    #loading imported credentials
-    json_object = flask.request.json
-
-    #parsing JSON object into string username and password
-    username_in = json_object["username"]
-    password_in = json_object["password"]
-
-
-    #username validation
-
-
-    #password validation
-
-
-    #If username is valid and password is valid, call login() from authentication module
-    login(username_in, password_in)
-    
-
-    #generate JSON auth token
-    json_auth_token = encode_auth_token(username_in)
-
-
-
-    return json_auth_token #stub
-
 
 def imports(json: json) -> json:
     '''Called by the web interface with the flag auto or manual (determining 
