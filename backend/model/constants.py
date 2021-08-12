@@ -4,8 +4,11 @@ The constants module contains all general constants used throughout the applicat
 Author:
     Rohan Khayech
 
+Contributors:
+    Nathan Sutardi
+
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech
+    Copyright (C) 2021 Rohan Khayech and Nathan Sutardi
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
