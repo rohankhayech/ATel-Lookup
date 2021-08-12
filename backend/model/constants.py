@@ -5,10 +5,10 @@ Author:
     Rohan Khayech
 
 Contributors:
-    Nathan Sutardi
+    Nathan Sutardi, Ryan Martin
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech and Nathan Sutardi
+    Copyright (C) 2021 Rohan Khayech, Nathan Sutardi, Ryan Martin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -148,3 +148,6 @@ FIXED_KEYWORDS_REGEX = ["radio",
                         "transient",
                         "variables",
                         "young stellar object" ]
+
+# The default radius for a coordinate search, in arcseconds.
+DEFAULT_RADIUS = 10.0
