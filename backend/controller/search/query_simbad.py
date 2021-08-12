@@ -24,15 +24,9 @@ License Terms and Copyright:
 """
 
 
-from typing import Union
-
-
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
-
-from urllib3.exceptions import NewConnectionError
-
 from requests import ConnectionError, HTTPError
 
 
@@ -163,7 +157,7 @@ def query_simbad_by_coords(coords: SkyCoord,
 
 def query_simbad_by_name(object_name: str, 
                          get_aliases: bool=True
-) -> tuple[str, SkyCoord, Union(list[str], None)]:
+) -> tuple[str, SkyCoord, list[str]]:
     """ Queries the SIMBAD database by an object identifier string. 
 
     Args:
