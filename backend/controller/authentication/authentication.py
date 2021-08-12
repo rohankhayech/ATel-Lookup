@@ -14,6 +14,13 @@ class InvalidCredentialsError(Exception):
 def add_admin_user(username: str, password: str):
     """
     Creates a new admin user with specified username and password.
+
+    Args:
+        username (str): Username of the account
+        password (str): Password of the account
+
+    Raises:
+        InvalidCredentialsError: Raised when user already exists or credentials don't meet requirements
     """
 
     hashed = generate_password_hash(password)
@@ -28,10 +35,21 @@ def add_admin_user(username: str, password: str):
         raise InvalidCredentialsError()
 
 
-def enter_credentials(username: str, password: str):
+def login(username: str, password: str):
     """
     Creates an access token if given credentials are valid.
+
+    Args:
+        username (str): Username of the account
+        password (str): Password of the account
+
+    Raises:
+        InvalidCredentialsError: Raised when credentials are not valid for the account
+
+    Returns:
+        string: An access token for the account
     """
+
     hashed = get_hashed_password(username)
     if not check_password_hash(hashed, password):
         raise InvalidCredentialsError()

@@ -10,7 +10,7 @@ from flask_jwt_extended import (
 from model.db_helper import UserNotFoundError, init_db
 from controller.authentication.authentication import (
     InvalidCredentialsError,
-    enter_credentials,
+    login,
 )
 
 app = Flask(__name__)
@@ -39,15 +39,18 @@ def user_lookup_callback(_jwt_header, jwt_data):
 
 
 @app.route("/login", methods=["POST"])
-def login():
+def enter_credentials():
     """
     Creates an access token if given credentials are valid.
+
+    Returns:
+        string: An access token for the account
     """
     username = request.json.get("username", None)
     password = request.json.get("password", None)
 
     try:
-        return enter_credentials(username, password)
+        return login(username, password)
     except InvalidCredentialsError:
         return jsonify("Invalid credentials"), 401
     except UserNotFoundError:
@@ -59,6 +62,9 @@ def login():
 def get_user():
     """
     Return the email of the current user if they are authenticated.
+
+    Returns:
+        string: The email address of the current user
     """
     return current_user
 
