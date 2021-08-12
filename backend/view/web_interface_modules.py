@@ -1,5 +1,4 @@
-""" The input validations module is responsible for validation input on RA, Declination,
-    Radius, Keyword Mode and ATeL number
+""" This file contains all of the relevant private web interface functions.
 
 Author:
     Tully Slattery
@@ -22,14 +21,43 @@ License Terms and Copyright:
 """
 
 
-
-
+from datetime import datetime
+from astropy.coordinates import SkyCoord
 from datetime import datetime
 import json
 from typing import Tuple
 from backend.model.search_filters import KeywordMode
 from enum import Enum
 import enum
+
+
+def parse_date_input(date_string: str) -> datetime:
+    '''This function transforms an imported date string into a Python datetime object 
+    that will be used for the rest of the system.
+
+    Args:
+        date_string (str): A string representing a date
+    
+    Returns:
+        datetime: A Python datetime object based on the parsed string. 
+
+    '''
+    return 1/1/2000 #stub
+
+
+def parse_search_coords(ra: str, dec: str, radius: str) -> SkyCoord:
+    '''Parse coordinates into a SkyCoord object.
+
+    Args:
+        ra (str): RA coords
+        dec (str): Declination coords
+        radius (str): Radius value
+    
+    Returns:
+        SkyCoord: A SkyCoord object representing the parsed coordinates. 
+
+    '''
+    return SkyCoord(0,0,0) #stub
 
 
 def valid_ra(ra: str) -> bool:
@@ -98,30 +126,3 @@ def valid_atel_num(atel_num: int) -> bool:
 
     '''
     return True #stub
-
-
-def load_metadata() -> Tuple[datetime, int]:
-    '''To get the data associated with imports, such as the last time 
-    it was updated and how many reports we have.
-    
-    Returns:
-        datetime: A Python datetime object specifying the last updated date for the database.
-
-        int: integer – Count of reports in the database (this number is also the last ATel 
-            number we have stored, as ATel reports are numbered increasingly)
-
-    '''
-    return 1/1/2000, 0 #stub
-
-
-def enter_credentials(credentials: json) -> json:
-    '''Validate user input and call login() function.
-    
-    Args:
-        credentials (json): A JSON object representing a username and password.
-
-    Returns:
-        json: JSON authentication token.
-
-    '''
-    return 1/1/2000, 0 #stub
