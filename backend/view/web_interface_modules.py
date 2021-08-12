@@ -23,7 +23,6 @@ License Terms and Copyright:
 
 from datetime import datetime
 from astropy.coordinates import SkyCoord
-from datetime import datetime
 import json
 from typing import Tuple
 from backend.model.search_filters import KeywordMode

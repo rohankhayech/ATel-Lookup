@@ -1,6 +1,8 @@
 from typing import Tuple
 import mysql.connector
 import json
+import jwt
+from datetime import datetime
 from flask import Flask, jsonify
 
 from model.db_helper import init_db
@@ -35,7 +37,30 @@ def enter_credentials(credentials: json) -> json:
         json: JSON authentication token.
 
     '''
-    return 1/1/2000, 0 #stub
+    #loading imported credentials
+    json_object = json.loads(credentials)
+
+    #parsing JSON object into string username and password
+    username_in = json_object["username"]
+    password_in = json_object["password"]
+
+
+    #username validation
+
+
+    #password validation
+
+
+    #If username is valid and password is valid, call login() from authentication module
+    #login(username_in, password_in)
+    
+
+    #generate JSON auth token
+    json_auth_token = encode_auth_token(username_in)
+
+
+
+    return json_auth_token #stub
 
 
 def imports(json: json) -> json:
@@ -82,3 +107,23 @@ def load_metadata() -> Tuple[datetime, int]:
 
     '''
     return 1/1/2000, 0 #stub
+
+
+def encode_auth_token(self, username_in):
+    """
+    Generates the Auth Token
+    :return: string
+    """
+    try:
+        payload = {
+            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
+            'iat': datetime.datetime.utcnow(),
+            'sub': username_in
+        }
+        return jwt.encode(
+            payload,
+            app.config.get('SECRET_KEY'),
+            algorithm='HS256'
+        )
+    except Exception as e:
+        return e
