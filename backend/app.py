@@ -135,7 +135,7 @@ def imports(json: json) -> json:
     return 0 #stub
 
 
-def search(json: json) -> Tuple[bool, list[reports_list], list[nodes_list], list[edges_list]]:
+def search(json: json) -> json:
     '''The purpose of this function is to help with the actual searching aspect of our system, 
     it will be called by the submit search form, and will call the either of the search functions 
     in the search module, as well as both visualisation functions. 
@@ -150,7 +150,7 @@ def search(json: json) -> Tuple[bool, list[reports_list], list[nodes_list], list
         edges_list: a list of edges for the visualisation graph.  
 
     '''
-    return True, [], [], [] #stub
+    return 0 #stub
 
 
 def load_metadata() -> Tuple[datetime, int]:
