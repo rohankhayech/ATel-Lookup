@@ -140,15 +140,19 @@ def add_report(report:ImportedReport):
     keywords = sep.join(report.keywords)  
     sub_date = report.submission_date.strftime("%Y-%m-%d %H:%M:%S")
 
-    query = ("insert into Reports "
+    report_query = ("insert into Reports "
                     "(atelNum, title, authors, body, submissionDate, keywords) "
-                    "values (%s, %s, %s, %s, %s, %s)")                     
+                    "values (%s, %s, %s, %s, %s, %s)")
 
     data = (report.atel_num, report.title, report.authors, report.body, sub_date, keywords)
 
+    metadata_query = ("update Metadata "
+                      "set lastUpdatedDate = CURDATE()")                
+
     #execute query and handle errors
     try:
-        cur.execute(query, data)
+        cur.execute(report_query, data)
+        cur.execute(metadata_query)
     except mysql.connector.Error as e:
         if e.errno == errorcode.ER_DUP_ENTRY:
             raise ExistingReportError()
@@ -196,7 +200,7 @@ def get_next_atel_num()->int:
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
 
-    query = "select lastUpdatedDate from Metadata"
+    query = "select nextATelNum from Metadata"
 
     try:
         #Add single metadata entry
@@ -227,7 +231,6 @@ def set_next_atel_num(nextNum:int):
              "values (%s)")
 
     try:
-        #Add single metadata entry
         cur.execute(query, (nextNum,))
     except mysql.connector.Error as e:
         raise e
@@ -243,7 +246,24 @@ def get_last_updated_date()->datetime:
     Returns:
         datetime: The date the database was last updated with the latest ATel reports.
     """
-    return datetime(2021,7,30) #stub
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = "select lastUpdatedDate from Metadata"
+
+    try:
+        cur.execute(query)
+        result = cur.fetchone()
+
+        date = result[0]
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cur.close()
+        cn.close()
+
+    return date
+
 
 def add_object(object_id:str, coords:SkyCoord, aliases:list[str]):
     """
