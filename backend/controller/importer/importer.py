@@ -24,8 +24,9 @@ License Terms and Copyright:
 
 import re
 
-from model.report_types import ImportedReport
 from model.constants import FIXED_KEYWORDS_REGEX
+from model.ds.report_types import ImportedReport
+
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession

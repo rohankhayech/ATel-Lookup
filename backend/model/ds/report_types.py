@@ -25,7 +25,7 @@ from datetime import datetime
 
 from astropy.coordinates import SkyCoord
 
-from helper.type_checking import list_is_type
+from controller.helper.type_checking import list_is_type
 from model.constants import valid_keyword
 
 class ReportResult:

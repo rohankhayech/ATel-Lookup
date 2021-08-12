@@ -25,7 +25,7 @@ from typing import Union
 from enum import Enum
 from datetime import datetime
 
-from helper.type_checking import list_is_type
+from controller.helper.type_checking import list_is_type
 
 class KeywordMode(Enum):
     """
