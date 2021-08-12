@@ -26,6 +26,15 @@ from model.ds.report_types import ImportedReport
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession
+from requests.exceptions import ConnectionError, HTTPError
+from pyppeteer.errors import TimeoutError
+
+# Custom exceptions
+class NetworkError(Exception):
+    pass
+
+class DownloadFailError(Exception):
+    pass
 
 # Public functions
 def import_report(atel_num: int):
@@ -59,25 +68,32 @@ def download_report(atel_num: int) -> str:
         str: String representation of the downloaded HTML.
 
     Raises:
-        NetworkErrorException: Thrown when network failure occurs during the HTML download.
-        DownloadFailException: Thrown when the HTML could not be downloaded.
+        NetworkError: Thrown when network failure occurs during the HTML download.
+        DownloadFailError: Thrown when the HTML could not be downloaded.
     """
 
-    # Generates the URL of ATel page
-    url = f'https://www.astronomerstelegram.org/?read={atel_num}'
+    try:
+        # Generates the URL of ATel page
+        url = f'https://www.astronomerstelegram.org/?read={atel_num}'
 
-    # Makes a GET request to ATel page
-    session = HTMLSession()
-    request = session.get(url)
+        # Makes a GET request to ATel page
+        session = HTMLSession()
+        request = session.get(url)
 
-    # Fully loads the HTML of ATel page
-    request.html.render(timeout=20)
-    html = request.html.raw_html
+        # Fully loads the HTML of ATel page
+        request.html.render(timeout=20)
+        html = request.html.raw_html
 
-    # Closes connection
-    session.close()
-
-    return html
+        return html
+    except ConnectionError as err:
+        raise NetworkError(f'Network failure encountered: {str(err)}')
+    except HTTPError as err:
+        raise NetworkError(f'Network failure encountered: {str(err)}')
+    except TimeoutError as err:
+        raise DownloadFailError(f'Couldn\'t download HTML: {str(err)}')
+    finally:
+        # Closes connection
+        session.close()
 
 def parse_report(html_string: str) -> ImportedReport:
     """
