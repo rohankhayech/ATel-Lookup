@@ -5,10 +5,10 @@ Author:
     Rohan Khayech
 
 Contributors:
-    Ryan Martin
+    Nathan Sutardi, Ryan Martin
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech, Ryan Martin
+    Copyright (C) 2021 Rohan Khayech, Nathan Sutardi, Ryan Martin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -57,7 +57,7 @@ FIXED_KEYWORDS = ["radio",
                    "asteroid",
                    "asteroid(binary)",
                    "binary",
-                   "black Hole",
+                   "black hole",
                    "blazar",
                    "cataclysmic variable",
                    "comet",
@@ -68,7 +68,7 @@ FIXED_KEYWORDS = ["radio",
                    "gamma-ray burst",
                    "globular cluster",
                    "gravitational lensing",
-                   "gravitational Waves",
+                   "gravitational waves",
                    "magnetar",
                    "meteor",
                    "microlensing event",
@@ -85,7 +85,7 @@ FIXED_KEYWORDS = ["radio",
                    "soft gamma-ray repeater",
                    "solar system object",
                    "star",
-                   "supernova Remnant",
+                   "supernova remnant",
                    "supernovae",
                    "the sun",
                    "tidal disruption event",
@@ -93,5 +93,61 @@ FIXED_KEYWORDS = ["radio",
                    "variables",
                    "young stellar object" ]
 
-# The default radius for a coordinate search, in arcseconds. 
+# Optimised for regex
+FIXED_KEYWORDS_REGEX = ["radio",
+                        "millimeter",
+                        "sub-millimeter",
+                        "far-infra-red",
+                        "infra-red",
+                        "optical",
+                        "ultra-violet",
+                        "x-ray",
+                        "gamma ray",
+                        "> gev",
+                        "tev",
+                        "vhe",
+                        "uhe",
+                        "neutrinos",
+                        "a comment",
+                        "agn",
+                        "asteroid\(binary\)",
+                        "asteroid",
+                        "binary",
+                        "black hole",
+                        "blazar",
+                        "cataclysmic variable",
+                        "comet",
+                        "cosmic rays",
+                        "direct collapse event",
+                        "exoplanet",
+                        "fast radio burst",
+                        "gamma-ray burst",
+                        "globular cluster",
+                        "gravitational lensing",
+                        "gravitational waves",
+                        "magnetar",
+                        "meteor",
+                        "microlensing event",
+                        "near-earth object",
+                        "neutron star",
+                        "nova",
+                        "planet\(minor\)",
+                        "planet",
+                        "potentially hazardous asteroid",
+                        "pre-main-sequence star",
+                        "pulsar",
+                        "quasar",
+                        "request for observations",
+                        "soft gamma-ray repeater",
+                        "solar system object",
+                        "star",
+                        "supernova remnant",
+                        "supernovae",
+                        "the sun",
+                        "tidal disruption event",
+                        "transient",
+                        "variables",
+                        "young stellar object" ]
+
+# The default radius for a coordinate search, in arcseconds.
 DEFAULT_RADIUS = 10.0

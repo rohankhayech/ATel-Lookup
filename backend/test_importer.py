@@ -1,5 +1,5 @@
 """
-Testing for importer functions.
+Testing for importer functions and exceptions.
 
 Author:
     Nathan Sutardi
@@ -23,9 +23,13 @@ License Terms and Copyright:
 
 import unittest
 
-from controller.importer.importer import download_report
+from controller.importer.importer import *
 from bs4 import BeautifulSoup
+from unittest import mock
+from requests.exceptions import ConnectionError, HTTPError
+from pyppeteer.errors import TimeoutError
 
+# Importer functions
 class TestImporterFunctions(unittest.TestCase):
     # Tests download_report function
     def test_html_download(self):
@@ -38,5 +42,35 @@ class TestImporterFunctions(unittest.TestCase):
             soup = BeautifulSoup(html, 'html.parser')
             self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])
 
+    # Tests extract_keywords function
+    def test_keywords_extractor(self):
+        self.assertCountEqual(extract_keywords('This is a test'), [])
+        self.assertCountEqual(extract_keywords('The planet, exoplanet, planet(minor) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertCountEqual(extract_keywords('The PlAnet, exoPlAnEt, plANet(MINoR) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
+        self.assertCountEqual(extract_keywords('far-infra-red and infra-red'), ['far-infra-red', 'infra-red'])
+        self.assertCountEqual(extract_keywords('comment'), [])
+        self.assertCountEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
+        self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
+
+# Importer exceptions
+class TestImporterExceptions(unittest.TestCase):
+    # Tests that NetworkError is being raised
+    @mock.patch('requests_html.HTMLSession.get')
+    def test_network_error(self, mock_get):
+        mock_get.side_effect = ConnectionError
+        with self.assertRaises(NetworkError):
+            download_report(1)
+        
+        mock_get.side_effect = HTTPError
+        with self.assertRaises(NetworkError):
+            download_report(1)
+    
+    # Tests that DownloadFailError is being raised
+    @mock.patch('requests_html.HTML.render')
+    def test_download_fail_error(self, mock_get):
+        mock_get.side_effect = TimeoutError
+        with self.assertRaises(DownloadFailError):
+            download_report(1)
+    
 if __name__ == "__main__":
     unittest.main()
