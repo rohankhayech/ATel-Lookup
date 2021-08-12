@@ -24,6 +24,9 @@ License Terms and Copyright:
 """
 
 
+from typing import Union
+
+
 from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
@@ -116,10 +119,27 @@ def _get_names_from_table(table: Table) -> list[str]:
     return lst
 
 
+def _get_aliases(id: str) -> list[str]:
+    """ Queries the SIMBAD database by an object name/identifier and returns the 
+        list of alternative names (aliases). 
+
+    Args:
+        id (str): The object identifier. 
+
+    Returns:
+        list[str]: A list of aliases. 
+    """
+    aliases_table = simbad.query_objectids(id)
+    aliases_list = _get_names_from_table(aliases_table)
+    return aliases_list
+
+
 # Public functions. 
 
 
-def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> dict[str, list[str]]:
+def query_simbad_by_coords(coords: SkyCoord, 
+                           radius: float=10.0, # DEFAULT_RADIUS
+) -> dict[str, list[str]]:
     """ Queries the SIMBAD database by an exact coordinate if the radius is zero, 
         or a regional area if the radius is non-zero. 
 
@@ -142,8 +162,8 @@ def query_simbad_by_coords(coords: SkyCoord, radius: float=10.0) -> dict[str, li
 
 
 def query_simbad_by_name(object_name: str, 
-                          get_aliases: bool=True
-) -> tuple[str, SkyCoord, list[str]]:
+                         get_aliases: bool=True
+) -> tuple[str, SkyCoord, Union(list[str], None)]:
     """ Queries the SIMBAD database by an object identifier string. 
 
     Args:
@@ -178,10 +198,7 @@ def query_simbad_by_name(object_name: str,
         coords = _get_coords_from_table(table)
 
         if get_aliases:
-            aliases_table = simbad.query_objectids(object_name)
-            aliases_list = _get_names_from_table(aliases_table)
-            
-            return main_id, coords, aliases_list
+            return main_id, coords, _get_aliases(object_name)
 
         return main_id, coords
     except ConnectionError as e:
