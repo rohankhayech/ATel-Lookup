@@ -28,6 +28,7 @@ from astropy.coordinates import SkyCoord
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
 from requests import ConnectionError, HTTPError
+from model.constants import DEFAULT_RADIUS
 
 
 # The name of the object ID column in the Astroquery Table data structure. 
@@ -132,7 +133,7 @@ def _get_aliases(id: str) -> list[str]:
 
 
 def query_simbad_by_coords(coords: SkyCoord, 
-                           radius: float=10.0, # DEFAULT_RADIUS
+                           radius: float=DEFAULT_RADIUS
 ) -> dict[str, list[str]]:
     """ Queries the SIMBAD database by an exact coordinate if the radius is zero, 
         or a regional area if the radius is non-zero. 
