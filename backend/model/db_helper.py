@@ -140,7 +140,6 @@ def add_report(report:ImportedReport):
     keywords = sep.join(report.keywords)  
     sub_date = report.submission_date.strftime("%Y-%m-%d %H:%M:%S")
 
-
     query = ("insert into Reports "
                     "(atelNum, title, authors, body, submissionDate, keywords) "
                     "values (%s, %s, %s, %s, %s, %s)")                     
@@ -194,7 +193,22 @@ def get_next_atel_num()->int:
     Returns:
         int: The number of the next ATel report to start auto import from.
     """
-    return 1 #stub
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
+
+    query = "select lastUpdatedDate from Metadata"
+
+    try:
+        #Add single metadata entry
+        cur.execute(query)
+        result = cur.fetchone()
+
+        next_atel_num = result[0]
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cur.close()
+        cn.close()
 
 def set_next_atel_num(nextNum:int):
     """
@@ -203,7 +217,22 @@ def set_next_atel_num(nextNum:int):
     Args:
         nextNum (int): The number of the next ATel report to start auto import from. Should be equal to the last ATel number imported via auto import plus one.
     """
-    pass
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = ("insert into Metadata"
+             "(nextATelNum)"
+             "values (%s)")
+
+    try:
+        #Add single metadata entry
+        cur.execute(query, (nextNum,))
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cn.commit()
+        cur.close()
+        cn.close()
 
 def get_last_updated_date()->datetime:
     """
@@ -313,11 +342,11 @@ def init_db():
         cur.execute("insert into Metadata (metadata) values ('metadata');")
     except mysql.connector.Error as err:
         print(err.msg)
-
-    # Close connection
-    cn.commit()
-    cur.close()
-    cn.close()
+    finally:
+        # Close connection
+        cn.commit()
+        cur.close()
+        cn.close()
 
 # Exceptions
 class ExistingUserError(Exception):
