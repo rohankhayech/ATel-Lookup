@@ -1,18 +1,72 @@
-import mysql.connector
-from flask import Flask, jsonify
+import os
 
-from model.db_helper import init_db
+from flask import Flask, jsonify, request
+from flask_jwt_extended import (
+    JWTManager,
+    current_user,
+    jwt_required,
+)
+
+from model.db_helper import UserNotFoundError, init_db
+from controller.authentication.authentication import (
+    InvalidCredentialsError,
+    login,
+)
 
 app = Flask(__name__)
+jwt = JWTManager(app)
 
-#Initialise the database
+app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+
+# Initialise the database
 init_db()
+
 
 @app.route("/")
 def index():
-
-
     return jsonify("")
+
+
+@jwt.user_identity_loader
+def user_identity_lookup(user):
+    return user
+
+
+@jwt.user_lookup_loader
+def user_lookup_callback(_jwt_header, jwt_data):
+    identity = jwt_data["sub"]
+    return identity
+
+
+@app.route("/login", methods=["POST"])
+def enter_credentials():
+    """
+    Creates an access token if given credentials are valid.
+
+    Returns:
+        string: An access token for the account
+    """
+    username = request.json.get("username", None)
+    password = request.json.get("password", None)
+
+    try:
+        return login(username, password)
+    except InvalidCredentialsError:
+        return jsonify("Invalid credentials"), 401
+    except UserNotFoundError:
+        return jsonify("Invalid credentials"), 401
+
+
+@app.route("/user", methods=["GET"])
+@jwt_required()
+def get_user():
+    """
+    Return the email of the current user if they are authenticated.
+
+    Returns:
+        string: The email address of the current user
+    """
+    return current_user
 
 
 if __name__ == "__main__":
