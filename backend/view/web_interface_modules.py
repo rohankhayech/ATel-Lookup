@@ -41,7 +41,7 @@ def parse_date_input(date_string: str) -> datetime:
         datetime: A Python datetime object based on the parsed string. 
 
     '''
-    return datetime.datetime() #stub
+    return datetime() #stub
 
 
 def parse_search_coords(ra: str, dec: str, radius: str) -> SkyCoord:

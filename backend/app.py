@@ -99,7 +99,7 @@ def imports(json: json) -> json:
         json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
 
     '''
-    return 0 #stub
+    return jsonify("") #stub
 
 
 def search(json: json) -> json:
@@ -117,38 +117,20 @@ def search(json: json) -> json:
         edges_list: a list of edges for the visualisation graph.  
 
     '''
-    return 0 #stub
+    return jsonify("") #stub
 
 
-def load_metadata() -> Tuple[datetime, int]:
+def load_metadata() -> json:
     '''To get the data associated with imports, such as the last time 
     it was updated and how many reports we have.
     
     Returns:
-        datetime: A Python datetime object specifying the last updated date for the database.
+        date: in string format.
 
         int: integer – Count of reports in the database (this number is also the last ATel 
             number we have stored, as ATel reports are numbered increasingly)
 
     '''
-    return datetime.datetime(), 0 #stub
+    return jsonify("") #stub
 
 
-def encode_auth_token(self, username_in):
-    """
-    Generates the Auth Token
-    :return: string
-    """
-    try:
-        payload = {
-            'exp': datetime.datetime.utcnow() + datetime.timedelta(days=0, seconds=5),
-            'iat': datetime.datetime.utcnow(),
-            'sub': username_in
-        }
-        return jwt.encode(
-            payload,
-            app.config.get('SECRET_KEY'),
-            algorithm='HS256'
-        )
-    except Exception as e:
-        return e
