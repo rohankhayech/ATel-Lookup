@@ -44,7 +44,7 @@ from flask_jwt_extended import (
 )
 
 from model.db_helper import UserNotFoundError, init_db
-from controller.authentication.authentication import (
+from controller.authentication import (
     InvalidCredentialsError,
     login,
 )
