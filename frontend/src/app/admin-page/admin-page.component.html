@@ -1,1 +1,39 @@
-<p>admin-page works!</p>
+<div class="container">
+  <mat-card class="card">
+    <mat-card-header>
+      <mat-card-title>Auto Import</mat-card-title>
+      <mat-card-subtitle
+        >Automatically find all new ATel reports that have been posted to the
+        Astronomer's Telegram and imports them into ATel
+        Lookup</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      <strong
+        >This will import all new reports from ATel #0 to the latest
+        posted</strong
+      >
+      <button mat-raised-button color="primary" class="wide">Import All</button>
+    </mat-card-content>
+  </mat-card>
+
+  <mat-card class="card">
+    <mat-card-header>
+      <mat-card-title>Manual Import</mat-card-title>
+      <mat-card-subtitle
+        >Manually import a specific ATel report from The Astronomer's Telegram
+        into ATel Lookup.</mat-card-subtitle
+      >
+    </mat-card-header>
+
+    <mat-card-content>
+      <mat-form-field appearance="fill" class="wide">
+        <mat-label>ATel Number</mat-label>
+        <input matInput [(ngModel)]="id" type="number" />
+      </mat-form-field>
+
+      <button mat-raised-button color="primary" class="wide">Import</button>
+    </mat-card-content>
+  </mat-card>
+</div>
