@@ -92,10 +92,10 @@ class TestCoordExtraction(ut.TestCase):
         table_ids = ("M 13", "M 1")
         table_ra = ("16 41 41.634", "05 34 31.94")
         table_dec = ("+36 27 40.75", "+22 00 52.2") 
-        self.test_table_1 = Table(names=table_columns, dtype=table_dtypes)
-        self.test_table_1.add_row(vals=(table_ids[0], table_ra[0], table_dec[0], "", None))
-        self.test_table_2 = Table(names=table_columns, dtype=table_dtypes)
-        self.test_table_2.add_row(vals=(table_ids[1], table_ra[1], table_dec[1], "", None))
+        self._table_1 = Table(names=table_columns, dtype=table_dtypes)
+        self._table_1.add_row(vals=(table_ids[0], table_ra[0], table_dec[0], "", None))
+        self._table_2 = Table(names=table_columns, dtype=table_dtypes)
+        self._table_2.add_row(vals=(table_ids[1], table_ra[1], table_dec[1], "", None))
 
         self.expected_coords_1 = SkyCoord(table_ra[0], table_dec[0], frame='icrs', unit=('hourangle', 'deg'))
         self.expected_coords_2 = SkyCoord(table_ra[1], table_dec[1], frame='icrs', unit=('hourangle', 'deg'))
@@ -103,13 +103,13 @@ class TestCoordExtraction(ut.TestCase):
 
     def test_table_1(self):
         # Extract the coordinates from the Table data structure. 
-        coords_1 = query_simbad._get_coords_from_table(self.test_table_1)
+        coords_1 = query_simbad._get_coords_from_table(self._table_1)
         self.assertEqual(coords_1.ra, self.expected_coords_1.ra)
         self.assertEqual(coords_1.dec, self.expected_coords_1.dec)
 
 
     def test_table_2(self):
-        coords_2 = query_simbad._get_coords_from_table(self.test_table_2)
+        coords_2 = query_simbad._get_coords_from_table(self._table_2)
         self.assertEqual(coords_2.ra, self.expected_coords_2.ra)
         self.assertEqual(coords_2.dec, self.expected_coords_2.dec)
 
