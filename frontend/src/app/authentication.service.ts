@@ -7,10 +7,18 @@ import { tap } from 'rxjs/operators';
   providedIn: 'root',
 })
 export class AuthenticationService {
-  private _token?: string;
+  private static readonly TOKEN_KEY = 'token';
 
   public get token() {
-    return this._token;
+    return localStorage.getItem(AuthenticationService.TOKEN_KEY);
+  }
+
+  public set token(value: string | null) {
+    if (value !== null) {
+      localStorage.setItem(AuthenticationService.TOKEN_KEY, value);
+    } else {
+      localStorage.removeItem(AuthenticationService.TOKEN_KEY);
+    }
   }
 
   constructor(private http: HttpClient) {}
@@ -21,6 +29,6 @@ export class AuthenticationService {
         username,
         password,
       })
-      .pipe(tap((token) => (this._token = token)));
+      .pipe(tap((token) => (this.token = token)));
   }
 }

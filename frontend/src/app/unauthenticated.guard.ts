@@ -27,7 +27,7 @@ export class UnauthenticatedGuard implements CanActivate, CanActivateChild {
     | Promise<boolean | UrlTree>
     | boolean
     | UrlTree {
-    if (this.authenticationService.token === undefined) {
+    if (this.authenticationService.token === null) {
       return true;
     }
 
@@ -43,7 +43,7 @@ export class UnauthenticatedGuard implements CanActivate, CanActivateChild {
     | Promise<boolean | UrlTree>
     | boolean
     | UrlTree {
-    if (this.authenticationService.token === undefined) {
+    if (this.authenticationService.token === null) {
       return true;
     }
 
