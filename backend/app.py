@@ -91,7 +91,8 @@ def enter_credentials():
     password = request.json.get("password", None)
 
     try:
-        return login(username, password)
+        token = login(username, password)
+        return jsonify(token)
     except InvalidCredentialsError:
         return jsonify("Invalid credentials"), 401
     except UserNotFoundError:
