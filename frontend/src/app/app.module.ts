@@ -11,6 +11,8 @@ import { HeaderComponent } from './header/header.component';
 import { FormsModule } from '@angular/forms';
 import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthenticationInterceptor } from './authentication.interceptor';
+import { MatSnackBarModule } from '@angular/material/snack-bar';
+import { ErrorInterceptor } from './error.interceptor';
 
 @NgModule({
   declarations: [
@@ -26,8 +28,14 @@ import { AuthenticationInterceptor } from './authentication.interceptor';
     BrowserAnimationsModule,
     FormsModule,
     HttpClientModule,
+    MatSnackBarModule,
   ],
   providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorInterceptor,
+      multi: true,
+    },
     {
       provide: HTTP_INTERCEPTORS,
       useClass: AuthenticationInterceptor,
