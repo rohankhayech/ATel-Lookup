@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthenticationService } from '../authentication.service';
 
 @Component({
@@ -10,11 +11,16 @@ export class AuthenticatePageComponent {
   public username = '';
   public password = '';
 
-  constructor(private authenticationService: AuthenticationService) {}
+  constructor(
+    private authenticationService: AuthenticationService,
+    private router: Router
+  ) {}
 
   authenticate() {
     this.authenticationService
       .authenticate(this.username, this.password)
-      .subscribe();
+      .subscribe(() => {
+        this.router.navigate(['admin']);
+      });
   }
 }

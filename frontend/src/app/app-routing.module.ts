@@ -9,13 +9,13 @@ import { UnauthenticatedGuard } from './unauthenticated.guard';
 const routes: Routes = [
   {
     path: '',
+    pathMatch: 'full',
+    component: HomePageComponent,
+  },
+  {
+    path: '',
     canActivateChild: [UnauthenticatedGuard],
     children: [
-      {
-        path: '',
-        pathMatch: 'full',
-        component: HomePageComponent,
-      },
       {
         path: 'authenticate',
         component: AuthenticatePageComponent,
