@@ -1,3 +1,37 @@
-<input [(ngModel)]="username">
-<input [(ngModel)]="password" type="password">
-<button (click)="authenticate()">Log in</button>
+<mat-card class="card">
+  <mat-card-header>
+    <mat-card-title>Log in to Admin Portal</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content class="card-content">
+    <form>
+      <section>
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Username</mat-label>
+          <input matInput [(ngModel)]="username" name="username" />
+        </mat-form-field>
+      </section>
+
+      <section>
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Password</mat-label>
+          <input
+            matInput
+            [(ngModel)]="password"
+            name="password"
+            type="password"
+          />
+        </mat-form-field>
+      </section>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="authenticate()"
+        class="wide"
+      >
+        Log in
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>

@@ -14,6 +14,10 @@ import { AuthenticationInterceptor } from './authentication.interceptor';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ErrorInterceptor } from './error.interceptor';
 import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatFormFieldModule } from '@angular/material/form-field';
+import { MatInputModule } from '@angular/material/input';
+import { MatButtonModule } from '@angular/material/button';
+import { MatCardModule } from '@angular/material/card';
 
 @NgModule({
   declarations: [
@@ -31,6 +35,10 @@ import { MatToolbarModule } from '@angular/material/toolbar';
     HttpClientModule,
     MatSnackBarModule,
     MatToolbarModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatButtonModule,
+    MatCardModule,
   ],
   providers: [
     {
