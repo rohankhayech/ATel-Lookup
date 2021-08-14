@@ -8,6 +8,8 @@ import { AuthenticatePageComponent } from './authenticate-page/authenticate-page
 import { AdminPageComponent } from './admin-page/admin-page.component';
 import { HomePageComponent } from './home-page/home-page.component';
 import { HeaderComponent } from './header/header.component';
+import { FormsModule } from '@angular/forms';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -15,14 +17,16 @@ import { HeaderComponent } from './header/header.component';
     AuthenticatePageComponent,
     AdminPageComponent,
     HomePageComponent,
-    HeaderComponent
+    HeaderComponent,
   ],
   imports: [
     BrowserModule,
     AppRoutingModule,
-    BrowserAnimationsModule
+    BrowserAnimationsModule,
+    FormsModule,
+    HttpClientModule,
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}

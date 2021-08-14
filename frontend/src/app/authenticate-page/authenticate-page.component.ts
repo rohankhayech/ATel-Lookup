@@ -1,15 +1,20 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { AuthenticationService } from '../authentication.service';
 
 @Component({
   selector: 'app-authenticate-page',
   templateUrl: './authenticate-page.component.html',
-  styleUrls: ['./authenticate-page.component.scss']
+  styleUrls: ['./authenticate-page.component.scss'],
 })
-export class AuthenticatePageComponent implements OnInit {
+export class AuthenticatePageComponent {
+  public username = '';
+  public password = '';
 
-  constructor() { }
+  constructor(private authenticationService: AuthenticationService) {}
 
-  ngOnInit(): void {
+  authenticate() {
+    this.authenticationService
+      .authenticate(this.username, this.password)
+      .subscribe();
   }
-
 }
