@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { AuthenticationService } from '../authentication.service';
 
 @Component({
   selector: 'app-header',
@@ -6,7 +7,14 @@ import { Component, OnInit } from '@angular/core';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  constructor() {}
+  public label: string;
+
+  constructor(private authenticationService: AuthenticationService) {
+    this.label =
+      this.authenticationService.token !== null
+        ? 'Admin Portal'
+        : 'Admin Login';
+  }
 
   ngOnInit(): void {}
 }

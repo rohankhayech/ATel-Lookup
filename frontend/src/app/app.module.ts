@@ -13,6 +13,7 @@ import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { AuthenticationInterceptor } from './authentication.interceptor';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { ErrorInterceptor } from './error.interceptor';
+import { MatToolbarModule } from '@angular/material/toolbar';
 
 @NgModule({
   declarations: [
@@ -29,6 +30,7 @@ import { ErrorInterceptor } from './error.interceptor';
     FormsModule,
     HttpClientModule,
     MatSnackBarModule,
+    MatToolbarModule,
   ],
   providers: [
     {
