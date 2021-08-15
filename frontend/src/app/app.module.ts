@@ -22,7 +22,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
-import { MatNativeDateModule } from '@angular/material/core';
+import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -61,6 +61,7 @@ import { MatNativeDateModule } from '@angular/material/core';
       useClass: AuthenticationInterceptor,
       multi: true,
     },
+    { provide: MAT_DATE_LOCALE, useValue: 'en-AU' },
   ],
   bootstrap: [AppComponent],
 })
