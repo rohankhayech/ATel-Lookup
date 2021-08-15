@@ -75,6 +75,38 @@
         >
       </section>
 
+      <section class="section">
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Start Date</mat-label>
+          <input
+            matInput
+            [(ngModel)]="start"
+            [matDatepicker]="startPicker"
+            name="startPicker"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="startPicker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>End Date</mat-label>
+          <input
+            matInput
+            [(ngModel)]="end"
+            [matDatepicker]="endPicker"
+            name="endPicker"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="endPicker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+      </section>
+
       <button
         mat-raised-button
         color="primary"

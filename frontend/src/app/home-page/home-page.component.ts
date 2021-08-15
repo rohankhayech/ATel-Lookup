@@ -42,6 +42,8 @@ export class HomePageComponent implements OnInit {
   public radius = '';
   public match = Match.Any;
   public keywords: Keywords = {};
+  public start?: Date;
+  public end?: Date;
 
   constructor(private http: HttpClient) {}
 
@@ -79,6 +81,10 @@ export class HomePageComponent implements OnInit {
       coordinates,
       match: this.match,
       keywords,
+      start: this.start,
+      end: this.end,
     };
+
+    console.log(data);
   }
 }
