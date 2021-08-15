@@ -34,6 +34,7 @@ import json
 import jwt
 from datetime import datetime
 from flask import Flask, jsonify
+from flask_cors import CORS
 import os
 
 from flask import Flask, jsonify, request
@@ -51,6 +52,7 @@ from controller.authentication import (
 
 app = Flask(__name__)
 jwt = JWTManager(app)
+CORS(app)
 
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 
@@ -74,22 +76,23 @@ def user_lookup_callback(_jwt_header, jwt_data):
     return identity
 
 
-@app.route("/login", methods=["POST"])
+@app.route("/authenticate", methods=["POST"])
 def enter_credentials():
-    '''Validate user input and call login() function.
-    
+    """Validate user input and call login() function.
+
     Args:
         credentials (json): A JSON object representing a username and password.
 
     Returns:
         json: JSON authentication token.
 
-    '''
+    """
     username = request.json.get("username", None)
     password = request.json.get("password", None)
 
     try:
-        return login(username, password)
+        token = login(username, password)
+        return jsonify(token)
     except InvalidCredentialsError:
         return jsonify("Invalid credentials"), 401
     except UserNotFoundError:
@@ -112,53 +115,50 @@ if __name__ == "__main__":
     app.run()
 
 
+# Web Interface Functions - Tully Slattery
 
-
-#Web Interface Functions - Tully Slattery
 
 def imports(json: json) -> json:
-    '''Called by the web interface with the flag auto or manual (determining 
+    """Called by the web interface with the flag auto or manual (determining
     whether a specific report is to be added, or to just import any new reports since last import)
 
     Args:
         json (json): A JSON object. See SAS for breakdown of objects fields.
-    
-    Returns:
-        json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
 
-    '''
-    return jsonify("") #stub
+    Returns:
+        json: JSON flag – Flag that states whether the import was successful or unsuccessful.
+
+    """
+    return jsonify("")  # stub
 
 
 def search(json: json) -> json:
-    '''The purpose of this function is to help with the actual searching aspect of our system, 
-    it will be called by the submit search form, and will call the either of the search functions 
-    in the search module, as well as both visualisation functions. 
+    """The purpose of this function is to help with the actual searching aspect of our system,
+    it will be called by the submit search form, and will call the either of the search functions
+    in the search module, as well as both visualisation functions.
 
     Args:
         json (json): a JSON object containing relevant fields. See SAS for breakdown of fields.
-    
+
     Returns:
         bool: determines whether the search was successful.
-        reports_list: a list of ATel reports returned by search queries. 
-        nodes_list: a list of report nodes for the visualisation graph. 
-        edges_list: a list of edges for the visualisation graph.  
+        reports_list: a list of ATel reports returned by search queries.
+        nodes_list: a list of report nodes for the visualisation graph.
+        edges_list: a list of edges for the visualisation graph.
 
-    '''
-    return jsonify("") #stub
+    """
+    return jsonify("")  # stub
 
 
 def load_metadata() -> json:
-    '''To get the data associated with imports, such as the last time 
+    """To get the data associated with imports, such as the last time
     it was updated and how many reports we have.
-    
+
     Returns:
         date: in string format.
 
-        int: integer – Count of reports in the database (this number is also the last ATel 
+        int: integer – Count of reports in the database (this number is also the last ATel
             number we have stored, as ATel reports are numbered increasingly)
 
-    '''
-    return jsonify("") #stub
-
-
+    """
+    return jsonify("")  # stub
