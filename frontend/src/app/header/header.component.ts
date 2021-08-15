@@ -7,13 +7,12 @@ import { AuthenticationService } from '../authentication.service';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  public label: string;
+  public label?: string;
 
   constructor(private authenticationService: AuthenticationService) {
-    this.label =
-      this.authenticationService.token !== null
-        ? 'Admin Portal'
-        : 'Admin Login';
+    this.authenticationService.token$.subscribe((token) => {
+      this.label = token !== null ? 'Admin Portal' : 'Admin Login';
+    });
   }
 
   ngOnInit(): void {}

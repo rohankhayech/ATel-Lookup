@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { tap } from 'rxjs/operators';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -9,11 +10,15 @@ import { tap } from 'rxjs/operators';
 export class AuthenticationService {
   private static readonly TOKEN_KEY = 'token';
 
+  public token$ = new BehaviorSubject(this.token);
+
   public get token() {
     return localStorage.getItem(AuthenticationService.TOKEN_KEY);
   }
 
   public set token(value: string | null) {
+    this.token$.next(value);
+
     if (value !== null) {
       localStorage.setItem(AuthenticationService.TOKEN_KEY, value);
     } else {
