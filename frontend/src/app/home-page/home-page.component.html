@@ -9,8 +9,8 @@
     <form>
       <section>
         <mat-form-field appearance="fill" class="wide">
-          <mat-label>Keywords</mat-label>
-          <input matInput [(ngModel)]="keywords" name="keywords" />
+          <mat-label>Query</mat-label>
+          <input matInput [(ngModel)]="query" name="query" />
         </mat-form-field>
       </section>
 
@@ -61,6 +61,14 @@
             <mat-option [value]="Match.None">None</mat-option>
           </mat-select>
         </mat-form-field>
+
+        <mat-checkbox
+          *ngFor="let keyword of metadata?.keywords"
+          [(ngModel)]="keywords[keyword]"
+          [name]="keyword"
+          class="checkbox"
+          >{{ keyword }}</mat-checkbox
+        >
       </section>
 
       <button
