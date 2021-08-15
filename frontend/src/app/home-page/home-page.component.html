@@ -7,19 +7,23 @@
     </p>
 
     <form>
-      <section>
+      <section class="section">
         <mat-form-field appearance="fill" class="wide">
           <mat-label>Query</mat-label>
           <input matInput [(ngModel)]="query" name="query" />
         </mat-form-field>
       </section>
 
-      <section>
+      <section class="section">
         <mat-form-field appearance="fill">
           <mat-label>Search Type</mat-label>
-          <mat-select [(value)]="mode">
-            <mat-option [value]="SearchMode.Name">Name</mat-option>
-            <mat-option [value]="SearchMode.Coordinate">Coordinates</mat-option>
+          <mat-select [(value)]="mode" class="uppercase">
+            <mat-option [value]="SearchMode.Name" class="uppercase"
+              >Name</mat-option
+            >
+            <mat-option [value]="SearchMode.Coordinate" class="uppercase"
+              >Coordinates</mat-option
+            >
           </mat-select>
         </mat-form-field>
 
@@ -52,13 +56,13 @@
         </ng-container>
       </section>
 
-      <section>
+      <section class="section">
         <mat-form-field appearance="fill" class="wide">
           <mat-label>Match</mat-label>
-          <mat-select [(value)]="match">
-            <mat-option [value]="Match.Any">Any</mat-option>
-            <mat-option [value]="Match.All">All</mat-option>
-            <mat-option [value]="Match.None">None</mat-option>
+          <mat-select [(value)]="match" class="uppercase">
+            <mat-option [value]="Match.Any" class="uppercase">Any</mat-option>
+            <mat-option [value]="Match.All" class="uppercase">All</mat-option>
+            <mat-option [value]="Match.None" class="uppercase">None</mat-option>
           </mat-select>
         </mat-form-field>
 

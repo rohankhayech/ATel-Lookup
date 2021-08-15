@@ -65,5 +65,20 @@ export class HomePageComponent implements OnInit {
     const keywords = this.metadata?.keywords.filter(
       (keyword) => this.keywords[keyword]
     );
+
+    const coordinates = {
+      ra: this.ra,
+      decimals: this.decimals,
+      radius: this.radius,
+    };
+
+    const data = {
+      query: this.query,
+      mode: this.mode,
+      name: this.name,
+      coordinates,
+      match: this.match,
+      keywords,
+    };
   }
 }
