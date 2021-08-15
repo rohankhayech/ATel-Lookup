@@ -1,1 +1,76 @@
-<p>home-page works!</p>
+<mat-card class="card">
+  <mat-card-content class="card-content">
+    <p>
+      Enter your desired search criteria using the below fields to find ATel
+      reports matching all search criteria. All fields are optional, however at
+      least one field must be entered to perform a search.
+    </p>
+
+    <form>
+      <section>
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Keywords</mat-label>
+          <input matInput [(ngModel)]="keywords" name="keywords" />
+        </mat-form-field>
+      </section>
+
+      <section>
+        <mat-form-field appearance="fill">
+          <mat-label>Search Type</mat-label>
+          <mat-select [(value)]="mode">
+            <mat-option [value]="SearchMode.Name">Name</mat-option>
+            <mat-option [value]="SearchMode.Coordinate">Coordinates</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <ng-container [ngSwitch]="mode">
+          <mat-form-field
+            *ngSwitchCase="SearchMode.Name"
+            appearance="fill"
+            class="wide"
+          >
+            <mat-label>Name</mat-label>
+            <input matInput [(ngModel)]="name" name="name" />
+          </mat-form-field>
+
+          <ng-container *ngSwitchCase="SearchMode.Coordinate">
+            <mat-form-field appearance="fill" class="wide">
+              <mat-label>RA</mat-label>
+              <input matInput [(ngModel)]="ra" name="ra" />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="wide">
+              <mat-label>Decimals</mat-label>
+              <input matInput [(ngModel)]="decimals" name="decimals" />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="wide">
+              <mat-label>Radius</mat-label>
+              <input matInput [(ngModel)]="radius" name="radius" />
+            </mat-form-field>
+          </ng-container>
+        </ng-container>
+      </section>
+
+      <section>
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Match</mat-label>
+          <mat-select [(value)]="match">
+            <mat-option [value]="Match.Any">Any</mat-option>
+            <mat-option [value]="Match.All">All</mat-option>
+            <mat-option [value]="Match.None">None</mat-option>
+          </mat-select>
+        </mat-form-field>
+      </section>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="search()"
+        class="wide uppercase"
+      >
+        Search
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>
