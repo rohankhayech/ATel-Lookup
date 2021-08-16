@@ -59,6 +59,27 @@ class ReportResult:
         """
         return f"ATel #{self.atel_num}: {self.title} ({self.authors}). Body length: {len(self.body)} chars. Submitted: {self.submission_date}. Referenced Reports: {self.referenced_reports}"
 
+    def __eq__(self, other)->bool:
+        """
+        Checks if the given object is equal to this ReportResult. If the object is an ImportedReport it will be considered equal if the common fields are equal. 
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal.
+        """
+        if (isinstance(other,ReportResult)):
+            return (self.atel_num == other.atel_num
+            and self.title == other.title
+            and self.authors == other.authors
+            and self.body == other.body
+            and self.referenced_reports.sort() == other.referenced_reports.sort()
+            and self.submission_date == self.submission_date)
+        else:
+            return False
+
+
     @property
     def atel_num(self)->int:
         """

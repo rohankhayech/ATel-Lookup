@@ -28,7 +28,7 @@ from astropy.coordinates.sky_coordinate import SkyCoord
 
 from model.ds.alias_result import AliasResult
 from model.ds.search_filters import SearchFilters, KeywordMode
-from model.ds.report_types import ImportedReport
+from model.ds.report_types import ImportedReport, ReportResult
 from model.constants import valid_keyword
 
 class TestAliasResult(unittest.TestCase):
@@ -169,6 +169,16 @@ class TestReportTypes(unittest.TestCase):
         self.assertListEqual(ir2._objects, [])
         self.assertListEqual(ir2._coordinates, [])
         self.assertListEqual(ir2._referenced_by, [])
+
+    def test_equals(self):
+        rr = ReportResult(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021, 7, 30), [14001])
+        ir2 = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021, 7, 30), [14001], [datetime(2021, 8, 30)], ["Radio", "sTAR"], ["X1"], [], [13000])
+
+        self.assertEqual(self.ir,rr)
+        self.assertEqual(self.ir,ir2)
+
+        ir3 = ImportedReport(14000, "ATel Title", "R. Khayech", "Body", datetime(2021, 7, 30), [14001], [datetime(2021, 8, 30)], ["Radio", "sTAR"], ["X1"], [], [13000])
+        self.assertNotEqual(self.ir,ir3)
 
     def test_invalid_atel_num(self):
         with self.assertRaises(ValueError):
