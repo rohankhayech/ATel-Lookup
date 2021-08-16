@@ -20,13 +20,16 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+from datetime import datetime
 from typing import Tuple
 import unittest
 
 from mysql.connector.cursor import MySQLCursor
-from mysql.connector.errors import IntegrityError
+import mysql.connector
 
 from model import db_helper
+from model.ds.report_types import ImportedReport, ReportResult
+from model.ds.search_filters import SearchFilters
 
 class TestInitTables(unittest.TestCase):
     #Verify tables exist/were created on container init
@@ -85,6 +88,71 @@ class TestAuth(unittest.TestCase):
         cur.execute("delete from AdminUsers where username = 'test'")
         cur.close()
         cn.commit()
+        cn.close()
+
+class TestReports(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def testNextATelNum(self):
+        #set up
+        old_num = db_helper.get_next_atel_num()
+
+        db_helper.set_next_atel_num(20000)
+        self.assertEqual(db_helper.get_next_atel_num(),20000)
+
+        db_helper.set_next_atel_num(old_num)
+
+    def testLastUpdatedDate(self):
+        #set up
+        old_date = db_helper.get_last_updated_date()
+
+        _set_last_updated_date(datetime(2021,8,16))
+        self.assertEqual(db_helper.get_last_updated_date(),datetime(2021, 8, 16))
+
+        _set_last_updated_date(old_date)
+
+    def testReports(self):
+        report = ImportedReport(20000,"db_test_report","A","B",datetime(2021,8,12), keywords=["star","radio"])
+
+        db_helper.add_report(report)
+
+        results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+        result = results[0]
+
+        self.assertEqual(report,result)
+        self.assertTrue(db_helper.report_exists(20000))
+
+        #delete report
+        cn = db_helper._connect()
+        cur:MySQLCursor = cn.cursor()
+        cur.execute("delete from Reports where atelNum = 20000")
+        cur.close()
+        cn.commit()
+        cn.close()
+
+
+def _set_last_updated_date(date: datetime):
+    """
+    Sets the date that the database was updated with the latest ATel reports.
+    For testing purposes only, in production this should only be set to CURDATE() by add_report().
+
+    Args:
+        date (datetime): The date that the database was updated with the latest ATel reports.
+    """
+    cn = db_helper._connect()
+    cur:MySQLCursor = cn.cursor()
+
+    query = ("update Metadata "
+             "set lastUpdatedDate = %s")
+
+    try:
+        cur.execute(query, (date,))
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cn.commit()
+        cur.close()
         cn.close()
 
 if __name__ == '__main__':
