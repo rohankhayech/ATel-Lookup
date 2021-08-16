@@ -318,8 +318,37 @@ def find_reports_by_object(filters:SearchFilters, object_name:str=None)->list[Re
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
-    return None #stub
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
 
+    query = ("select atelNum, title, authors, body, submissionDate"
+             " from Reports"
+             " where title = %s")
+
+    data = (filters.term,)
+
+    reports = []
+
+    try:
+        cur.execute(query, data)
+        for row in cur.fetchall():
+            #extract data
+            atel_num = row[0]
+            title = row[1]
+            authors = row[2]
+            body = row[3]
+            submission_date = row[4]
+
+            #create result object and add to list
+            report = ReportResult(atel_num,title,authors,body,submission_date)
+            reports.append(report)
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cur.close()
+        cn.close()
+
+    return reports
 def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
@@ -421,7 +450,7 @@ def _read_table(table_name:str)->str:
     Returns:
         str: The SQL schema for the given table.
     """
-    schema_path = os.path.join("..", "model", "schema", f"{table_name}.sql")
+    schema_path = os.path.join("model", "schema", f"{table_name}.sql")
     return open(schema_path).read()
 
 def _record_exists(table_name:str,primary_key:str,id:str)->bool:
