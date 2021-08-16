@@ -38,7 +38,7 @@ export class HomePageComponent implements OnInit {
   public mode = SearchMode.Name;
   public name = '';
   public ra = '';
-  public decimals = '';
+  public declination = '';
   public radius = '';
   public match = Match.Any;
   public keywords: Keywords = {};
@@ -70,7 +70,7 @@ export class HomePageComponent implements OnInit {
 
     const coordinates = {
       ra: this.ra,
-      decimals: this.decimals,
+      declination: this.declination,
       radius: this.radius,
     };
 
