@@ -39,7 +39,7 @@ from model.ds.search_filters import SearchFilters
 from model.ds.alias_result import AliasResult
 
 # Public functions
-def get_hashed_password(username:str)->str:
+def get_hashed_password(username: str) -> str:
     """
     Retrieves the stored hashed password for the specified user if the user exists.
 
@@ -56,17 +56,17 @@ def get_hashed_password(username:str)->str:
     cn = _connect()
     cur: MySQLCursor = cn.cursor()
 
-    query = ("select passwordHash from AdminUsers where username = %s")
+    query = "select passwordHash from AdminUsers where username = %s"
 
     cur.execute(query, (username,))
     result = cur.fetchone()
-    
+
     if result is not None:
         return result[0]
     else:
         raise UserNotFoundError()
 
-def user_exists(username:str)->bool:
+def user_exists(username: str) -> bool:
     """
     Checks if an admin user with the specified username exists in the database.
 
@@ -78,7 +78,7 @@ def user_exists(username:str)->bool:
     """
     return _record_exists("AdminUsers", "username", username)
 
-def add_admin_user(username:str, password:str):
+def add_admin_user(username: str, password: str):
     """
     Stores a new admin user with the specified username and password if the user does not already exist.
 
@@ -95,19 +95,17 @@ def add_admin_user(username:str, password:str):
     password = str(password)
 
     # Check length is valid
-    if (len(username) in range(1,25) and len(password) in range(1,255)):
+    if len(username) in range(1, 25) and len(password) in range(1, 255):
         # connect to database
         cn = _connect()
-        cur:MySQLCursor = cn.cursor()
+        cur: MySQLCursor = cn.cursor()
 
-        #setup query
-        query = ("insert into AdminUsers"
-                " (username, passwordHash)"
-                " values (%s, %s)")
+        # setup query
+        query = "insert into AdminUsers" " (username, passwordHash)" " values (%s, %s)"
 
         data = (username, password)
 
-        #execute query and handle errors
+        # execute query and handle errors
         try:
             cur.execute(query, data)
         except mysql.connector.Error as e:
@@ -120,9 +118,12 @@ def add_admin_user(username:str, password:str):
             cur.close()
             cn.close()
     else:
-        raise ValueError("Specified username and password must be valid lengths and non-empty.")
+        raise ValueError(
+            "Specified username and password must be valid lengths and non-empty."
+        )
 
-def add_report(report:ImportedReport):
+
+def add_report(report: ImportedReport):
     """
     Stores a new report in the database with all the fields specified in the given report object. This method also creates relational records between reports and objects, related reports and coordinates.
 
@@ -169,7 +170,7 @@ def add_report(report:ImportedReport):
     #TODO: Add referenced reports/by. 
 
 
-def report_exists(atel_num:int)->bool:
+def report_exists(atel_num: int) -> bool:
     """
     Checks whether a report with the specified ATel number is stored in the database.
 
@@ -181,16 +182,18 @@ def report_exists(atel_num:int)->bool:
     """
     return _record_exists("Reports","atelNum",atel_num)
 
-def get_all_aliases()->list[AliasResult]:
+
+def get_all_aliases() -> list[AliasResult]:
     """
     Retrieves a list of all object aliases stored in the database and their associated object IDs.
 
     Returns:
         list[AliasResult]: A list of AliasResult objects, containing aliases and their associated object ID, or None if no aliases are stored.
     """
-    return [AliasResult("example","x")] #stub
+    return [AliasResult("example", "x")]  # stub
 
-def get_next_atel_num()->int:
+
+def get_next_atel_num() -> int:
     """
     Retrieves the number of the next ATel report to start auto import from. This is equal to the last ATel number added to the database via the auto import function plus one. If no reports have been auto imported, this will be equal to one.
 
@@ -216,7 +219,7 @@ def get_next_atel_num()->int:
 
     return next_atel_num
 
-def set_next_atel_num(nextNum:int):
+def set_next_atel_num(nextNum: int):
     """
     Sets the number of the next ATel report to start auto import from. This method should be called after the auto import function has finished.
 
@@ -238,7 +241,8 @@ def set_next_atel_num(nextNum:int):
         cur.close()
         cn.close()
 
-def get_last_updated_date()->datetime:
+
+def get_last_updated_date() -> datetime:
     """
     Retrieves the date that the database was updated with the latest ATel reports.
 
@@ -264,7 +268,7 @@ def get_last_updated_date()->datetime:
     return date
 
 
-def add_object(object_id:str, coords:SkyCoord, aliases:list[str]):
+def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
     """
     Stores a new celestial object with the specified coordinates and it’s known aliases in the database.
 
@@ -278,7 +282,8 @@ def add_object(object_id:str, coords:SkyCoord, aliases:list[str]):
     """
     pass
 
-def add_aliases(object_id:str, aliases:list[str]):
+
+def add_aliases(object_id: str, aliases: list[str]):
     """
     Adds the specified aliases to the given stored object.
 
@@ -291,7 +296,8 @@ def add_aliases(object_id:str, aliases:list[str]):
     """
     pass
 
-def get_object_coords(alias:str)->SkyCoord:
+
+def get_object_coords(alias: str) -> SkyCoord:
     """
     Retrieves the coordinates of the stored celestial object with the specified alias.
 
@@ -304,9 +310,12 @@ def get_object_coords(alias:str)->SkyCoord:
     Raises:
         ObjectNotFoundError: Raised when the specified alias is not stored in the database.
     """
-    return SkyCoord(0.0,0.0)
+    return SkyCoord(0.0, 0.0)
 
-def find_reports_by_object(filters:SearchFilters, object_name:str=None)->list[ReportResult]:
+
+def find_reports_by_object(
+    filters: SearchFilters, object_name: str = None
+) -> list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -360,7 +369,7 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:i
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
-    return None # stub
+    return None  # stub
 
 
 def init_db():
@@ -397,6 +406,7 @@ def init_db():
         cur.close()
         cn.close()
 
+
 # Exceptions
 class ExistingUserError(Exception):
     """
@@ -407,13 +417,15 @@ class ExistingReportError(Exception):
     When the ATel number of the specified report is already associated with a report stored in the database.
     """
 
+
 class UserNotFoundError(Exception):
     """
     Raised when the specified user is not found in the database.
     """
 
-#Private functions
-def _link_reports(object_id:str, aliases:list[str]):
+
+# Private functions
+def _link_reports(object_id: str, aliases: list[str]):
     """
     Adds records relating reports and the specified object ID, where the report contains one or more of the specified aliases.
 
@@ -426,18 +438,19 @@ def _link_reports(object_id:str, aliases:list[str]):
     """
     pass
 
-def _connect()->MySQLConnection:
+
+def _connect() -> MySQLConnection:
     """
     Connects to the MySQL server and database and returns the connection object.
 
     Returns:
-        MySQLConnection: Connection to the MySQL Server. Must be closed by the calling method once finished. 
+        MySQLConnection: Connection to the MySQL Server. Must be closed by the calling method once finished.
     """
     return mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST"), 
-        user=os.getenv("MYSQL_USER"), 
-        password=os.getenv("MYSQL_PASSWORD"), 
-        database=os.getenv("MYSQL_DB")
+        host=os.getenv("MYSQL_HOST"),
+        user=os.getenv("MYSQL_USER"),
+        password=os.getenv("MYSQL_PASSWORD"),
+        database=os.getenv("MYSQL_DB"),
     )
 
 def _read_table(table_name:str)->str:
