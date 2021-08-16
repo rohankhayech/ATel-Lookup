@@ -27,6 +27,12 @@
           </mat-select>
         </mat-form-field>
 
+        <mat-icon
+          style="color: grey"
+          matTooltip="Search by object name or coordinates"
+          >help</mat-icon
+        >
+
         <ng-container [ngSwitch]="mode">
           <mat-form-field
             *ngSwitchCase="SearchMode.Name"
@@ -66,6 +72,8 @@
           </mat-select>
         </mat-form-field>
 
+        <p>of the following keywords:</p>
+
         <mat-checkbox
           *ngFor="let keyword of metadata?.keywords"
           [(ngModel)]="keywords[keyword]"
@@ -76,6 +84,8 @@
       </section>
 
       <section class="section">
+        <p>Filter by submission date:</p>
+
         <mat-form-field appearance="fill" class="wide">
           <mat-label>Start Date</mat-label>
           <input
