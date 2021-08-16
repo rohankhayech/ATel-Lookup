@@ -179,7 +179,7 @@ def report_exists(atel_num:int)->bool:
     Returns:
         bool: True if the report was found, False otherwise.
     """
-    return _record_exists("Reports","atel_num",atel_num)
+    return _record_exists("Reports","atelNum",atel_num)
 
 def get_all_aliases()->list[AliasResult]:
     """
@@ -226,9 +226,8 @@ def set_next_atel_num(nextNum:int):
     cn = _connect()
     cur: MySQLCursor = cn.cursor()
 
-    query = ("insert into Metadata"
-             "(nextATelNum)"
-             "values (%s)")
+    query = ("update Metadata "
+             "set nextATelNum = %s")
 
     try:
         cur.execute(query, (nextNum,))
@@ -470,7 +469,9 @@ def _record_exists(table_name:str,primary_key:str,id:str)->bool:
 
     cur.execute(query, (id,))
 
-    if cur.fetchone() is None:
-        return False
-    else:
+    result = cur.fetchone()
+
+    if result[0] >= 1:
         return True
+    else:
+        return False
