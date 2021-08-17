@@ -61,6 +61,7 @@ class TestNameExtraction(ut.TestCase):
     # Test the alias table (dtype is bytes30)
     def test_alias_table(self):
         lst = query_simbad._get_names_from_table(self.alias_table)
+        self.assertListEqual(lst, ["id1", "id2", "id3", "id4"])
         self.assertEqual(lst[0], "id1")
         self.assertEqual(lst[1], "id2")
         self.assertEqual(lst[2], "id3")
@@ -77,7 +78,7 @@ class TestNameExtraction(ut.TestCase):
 
 
     def test_invalid_table(self):
-        self.assertEquals(query_simbad._get_names_from_table(Table()), [])
+        self.assertEqual(query_simbad._get_names_from_table(Table()), [])
 
 
 """ Test the coordinate extraction function. Like the TestNameExtraction class, 
