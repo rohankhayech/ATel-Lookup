@@ -313,9 +313,7 @@ def get_object_coords(alias: str) -> SkyCoord:
     return SkyCoord(0.0, 0.0)
 
 
-def find_reports_by_object(
-    filters: SearchFilters, object_name: str = None
-) -> list[ReportResult]:
+def find_reports_by_object(filters: SearchFilters, object_name: str = None) -> list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -329,9 +327,7 @@ def find_reports_by_object(
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
 
-    query = _build_report_query()
-
-    data = (filters.term,)
+    query, data = _build_report_query(filters)
 
     reports = []
 
@@ -510,28 +506,28 @@ def _build_report_query(filters: SearchFilters):
     clauses:list[str] = []
     
     # Append term clause and data
-    if filters.term is not None:
+    if filters.term:
         clauses.append("(title like %s or body like %s) ")
         data = data + (filters.term,filters.term)
     
     # Append date clauses and data
-    if filters.start_date is not None:
+    if filters.start_date:
         clauses.append("submissionDate >= %s ")
         data = data + (filters.start_date,)
     
-    if filters.end_date is not None:
+    if filters.end_date:
         clauses.append("submissionDate <= %s ")
         data = data + (filters.end_date,)
     
     # Append keyword clauses and data
-    if filters.keywords is not None:
+    if filters.keywords:
         kw_clauses = []
         if filters.keyword_mode == KeywordMode.NONE:
             # Add a clause for each keyword in filters to not be in set
             for kw in filters.keywords:
                 kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
                 data = data + (kw,)
-            kw_sep = "and "  
+            kw_sep = " and "  
         else:
             # Append a clause for each keyword to be in set
             for kw in filters.keywords:

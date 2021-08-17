@@ -117,27 +117,39 @@ class TestReports(unittest.TestCase):
         report = ImportedReport(20000,"db_test_report","A","B",datetime(2021,8,12), keywords=["star","radio"])
 
         db_helper.add_report(report)
+        try:
+            results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+            result = results[0]
 
-        results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
-        result = results[0]
-
-        self.assertEqual(report,result)
-        self.assertTrue(db_helper.report_exists(20000))
-
-        #delete report
-        cn = db_helper._connect()
-        cur:MySQLCursor = cn.cursor()
-        cur.execute("delete from Reports where atelNum = 20000")
-        cur.close()
-        cn.commit()
-        cn.close()
+            self.assertEqual(report,result)
+            self.assertTrue(db_helper.report_exists(20000))
+        finally:
+            #delete report
+            cn = db_helper._connect()
+            cur:MySQLCursor = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20000")
+            cur.close()
+            cn.commit()
+            cn.close()
 
     def testBuildQuery(self):
+        #Test full query
         sf = SearchFilters("term",["star","planet"],KeywordMode.ANY,datetime(2021,8,16),datetime(2021,8,17))
         query, data = db_helper._build_report_query(sf)
         self.maxDiff = None
         self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where (title like %s or body like %s) and submissionDate >= %s and submissionDate <= %s and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data,(sf.term,sf.term,sf.start_date,sf.end_date,sf.keywords[0],sf.keywords[1]))
+
+        #Test keyword modes / single filter
+        sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
+        query2, data2 = db_helper._build_report_query(sf2)
+        self.assertEqual(query2,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data2,(sf.keywords[0],sf.keywords[1]))
+
+        sf2.keyword_mode = KeywordMode.NONE
+        query3, data3 = db_helper._build_report_query(sf2)
+        self.assertEqual(query3,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
+        self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
 
 
 # Helper methods
