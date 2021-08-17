@@ -25,7 +25,6 @@ License Terms and Copyright:
 
 
 import unittest as ut
-import warnings
 import numpy as np
 import random
 from unittest import mock
@@ -166,12 +165,68 @@ class TestNameSearch(ut.TestCase):
         # "bogus_object_name", which is a reasonable assumption...
         with self.assertWarns(UserWarning):
             # Random object name to avoid caching. 
-            query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}")
+            # Astronomical objects cannot be named after a large, random number. 
+            self.assertIsNone(query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}"))
 
 
 # Unit testing for query_simbad_by_coords()
 class TestCoordSearch(ut.TestCase):
-    pass
+    def setUp(self): 
+        # Sample SkyCoord object for testing.
+        # Derived from the Hardvard SIMBAD mirror.
+        # Reference: http://simbad.cfa.harvard.edu/simbad/sim-fcoo 
+        self.sample_coords = SkyCoord("20 54 05.689", "+37 01 17.38", unit=('hourangle','deg'))
+        # 30.0 arcseconds. 
+        self.sample_radius = 15.0
+
+
+    @ut.expectedFailure
+    def test_invalid_coords(self):
+        query_simbad.query_simbad_by_coords(None) 
+    
+
+    @ut.expectedFailure
+    def test_invalid_radius(self):
+        query_simbad.query_simbad_by_coords(self.sample_coords, 90.0)
+        query_simbad.query_simbad_by_coords(self.sample_coords, -0.1)
+    
+
+    def test_radius_bounds(self):
+        try:
+            query_simbad.query_simbad_by_coords(self.sample_coords, 0.0)
+            query_simbad.query_simbad_by_coords(self.sample_coords, 10.0)
+            query_simbad.query_simbad_by_coords(self.sample_coords, 20.0)
+        except ValueError as e:
+            self.fail(f"Function raised ValueError for valid radius: ${str(e)}")
+
+    
+    # Test a valid coordinate. 
+    # Test whether the result is not empty. 
+    # As this is real-world data, it is subject to change. 
+    def test_coord_search(self):
+        result = query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
+        self.assertIsNotNone(result) 
+        self.assertNotEqual(result, { })
+        self.assertIsNotNone(result.items)
+        self.assertIsNotNone(result.values)
+        self.assertIsNotNone(result.keys)
+
+        for name in result:
+            self.assertFalse(len(name) == 0)
+
+        for aliases in result.items():
+            self.assertIsNotNone(aliases)
+
+
+    # At the moment, there is no object in the database at these coordinates.
+    # However, there is a small chance that one may appear. 
+    # The unit test provides a message for this if an object does indeed exist. 
+    # This is the downside to using real world data. 
+    def test_no_object_found(self):
+        fake_coord = SkyCoord(20.0, 20.0, unit=('hourangle','deg'))
+        result = query_simbad.query_simbad_by_coords(fake_coord, 0.0) 
+        self.assertIsNone(result, """Verify that the object exists in the SIMBAD database. 
+                                     Update the unit test if required. """)
 
 
 # Run suite. 
