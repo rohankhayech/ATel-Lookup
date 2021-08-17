@@ -26,6 +26,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from model.constants import FIXED_KEYWORDS
 from typing import Tuple
 
 import flask
@@ -150,6 +151,7 @@ def search(json: json) -> json:
     return jsonify("")  # stub
 
 
+@app.route("/metadata", methods=["GET"])
 def load_metadata() -> json:
     """To get the data associated with imports, such as the last time
     it was updated and how many reports we have.
@@ -161,4 +163,11 @@ def load_metadata() -> json:
             number we have stored, as ATel reports are numbered increasingly)
 
     """
-    return jsonify("")  # stub
+
+    keywords = FIXED_KEYWORDS
+    last_updated = datetime.now()
+    report_count = 0
+
+    return jsonify(
+        {"keywords": keywords, "lastUpdated": last_updated, "reportCount": report_count}
+    )
