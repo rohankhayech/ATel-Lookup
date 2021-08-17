@@ -1,6 +1,44 @@
+"""
+Contains functions that handles the import of ATel reports as well as the
+parsing and extraction of ATel data.
+
+Author:
+    Nathan Sutardi
+
+License Terms and Copyright:
+    Copyright (C) 2021 Nathan Sutardi
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU Affero General Public License as published
+    by the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU Affero General Public License for more details.
+
+    You should have received a copy of the GNU Affero General Public License
+    along with this program. If not, see <https://www.gnu.org/licenses/>.
+"""
+
+import re
+
+from model.constants import FIXED_KEYWORDS_REGEX
+from model.ds.report_types import ImportedReport
+
 from datetime import datetime
-from typing import List
 from astropy.coordinates import SkyCoord
+from requests_html import HTMLSession
+from requests.exceptions import ConnectionError, HTTPError
+from pyppeteer.errors import TimeoutError
+
+# Custom exceptions
+class NetworkError(Exception):
+    pass
+
+class DownloadFailError(Exception):
+    pass
 
 # Public functions
 def import_report(atel_num: int):
@@ -34,10 +72,32 @@ def download_report(atel_num: int) -> str:
         str: String representation of the downloaded HTML.
 
     Raises:
-        NetworkErrorException: Thrown when network failure occurs during the HTML download.
-        DownloadFailException: Thrown when the HTML could not be downloaded.
+        NetworkError: Thrown when network failure occurs during the HTML download.
+        DownloadFailError: Thrown when the HTML could not be downloaded.
     """
-    return ''
+
+    try:
+        # Generates the URL of ATel page
+        url = f'https://www.astronomerstelegram.org/?read={atel_num}'
+
+        # Makes a GET request to ATel page
+        session = HTMLSession()
+        request = session.get(url)
+
+        # Fully loads the HTML of ATel page
+        request.html.render(timeout=20)
+        html = request.html.raw_html
+
+        return html
+    except ConnectionError as err:
+        raise NetworkError(f'Network failure encountered: {str(err)}')
+    except HTTPError as err:
+        raise NetworkError(f'Network failure encountered: {str(err)}')
+    except TimeoutError as err:
+        raise DownloadFailError(f'Couldn\'t download HTML: {str(err)}')
+    finally:
+        # Closes connection
+        session.close()
 
 def parse_report(html_string: str) -> ImportedReport:
     """
@@ -124,4 +184,18 @@ def extract_keywords(body_text: str) -> list[str]:
     Returns:
         list[str]: List of keywords found.
     """
-    return []
+
+    regex = ''
+
+    # Regex to match all keywords
+    for keyword in FIXED_KEYWORDS_REGEX:
+        regex = f'{regex}{keyword}|'
+
+    # Removes the last OR operator from regex
+    regex = regex.rstrip(regex[-1])
+
+    # Finds all keywords in the body text using regex
+    keywords_regex = re.compile(regex)
+    keywords = keywords_regex.findall(body_text.lower())
+
+    return list(dict.fromkeys(keywords))

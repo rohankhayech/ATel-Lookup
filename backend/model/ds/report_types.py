@@ -25,7 +25,8 @@ from datetime import datetime
 
 from astropy.coordinates import SkyCoord
 
-from helper.type_checking import list_is_type
+from controller.helper.type_checking import list_is_type
+from model.constants import valid_keyword
 
 class ReportResult:
     """
@@ -57,6 +58,27 @@ class ReportResult:
             str: A description of the report.
         """
         return f"ATel #{self.atel_num}: {self.title} ({self.authors}). Body length: {len(self.body)} chars. Submitted: {self.submission_date}. Referenced Reports: {self.referenced_reports}"
+
+    def __eq__(self, other)->bool:
+        """
+        Checks if the given object is equal to this ReportResult. If the object is an ImportedReport it will be considered equal if the common fields are equal. 
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal.
+        """
+        if (isinstance(other,ReportResult)):
+            return (self.atel_num == other.atel_num
+            and self.title == other.title
+            and self.authors == other.authors
+            and self.body == other.body
+            and self.referenced_reports.sort() == other.referenced_reports.sort()
+            and self.submission_date == self.submission_date)
+        else:
+            return False
+
 
     @property
     def atel_num(self)->int:
@@ -322,9 +344,16 @@ class ImportedReport(ReportResult):
         Sets the list of fixed keywords.
 
         Args:
-            keywords (list[str]): List of strings representing the fixed keywords associated with the report.
+            keywords (list[str]): List of strings representing the fixed keywords associated with the report. All strings must be valid fixed keywords from The Astronomer's Telegram. Use model.constants.valid_keyword() to verify strings.
         """
+        # Check valid types
         if list_is_type(keywords, str):
+            # Check valid keywords
+            for kw in keywords:
+                if not valid_keyword(kw):
+                    raise ValueError("All keywords must be valid fixed keywords from The Astronomer's Telegram.")
+                    
+            # Set keyword list if valid
             self._keywords = keywords
         else:
             raise TypeError("Keywords must be a valid list of strings.")

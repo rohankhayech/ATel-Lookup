@@ -28,11 +28,14 @@ License Terms and Copyright:
 
 from datetime import datetime
 from astropy.coordinates import SkyCoord
+from model.constants import DEFAULT_RADIUS
+from model.ds.report_types import ReportResult
+from model.ds.search_filters import SearchFilters
 
 
 def search_reports_by_coords(search_filters: SearchFilters, 
                              coords: SkyCoord, 
-                             radius: float=10.0
+                             radius: float=DEFAULT_RADIUS
 ) -> list[ReportResult]:
     """ Performs an immediate query of the SIMBAD database by the coordinate
         range and retrieves matching reports from the local database. 

@@ -26,9 +26,10 @@ import unittest
 
 from astropy.coordinates.sky_coordinate import SkyCoord
 
-from model.alias_result import AliasResult
-from model.search_filters import SearchFilters, KeywordMode
-from model.report_types import ImportedReport
+from model.ds.alias_result import AliasResult
+from model.ds.search_filters import SearchFilters, KeywordMode
+from model.ds.report_types import ImportedReport, ReportResult
+from model.constants import valid_keyword
 
 class TestAliasResult(unittest.TestCase):
     
@@ -125,7 +126,7 @@ class TestSearchFilters(unittest.TestCase):
 
 class TestReportTypes(unittest.TestCase):
     def setUp(self):
-        self.ir = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30), [14001], [datetime(2021,8,30)], ["key", "words"], ["X1"], [], [13000])
+        self.ir = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30), [14001], [datetime(2021,8,30)], ["Radio", "sTAR"], ["X1"], [], [13000])
 
     #test creation, setters
     def test_creation(self):
@@ -136,7 +137,7 @@ class TestReportTypes(unittest.TestCase):
         self.assertEqual(self.ir._submission_date, datetime(2021,7,30))
         self.assertListEqual(self.ir._referenced_reports, [14001])
         self.assertListEqual(self.ir._observation_dates, [datetime(2021,8,30)])
-        self.assertListEqual(self.ir._keywords, ["key", "words"])
+        self.assertListEqual(self.ir._keywords, ["Radio", "sTAR"])
         self.assertListEqual(self.ir._objects, ["X1"])
         self.assertListEqual(self.ir._coordinates, [])
         self.assertListEqual(self.ir._referenced_by, [13000])
@@ -150,7 +151,7 @@ class TestReportTypes(unittest.TestCase):
         self.assertEqual(self.ir.submission_date, datetime(2021,7,30))
         self.assertListEqual(self.ir.referenced_reports, [14001])
         self.assertListEqual(self.ir.observation_dates, [datetime(2021,8,30)])
-        self.assertListEqual(self.ir.keywords, ["key", "words"])
+        self.assertListEqual(self.ir.keywords, ["Radio", "sTAR"])
         self.assertListEqual(self.ir.objects, ["X1"])
         self.assertListEqual(self.ir.coordinates, [])
         self.assertListEqual(self.ir.referenced_by, [13000])
@@ -169,6 +170,16 @@ class TestReportTypes(unittest.TestCase):
         self.assertListEqual(ir2._coordinates, [])
         self.assertListEqual(ir2._referenced_by, [])
 
+    def test_equals(self):
+        rr = ReportResult(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021, 7, 30), [14001])
+        ir2 = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021, 7, 30), [14001], [datetime(2021, 8, 30)], ["Radio", "sTAR"], ["X1"], [], [13000])
+
+        self.assertEqual(self.ir,rr)
+        self.assertEqual(self.ir,ir2)
+
+        ir3 = ImportedReport(14000, "ATel Title", "R. Khayech", "Body", datetime(2021, 7, 30), [14001], [datetime(2021, 8, 30)], ["Radio", "sTAR"], ["X1"], [], [13000])
+        self.assertNotEqual(self.ir,ir3)
+
     def test_invalid_atel_num(self):
         with self.assertRaises(ValueError):
             self.ir.atel_num = 0
@@ -176,6 +187,10 @@ class TestReportTypes(unittest.TestCase):
     def test_invalid_body_len(self):
         with self.assertRaises(ValueError):
             self.ir.body = "a"*4001
+
+    def test_invalid_keyword(self):
+        with self.assertRaises(ValueError):
+            self.ir.keywords = ["test"]
 
     #Test type conversion/checking
     def test_type_safety(self):
@@ -201,6 +216,15 @@ class TestReportTypes(unittest.TestCase):
             self.ir.referenced_by = ["str"]
         with self.assertRaises(TypeError):
             self.ir.referenced_reports = ["str"]
+
+class TestConstants(unittest.TestCase):
+    def testValid(self):
+        self.assertTrue(valid_keyword("Radio"))
+        self.assertTrue(valid_keyword("request for observations"))
+        self.assertTrue(valid_keyword("sTAR"))
+    
+    def testInvalid(self):
+        self.assertFalse(valid_keyword("test"))
 
 if __name__ == '__main__':
     unittest.main()
