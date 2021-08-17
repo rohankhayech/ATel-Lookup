@@ -24,6 +24,7 @@ License Terms and Copyright:
 """
 
 
+import warnings
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
 from astropy.table import Table
@@ -169,7 +170,7 @@ def query_simbad_by_coords(coords: SkyCoord,
 
     _set_mirror()
 
-    try:
+    try:        
         table = simbad.query_region(coords, radius_angle)
 
         if table is None:
@@ -192,6 +193,9 @@ def query_simbad_by_coords(coords: SkyCoord,
         raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
     except HTTPError as e:
         raise QuerySimbadError(str(e))
+    except UserWarning as e:
+        # No object found.
+        return None 
 
 
 def query_simbad_by_name(object_name: str, 
@@ -237,3 +241,6 @@ def query_simbad_by_name(object_name: str,
         raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
     except HTTPError as e:
         raise QuerySimbadError(str(e))
+    except UserWarning as e:
+        # No object found.
+        return None 
