@@ -98,9 +98,12 @@ class SearchFilters:
     @property
     def keywords(self)->list[str]:
         """
-        The mode to use for filtering on keywords.
+        The list of keywords to filter by.
         """
-        return self._keywords.copy()
+        if self._keywords is None:
+            return None
+        else:
+            return self._keywords.copy()
 
     @keywords.setter
     def keywords(self, keywords:list[str]):

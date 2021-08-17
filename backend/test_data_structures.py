@@ -82,6 +82,10 @@ class TestSearchFilters(unittest.TestCase):
         self.assertEqual(sf2._keyword_mode, KeywordMode.ANY)
         self.assertIsNone(sf2._start_date)
         self.assertIsNone(sf2._end_date)
+
+    def test_keywords_none_getter(self):
+        sf2 = SearchFilters("term")
+        self.assertIsNone(sf2.keywords)
         
     #test with only keywords
     def test_only_keywords(self):
