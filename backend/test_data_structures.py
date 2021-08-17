@@ -109,6 +109,9 @@ class TestSearchFilters(unittest.TestCase):
         self.assertEqual(self.sf.start_date, datetime(2021,7,30))
         self.assertEqual(self.sf.end_date, datetime(2021,7,31))
 
+        self.sf.term = None
+        self.assertIsNone(self.sf.term)
+
     #test type conversion/safety
     def test_type_safety(self):
         self.sf.term = 1
