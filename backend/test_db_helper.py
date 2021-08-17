@@ -20,6 +20,7 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+from model.ds.search_filters import KeywordMode
 from datetime import datetime
 from typing import Tuple
 import unittest
@@ -131,7 +132,15 @@ class TestReports(unittest.TestCase):
         cn.commit()
         cn.close()
 
+    def testBuildQuery(self):
+        sf = SearchFilters("term",["star","planet"],KeywordMode.ANY,datetime(2021,8,16),datetime(2021,8,17))
+        query, data = db_helper._build_report_query(sf)
+        self.maxDiff = None
+        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where (title like %s or body like %s) and submissionDate >= %s and submissionDate <= %s and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data,(sf.term,sf.term,sf.start_date,sf.end_date,sf.keywords[0],sf.keywords[1]))
 
+
+# Helper methods
 def _set_last_updated_date(date: datetime):
     """
     Sets the date that the database was updated with the latest ATel reports.

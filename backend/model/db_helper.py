@@ -24,7 +24,6 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from backend.model.ds.search_filters import KeywordMode
 from datetime import datetime
 import os
 
@@ -36,7 +35,7 @@ from mysql.connector.cursor import CursorBase, MySQLCursor
 
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport, ReportResult
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, KeywordMode
 from model.ds.alias_result import AliasResult
 
 # Public functions
@@ -489,7 +488,7 @@ def _record_exists(table_name:str,primary_key:str,id:str)->bool:
     else:
         return False
 
-def _build_report_query(filters: SearchFilters)->tuple(str,tuple):
+def _build_report_query(filters: SearchFilters):
     """
     Builds an SQL query to select reports based on the specified search filters.
 
@@ -512,8 +511,8 @@ def _build_report_query(filters: SearchFilters)->tuple(str,tuple):
     
     # Append term clause and data
     if filters.term is not None:
-        clauses.append("term like %s ")
-        data = data + (filters.term,)
+        clauses.append("(title like %s or body like %s) ")
+        data = data + (filters.term,filters.term)
     
     # Append date clauses and data
     if filters.start_date is not None:
@@ -530,13 +529,13 @@ def _build_report_query(filters: SearchFilters)->tuple(str,tuple):
         if filters.keyword_mode == KeywordMode.NONE:
             # Add a clause for each keyword in filters to not be in set
             for kw in filters.keywords:
-                kw_clauses.append("FIND_IN_SET(keywords, %s) = 0") # If kw not in set
+                kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
                 data = data + (kw,)
             kw_sep = "and "  
         else:
             # Append a clause for each keyword to be in set
             for kw in filters.keywords:
-                kw_clauses.append("FIND_IN_SET(keywords, %s) > 0") # If kw in set.
+                kw_clauses.append("FIND_IN_SET(%s, keywords) > 0") # If kw in set.
                 data = data + (kw,)
 
             # Set or/and condition
@@ -545,7 +544,7 @@ def _build_report_query(filters: SearchFilters)->tuple(str,tuple):
             elif filters.keyword_mode == KeywordMode.ANY:
                 kw_sep = " or "
         # Join keyword clauses into one clause
-        kw_clause = "(" + kw_sep.join(kw_clauses)+")"
+        kw_clause = "(" + kw_sep.join(kw_clauses)+") "
         clauses.append(kw_clause)
     
     # Join where clauses together
