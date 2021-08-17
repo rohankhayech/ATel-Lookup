@@ -158,3 +158,7 @@ DEFAULT_RADIUS = 10.0
 
 # The unit used for the radius of a coordinate search. 
 RADIUS_UNIT = 'arcsecond'
+
+# Mirror for the SIMBAD database.
+# Using the Harvard mirror.
+SIMBAD_MIRROR = "http://simbad.cfa.harvard.edu/simbad/sim-script"
