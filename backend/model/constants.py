@@ -148,17 +148,3 @@ FIXED_KEYWORDS_REGEX = ["radio",
                         "transient",
                         "variables",
                         "young stellar object" ]
-
-
-# Search module constants:
-
-# The default radius for a coordinate search. 
-# The unit is defined in the constant RADIUS_UNIT.
-DEFAULT_RADIUS = 10.0
-
-# The unit used for the radius of a coordinate search. 
-RADIUS_UNIT = 'arcsecond'
-
-# Mirror for the SIMBAD database.
-# Using the Harvard mirror.
-SIMBAD_MIRROR = "http://simbad.cfa.harvard.edu/simbad/sim-script"
