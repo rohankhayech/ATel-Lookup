@@ -209,19 +209,19 @@ class TestCoordSearch(ut.TestCase):
     # See line 155 onwards. These are the same mocked functions, but for
     # the coordinate search method. 
     @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
-    def test_no_network(self, mock_get):
+    def test_no_network(self, _):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
 
 
     @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
-    def test_blacklist(self, mock_get):
+    def test_blacklist(self, _):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
 
 
     @mock.patch('astroquery.simbad.Simbad.query_region', side_effect=mocked_object_not_found)
-    def test_no_object_found(self, mock_get):
+    def test_no_object_found(self, _):
         self.assertIsNone(query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius))
 
 
