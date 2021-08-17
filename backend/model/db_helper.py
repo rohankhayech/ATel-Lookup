@@ -24,6 +24,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from backend.model.ds.search_filters import KeywordMode
 from datetime import datetime
 import os
 
@@ -329,9 +330,7 @@ def find_reports_by_object(
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
 
-    query = ("select atelNum, title, authors, body, submissionDate"
-             " from Reports"
-             " where title = %s")
+    query = _build_report_query()
 
     data = (filters.term,)
 
@@ -357,6 +356,7 @@ def find_reports_by_object(
         cn.close()
 
     return reports
+
 def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
@@ -488,3 +488,71 @@ def _record_exists(table_name:str,primary_key:str,id:str)->bool:
         return True
     else:
         return False
+
+def _build_report_query(filters: SearchFilters)->tuple(str,tuple):
+    """
+    Builds an SQL query to select reports based on the specified search filters.
+
+    Args:
+        filters (SearchFilters): A valid search filters object to build the query with.
+
+    Returns:
+        str: The SQL query.
+        tuple: The data to inject into the query on execution. 
+    """
+
+    # Define base Select from Reports query
+    base_query = ("select atelNum, title, authors, body, submissionDate"
+            " from Reports"
+            " where ")
+    
+    # Start with empty lists of terms and data
+    data = ()
+    clauses:list[str] = []
+    
+    # Append term clause and data
+    if filters.term is not None:
+        clauses.append("term like %s ")
+        data = data + (filters.term,)
+    
+    # Append date clauses and data
+    if filters.start_date is not None:
+        clauses.append("submissionDate >= %s ")
+        data = data + (filters.start_date,)
+    
+    if filters.end_date is not None:
+        clauses.append("submissionDate <= %s ")
+        data = data + (filters.end_date,)
+    
+    # Append keyword clauses and data
+    if filters.keywords is not None:
+        kw_clauses = []
+        if filters.keyword_mode == KeywordMode.NONE:
+            # Add a clause for each keyword in filters to not be in set
+            for kw in filters.keywords:
+                kw_clauses.append("FIND_IN_SET(keywords, %s) = 0") # If kw not in set
+                data = data + (kw,)
+            kw_sep = "and "  
+        else:
+            # Append a clause for each keyword to be in set
+            for kw in filters.keywords:
+                kw_clauses.append("FIND_IN_SET(keywords, %s) > 0") # If kw in set.
+                data = data + (kw,)
+
+            # Set or/and condition
+            if filters.keyword_mode == KeywordMode.ALL:
+                kw_sep = " and "
+            elif filters.keyword_mode == KeywordMode.ANY:
+                kw_sep = " or "
+        # Join keyword clauses into one clause
+        kw_clause = "(" + kw_sep.join(kw_clauses)+")"
+        clauses.append(kw_clause)
+    
+    # Join where clauses together
+    sep = "and "
+    where_clause = sep.join(clauses)
+
+    # Assemble final query and return with data
+    query = base_query + where_clause
+
+    return query, data
