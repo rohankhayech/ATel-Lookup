@@ -329,6 +329,8 @@ def find_reports_by_object(filters: SearchFilters, object_name: str = None) -> l
 
     query, data = _build_report_query(filters)
 
+    #TODO Check object.
+
     reports = []
 
     try:
@@ -364,7 +366,9 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:i
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
-    return None  # stub
+    return find_reports_by_object()  # stub
+
+    #TODO: Check in coord range.
 
 
 def init_db():
