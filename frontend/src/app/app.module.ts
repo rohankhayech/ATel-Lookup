@@ -18,6 +18,12 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
+import { MatIconModule } from '@angular/material/icon';
+import { MatSelectModule } from '@angular/material/select';
+import { MatCheckboxModule } from '@angular/material/checkbox';
+import { MatDatepickerModule } from '@angular/material/datepicker';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 
 @NgModule({
   declarations: [
@@ -39,6 +45,12 @@ import { MatCardModule } from '@angular/material/card';
     MatInputModule,
     MatButtonModule,
     MatCardModule,
+    MatIconModule,
+    MatSelectModule,
+    MatCheckboxModule,
+    MatDatepickerModule,
+    MatNativeDateModule,
+    MatTooltipModule,
   ],
   providers: [
     {
@@ -51,6 +63,7 @@ import { MatCardModule } from '@angular/material/card';
       useClass: AuthenticationInterceptor,
       multi: true,
     },
+    { provide: MAT_DATE_LOCALE, useValue: 'en-AU' },
   ],
   bootstrap: [AppComponent],
 })
