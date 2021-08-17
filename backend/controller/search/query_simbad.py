@@ -179,6 +179,8 @@ def query_simbad_by_coords(coords: SkyCoord,
         # Create empty dictionary.
         results = { }
 
+        # Get the aliases for each ID. Assign the alias list to 
+        # the value of the main ID.
         for id in main_ids:
             results[id] = _get_aliases(id)
 

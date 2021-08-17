@@ -132,6 +132,7 @@ def mocked_no_result(*args, **kwargs):
     return None 
 
 
+# Unit testing for query_simbad_by_name() 
 class TestNameSearch(ut.TestCase):
     @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
     def test_no_network(self, mock_get):
@@ -168,19 +169,9 @@ class TestNameSearch(ut.TestCase):
             query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}")
 
 
-    def test_mass_query(self):
-        """ Query a random object identifier 100 times in immediate succession. 
-            The SIMBAD server may blacklist the host IP address when 'spamming' is
-            suspected. 
-        """
-        warnings.simplefilter('ignore')
-        try:
-            for _ in range(0, 100):
-                query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}")
-        except QuerySimbadError as e:
-            self.fail(f"Mass query failed due to error: {str(e)}")
-        except Exception as e2:
-            self.fail(f"An unexpected exception occurred due to a network failure: ${str(e2)}")
+# Unit testing for query_simbad_by_coords()
+class TestCoordSearch(ut.TestCase):
+    pass
 
 
 # Run suite. 
