@@ -24,7 +24,9 @@ License Terms and Copyright:
 """
 
 
+from backend.model.constants import RADIUS_UNIT, SIMBAD_MIRROR
 from astropy.coordinates import SkyCoord
+from astropy.coordinates.angles import Angle
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
 from requests import ConnectionError, HTTPError
@@ -36,11 +38,6 @@ IDS_COLUMN = "ID"
 MAIN_IDS_COLUMN = "MAIN_ID"
 RA_COLUMN = "RA"
 DEC_COLUMN = "DEC"
-
-
-# Mirror for the SIMBAD database.
-# Using the Harvard mirror.
-MIRROR = "http://simbad.cfa.harvard.edu/simbad/sim-script"
 
 
 """
@@ -129,6 +126,13 @@ def _get_aliases(id: str) -> list[str]:
     return aliases_list
 
 
+def _set_mirror(): 
+    """ Sets the mirror for SIMBAD to the one defined by the
+        SIMBAD_MIRROR constant.
+    """
+    simbad.SIMBAD_URL = SIMBAD_MIRROR
+
+
 # Public functions. 
 
 
@@ -153,7 +157,36 @@ def query_simbad_by_coords(coords: SkyCoord,
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package.     
     """
-    return dict("", []) # Stub
+    # Radius should be validated prior to calling this function. 
+    if radius not in range(0.0, 20.0):
+        raise ValueError(f"Invalid radius: \"${radius}\" not in range 0.0 to 20.0.")
+    
+    # Construct the radius angle for the region search. 
+    radius_angle = Angle(radius, unit=RADIUS_UNIT)
+
+    _set_mirror()
+
+    try:
+        table = simbad.query_region(coords, radius_angle)
+
+        if table is None:
+            return None 
+
+        # For a region search, there may be multiple IDs. 
+        # Get all the MAIN_IDs from the table. 
+        main_ids = _get_names_from_table(table)
+
+        # Create empty dictionary.
+        results = { }
+
+        for id in main_ids:
+            results[id] = _get_aliases(id)
+
+        return results
+    except ConnectionError as e:
+        raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
+    except HTTPError as e:
+        raise QuerySimbadError(str(e))
 
 
 def query_simbad_by_name(object_name: str, 
@@ -176,13 +209,12 @@ def query_simbad_by_name(object_name: str,
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package. 
     """
-    # Set the mirror. 
-    simbad.SIMBAD_URL = MIRROR
+    _set_mirror()
 
     try:
         table = simbad.query_object(object_name)
 
-        if table == None:
+        if table is None:
             # The object does not exist.
             return None 
 
