@@ -7,13 +7,11 @@ image: python:3.8
 
 pipelines:
   default:
-    - parallel:
-      - step:
-          name: Test
-          caches:
-            - pip
-          script:
-            - pip install -r backend/requirements.txt
-            - pip install pytest
-            - cd backend
-            - pytest -v test_* --junitxml=test-reports/report.xml
+    - step:
+        name: Test
+        caches:
+          - pip
+        script:
+          - pip install -r backend/requirements.txt
+          - cd backend
+          - python -m unittest
