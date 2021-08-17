@@ -93,7 +93,10 @@ class SearchFilters:
         Args:
             term (str): String representing a free-text search term. 
         """
-        self._term = str(term)
+        if term is None:
+            self._term = None
+        else:
+            self._term = str(term)
 
     @property
     def keywords(self)->list[str]:
