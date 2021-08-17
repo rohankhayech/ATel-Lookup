@@ -24,13 +24,14 @@ License Terms and Copyright:
 """
 
 
-from backend.model.constants import RADIUS_UNIT, SIMBAD_MIRROR
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
+
 from requests import ConnectionError, HTTPError
-from model.constants import DEFAULT_RADIUS
+
+from model.constants import DEFAULT_RADIUS, RADIUS_UNIT, SIMBAD_MIRROR
 
 
 # The name of the object ID column in the Astroquery Table data structure. 
@@ -158,8 +159,10 @@ def query_simbad_by_coords(coords: SkyCoord,
             SIMBAD server using the Astroquery package.     
     """
     # Radius should be validated prior to calling this function. 
-    if radius not in range(0.0, 20.0):
+    if not (radius >= 0.0 and radius <= 20.0):
         raise ValueError(f"Invalid radius: \"${radius}\" not in range 0.0 to 20.0.")
+    if coords is None:
+        raise ValueError("SkyCoord value is unknown.")
     
     # Construct the radius angle for the region search. 
     radius_angle = Angle(radius, unit=RADIUS_UNIT)
