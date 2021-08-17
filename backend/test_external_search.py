@@ -31,11 +31,9 @@ from unittest import mock
 import requests
 
 from controller.search import query_simbad
-from controller.search.query_simbad import QuerySimbadError
 
 from astropy.table import Table
 from astropy.table.column import Column
-from astropy.coordinates.angles import Angle
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 
@@ -78,6 +76,10 @@ class TestNameExtraction(ut.TestCase):
         self.assertEqual(lst[3], "id4")
 
 
+    def test_invalid_table(self):
+        self.assertEquals(query_simbad._get_names_from_table(Table()), [])
+
+
 """ Test the coordinate extraction function. Like the TestNameExtraction class, 
     a mock table is created to mimic the format used by astroquery. 
 """
@@ -113,6 +115,11 @@ class TestCoordExtraction(ut.TestCase):
         self.assertEqual(coords_2.dec, self.expected_coords_2.dec)
 
 
+    @ut.expectedFailure
+    def test_invalid_table(self):
+        query_simbad._get_coords_from_table(Table())
+
+
 # Mock the situations where a network error occurs. 
 # See the reference below. 
 # Reference: https://github.com/astropy/astroquery/blob/main/astroquery/simbad/core.py 
@@ -134,15 +141,15 @@ def mocked_no_result(*args, **kwargs):
 # Unit testing for query_simbad_by_name() 
 class TestNameSearch(ut.TestCase):
     @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
+    @ut.expectedFailure
     def test_no_network(self, mock_get):
-        with self.assertRaises(QuerySimbadError): 
-            query_simbad.query_simbad_by_name("test")
+        query_simbad.query_simbad_by_name("test")
 
 
     @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
+    @ut.expectedFailure
     def test_blacklist(self, mock_get):
-        with self.assertRaises(QuerySimbadError):
-            query_simbad.query_simbad_by_name("test")
+        query_simbad.query_simbad_by_name("test")
 
 
     @mock.patch('astroquery.simbad.Simbad.query_object', side_effect=mocked_no_result)
@@ -180,6 +187,23 @@ class TestCoordSearch(ut.TestCase):
         self.sample_radius = 15.0
 
 
+    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
+    @ut.expectedFailure
+    def test_no_network(self, mock_get):
+        query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
+
+
+    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
+    @ut.expectedFailure
+    def test_blacklist(self, mock_get):
+        query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
+
+
+    @mock.patch('astroquery.simbad.Simbad.query_object', side_effect=mocked_no_result)
+    def test_no_object_found(self, mock_get):
+        self.assertIsNone(query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius))
+
+
     @ut.expectedFailure
     def test_invalid_coords(self):
         query_simbad.query_simbad_by_coords(None) 
@@ -187,12 +211,14 @@ class TestCoordSearch(ut.TestCase):
 
     @ut.expectedFailure
     def test_invalid_radius(self):
+        # This should fail as the radius should be validated already. 
         query_simbad.query_simbad_by_coords(self.sample_coords, 90.0)
         query_simbad.query_simbad_by_coords(self.sample_coords, -0.1)
     
 
     def test_radius_bounds(self):
         try:
+            # None of these should fail as the radius value is on the boundaries. 
             query_simbad.query_simbad_by_coords(self.sample_coords, 0.0)
             query_simbad.query_simbad_by_coords(self.sample_coords, 10.0)
             query_simbad.query_simbad_by_coords(self.sample_coords, 20.0)
@@ -200,10 +226,10 @@ class TestCoordSearch(ut.TestCase):
             self.fail(f"Function raised ValueError for valid radius: ${str(e)}")
 
     
-    # Test a valid coordinate. 
-    # Test whether the result is not empty. 
-    # As this is real-world data, it is subject to change. 
     def test_coord_search(self):
+        # Test a valid coordinate. 
+        # Test whether the result is not empty. 
+        # As this is real-world data, it is subject to change. 
         result = query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
         self.assertIsNotNone(result) 
         self.assertNotEqual(result, { })
@@ -218,11 +244,11 @@ class TestCoordSearch(ut.TestCase):
             self.assertIsNotNone(aliases)
 
 
-    # At the moment, there is no object in the database at these coordinates.
-    # However, there is a small chance that one may appear. 
-    # The unit test provides a message for this if an object does indeed exist. 
-    # This is the downside to using real world data. 
     def test_no_object_found(self):
+        # At the moment, there is no object in the database at these coordinates.
+        # However, there is a small chance that one may appear. 
+        # The unit test provides a message for this if an object does indeed exist. 
+        # This is the downside to using real world data. 
         fake_coord = SkyCoord(20.0, 20.0, unit=('hourangle','deg'))
         result = query_simbad.query_simbad_by_coords(fake_coord, 0.0) 
         self.assertIsNone(result, """Verify that the object exists in the SIMBAD database. 

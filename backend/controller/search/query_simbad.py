@@ -24,7 +24,6 @@ License Terms and Copyright:
 """
 
 
-import warnings
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
 from astropy.table import Table
