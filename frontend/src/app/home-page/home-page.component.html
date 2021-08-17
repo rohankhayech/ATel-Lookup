@@ -1,1 +1,130 @@
-<p>home-page works!</p>
+<mat-card class="card">
+  <mat-card-content class="card-content">
+    <p>
+      Enter your desired search criteria using the below fields to find ATel
+      reports matching all search criteria. All fields are optional, however at
+      least one field must be entered to perform a search.
+    </p>
+
+    <form>
+      <section class="section">
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Query</mat-label>
+          <input matInput [(ngModel)]="query" name="query" />
+        </mat-form-field>
+      </section>
+
+      <section class="section">
+        <mat-form-field appearance="fill">
+          <mat-label>Search Type</mat-label>
+          <mat-select [(value)]="mode" class="uppercase">
+            <mat-option [value]="SearchMode.Name" class="uppercase"
+              >Name</mat-option
+            >
+            <mat-option [value]="SearchMode.Coordinate" class="uppercase"
+              >Coordinates</mat-option
+            >
+          </mat-select>
+        </mat-form-field>
+
+        <mat-icon
+          style="color: grey"
+          matTooltip="Search by object name or coordinates"
+          >help</mat-icon
+        >
+
+        <ng-container [ngSwitch]="mode">
+          <mat-form-field
+            *ngSwitchCase="SearchMode.Name"
+            appearance="fill"
+            class="wide"
+          >
+            <mat-label>Name</mat-label>
+            <input matInput [(ngModel)]="name" name="name" />
+          </mat-form-field>
+
+          <ng-container *ngSwitchCase="SearchMode.Coordinate">
+            <mat-form-field appearance="fill" class="wide">
+              <mat-label>RA</mat-label>
+              <input matInput [(ngModel)]="ra" name="ra" />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="wide">
+              <mat-label>Declination</mat-label>
+              <input matInput [(ngModel)]="declination" name="declination" />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="wide">
+              <mat-label>Radius</mat-label>
+              <input matInput [(ngModel)]="radius" name="radius" />
+            </mat-form-field>
+          </ng-container>
+        </ng-container>
+      </section>
+
+      <section class="section">
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Match</mat-label>
+          <mat-select [(value)]="match" class="uppercase">
+            <mat-option [value]="Match.Any" class="uppercase">Any</mat-option>
+            <mat-option [value]="Match.All" class="uppercase">All</mat-option>
+            <mat-option [value]="Match.None" class="uppercase">None</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <p>of the following keywords:</p>
+
+        <mat-checkbox
+          *ngFor="let keyword of metadata?.keywords"
+          [(ngModel)]="keywords[keyword]"
+          [name]="keyword"
+          class="checkbox"
+          >{{ keyword }}</mat-checkbox
+        >
+      </section>
+
+      <section class="section">
+        <p>Filter by submission date:</p>
+
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>Start Date</mat-label>
+          <input
+            matInput
+            [(ngModel)]="start"
+            [matDatepicker]="startPicker"
+            name="startPicker"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="startPicker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #startPicker></mat-datepicker>
+        </mat-form-field>
+
+        <mat-form-field appearance="fill" class="wide">
+          <mat-label>End Date</mat-label>
+          <input
+            matInput
+            [(ngModel)]="end"
+            [matDatepicker]="endPicker"
+            name="endPicker"
+          />
+          <mat-datepicker-toggle
+            matSuffix
+            [for]="endPicker"
+          ></mat-datepicker-toggle>
+          <mat-datepicker #endPicker></mat-datepicker>
+        </mat-form-field>
+      </section>
+
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="search()"
+        class="wide uppercase"
+      >
+        Search
+      </button>
+    </form>
+  </mat-card-content>
+</mat-card>

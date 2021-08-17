@@ -7,11 +7,11 @@ import { AuthenticationService } from '../authentication.service';
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit {
-  public label?: string;
+  public icon?: string;
 
   constructor(private authenticationService: AuthenticationService) {
     this.authenticationService.token$.subscribe((token) => {
-      this.label = token !== null ? 'Admin Portal' : 'Admin Login';
+      this.icon = token !== null ? 'admin_panel_settings' : 'login';
     });
   }
 
