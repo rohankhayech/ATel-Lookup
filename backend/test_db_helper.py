@@ -20,6 +20,7 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+from model.ds.search_filters import KeywordMode
 from datetime import datetime
 from typing import Tuple
 import unittest
@@ -116,22 +117,121 @@ class TestReports(unittest.TestCase):
         report = ImportedReport(20000,"db_test_report","A","B",datetime(2021,8,12), keywords=["star","radio"])
 
         db_helper.add_report(report)
+        try:
+            results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+            result = results[0]
 
-        results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
-        result = results[0]
+            self.assertEqual(report,result)
+            self.assertTrue(db_helper.report_exists(20000))
+        finally:
+            #delete report
+            cn = db_helper._connect()
+            cur:MySQLCursor = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20000")
+            cur.close()
+            cn.commit()
+            cn.close()
 
-        self.assertEqual(report,result)
-        self.assertTrue(db_helper.report_exists(20000))
+    def testBuildQuery(self):
+        #Test full query
+        sf = SearchFilters("term",["star","planet"],KeywordMode.ANY,datetime(2021,8,16),datetime(2021,8,17))
+        query, data = db_helper._build_report_query(sf)
+        self.maxDiff = None
+        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where (title like %s or body like %s) and submissionDate >= %s and submissionDate <= %s and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data,(sf.term,sf.term,sf.start_date,sf.end_date,sf.keywords[0],sf.keywords[1]))
 
-        #delete report
-        cn = db_helper._connect()
-        cur:MySQLCursor = cn.cursor()
-        cur.execute("delete from Reports where atelNum = 20000")
-        cur.close()
-        cn.commit()
-        cn.close()
+        #Test keyword modes / single filter
+        sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
+        query2, data2 = db_helper._build_report_query(sf2)
+        self.assertEqual(query2,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data2,(sf.keywords[0],sf.keywords[1]))
+
+        sf2.keyword_mode = KeywordMode.NONE
+        query3, data3 = db_helper._build_report_query(sf2)
+        self.assertEqual(query3,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
+        self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
+
+    def testFindGeneric(self):
+        report = ImportedReport(20001,"db_test_report","A","B", datetime(2021,8,12), keywords=["star","radio"])
+
+        db_helper.add_report(report)
+        try:
+            #test search body
+            results = db_helper.find_reports_by_object(SearchFilters(term="B"))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #test search title
+            results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test search author (not possible)
+            results = db_helper.find_reports_by_object(SearchFilters(term="A"))
+            self.assertIsNone(results)
+
+            #Test start date
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", start_date=datetime(2021,8,11)))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test end date
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", end_date=datetime(2021,8,13)))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test keywords - all
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ALL))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ALL))
+            self.assertIsNone(results)
+
+            #Test keywords - any
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ANY))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ANY))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test keywords - none
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star", "radio"], keyword_mode=KeywordMode.NONE))
+            self.assertIsNone(results)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.NONE))
+            self.assertIsNone(results)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["nova","planet"],keyword_mode=KeywordMode.NONE))
+            result = results[0]
+            self.assertEqual(report, result)
+
+            #Test composite
+            results = db_helper.find_reports_by_object(
+                SearchFilters(
+                    term="B", 
+                    keywords=["star","radio"], 
+                    keyword_mode=KeywordMode.ALL, 
+                    start_date=datetime(2021,8,11), 
+                    end_date=datetime(2021,8,13)
+                )
+            )
+            result = results[0]
+            self.assertEqual(report, result)
+
+        finally:
+            #delete report
+            cn = db_helper._connect()
+            cur:MySQLCursor = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20001")
+            cur.close()
+            cn.commit()
+            cn.close()
 
 
+# Helper methods
 def _set_last_updated_date(date: datetime):
     """
     Sets the date that the database was updated with the latest ATel reports.
