@@ -148,6 +148,3 @@ FIXED_KEYWORDS_REGEX = ["radio",
                         "transient",
                         "variables",
                         "young stellar object" ]
-
-# The default radius for a coordinate search, in arcseconds.
-DEFAULT_RADIUS = 10.0

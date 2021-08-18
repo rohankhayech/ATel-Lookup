@@ -25,22 +25,32 @@ License Terms and Copyright:
 
 
 from astropy.coordinates import SkyCoord
+from astropy.coordinates.angles import Angle
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
-from requests import ConnectionError, HTTPError
-from model.constants import DEFAULT_RADIUS
 
+from requests import ConnectionError, HTTPError
+
+###########################
+# Search module constants #
+###########################
+
+# The default radius for a coordinate search. 
+# The unit is defined in the constant RADIUS_UNIT.
+DEFAULT_RADIUS = 10.0
+
+# The unit used for the radius of a coordinate search. 
+RADIUS_UNIT = 'arcsecond'
+
+# Mirror for the SIMBAD database.
+# Using the Harvard mirror.
+SIMBAD_MIRROR = "http://simbad.cfa.harvard.edu/simbad/sim-script"
 
 # The name of the object ID column in the Astroquery Table data structure. 
 IDS_COLUMN = "ID"
 MAIN_IDS_COLUMN = "MAIN_ID"
 RA_COLUMN = "RA"
 DEC_COLUMN = "DEC"
-
-
-# Mirror for the SIMBAD database.
-# Using the Harvard mirror.
-MIRROR = "http://simbad.cfa.harvard.edu/simbad/sim-script"
 
 
 """
@@ -50,7 +60,9 @@ class QuerySimbadError(Exception):
     pass
 
 
-# Helper functions (private)
+##############################
+# Helper functions (private) #
+##############################
 
 
 def _get_coords_from_table(table: Table) -> SkyCoord:
@@ -65,9 +77,11 @@ def _get_coords_from_table(table: Table) -> SkyCoord:
 
     Raises:
         ValueError: if the table does not provide right ascension and 
-        declination columns. 
+        declination columns, or is uninitialised.
     '''
-    if RA_COLUMN in table.colnames and DEC_COLUMN in table.colnames:
+    if table is None:
+        raise ValueError("Table is uninitialised.")
+    elif RA_COLUMN in table.colnames and DEC_COLUMN in table.colnames:
         # The table will always have one row in it, as if the object
         # was not found by SIMBAD, a UserWarning is raised. 
         ra = table[RA_COLUMN][0].astype('str')
@@ -88,7 +102,12 @@ def _get_names_from_table(table: Table) -> list[str]:
 
     Returns:
         list[str]: List of object identifiers extracted from the table. 
+
+    Raises:
+        ValueError: if the table is not initialised.
     """
+    if table is None:
+        raise ValueError("Table is not initialised")
     # The table contains aliases (list of IDS)
     if IDS_COLUMN in table.colnames:
         column_name = IDS_COLUMN
@@ -129,7 +148,16 @@ def _get_aliases(id: str) -> list[str]:
     return aliases_list
 
 
-# Public functions. 
+def _set_mirror(): 
+    """ Sets the mirror for SIMBAD to the one defined by the
+        SIMBAD_MIRROR constant.
+    """
+    simbad.SIMBAD_URL = SIMBAD_MIRROR
+
+
+#####################
+# Public functions. #
+#####################
 
 
 def query_simbad_by_coords(coords: SkyCoord, 
@@ -153,7 +181,43 @@ def query_simbad_by_coords(coords: SkyCoord,
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package.     
     """
-    return dict("", []) # Stub
+    # Radius should be validated prior to calling this function. 
+    if not (radius >= 0.0 and radius <= 20.0):
+        raise ValueError(f"Invalid radius: \"${radius}\" not in range 0.0 to 20.0.")
+    if coords is None:
+        raise ValueError("SkyCoord value is unknown.")
+    
+    # Construct the radius angle for the region search. 
+    radius_angle = Angle(radius, unit=RADIUS_UNIT)
+
+    _set_mirror()
+
+    try:        
+        table = simbad.query_region(coords, radius_angle)
+
+        if table is None:
+            return None 
+
+        # For a region search, there may be multiple IDs. 
+        # Get all the MAIN_IDs from the table. 
+        main_ids = _get_names_from_table(table)
+
+        # Create empty dictionary.
+        results = { }
+
+        # Get the aliases for each ID. Assign the alias list to 
+        # the value of the main ID.
+        for id in main_ids:
+            results[id] = _get_aliases(id)
+
+        return results
+    except ConnectionError as e:
+        raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
+    except HTTPError as e:
+        raise QuerySimbadError(str(e))
+    except UserWarning as e:
+        # No object found.
+        return None 
 
 
 def query_simbad_by_name(object_name: str, 
@@ -176,13 +240,12 @@ def query_simbad_by_name(object_name: str,
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package. 
     """
-    # Set the mirror. 
-    simbad.SIMBAD_URL = MIRROR
+    _set_mirror()
 
     try:
         table = simbad.query_object(object_name)
 
-        if table == None:
+        if table is None:
             # The object does not exist.
             return None 
 
@@ -200,3 +263,6 @@ def query_simbad_by_name(object_name: str,
         raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
     except HTTPError as e:
         raise QuerySimbadError(str(e))
+    except UserWarning as e:
+        # No object found.
+        return None 
