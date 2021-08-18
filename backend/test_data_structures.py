@@ -82,6 +82,10 @@ class TestSearchFilters(unittest.TestCase):
         self.assertEqual(sf2._keyword_mode, KeywordMode.ANY)
         self.assertIsNone(sf2._start_date)
         self.assertIsNone(sf2._end_date)
+
+    def test_keywords_none_getter(self):
+        sf2 = SearchFilters("term")
+        self.assertIsNone(sf2.keywords)
         
     #test with only keywords
     def test_only_keywords(self):
@@ -104,6 +108,9 @@ class TestSearchFilters(unittest.TestCase):
         self.assertEqual(self.sf.keyword_mode, KeywordMode.ALL)
         self.assertEqual(self.sf.start_date, datetime(2021,7,30))
         self.assertEqual(self.sf.end_date, datetime(2021,7,31))
+
+        self.sf.term = None
+        self.assertIsNone(self.sf.term)
 
     #test type conversion/safety
     def test_type_safety(self):
