@@ -82,11 +82,12 @@ class TestNameExtraction(ut.TestCase):
             query_simbad._get_names_from_table(None)
 
 
-""" Test the coordinate extraction function. Like the TestNameExtraction class, 
-    a mock table is created to mimic the format used by astroquery. 
-"""
+#########################################
+# Unit testing: get_coords_from_table() #
+#########################################
 class TestCoordExtraction(ut.TestCase):
     def setUp(self):
+        # Create a mock table.
         table_columns = ("MAIN_ID", "RA", "DEC", "COO_WAVELENGTH", "COO_BIBCODE")
         table_dtypes = ("object", "str", "str", "str", "object")
 
@@ -127,11 +128,10 @@ class TestCoordExtraction(ut.TestCase):
             query_simbad._get_coords_from_table(None)
 
 
-# Mock the situations where a network error occurs. 
+# Mock the situations where a network error occurs.
+# Used by both query_...() functions.  
 # See the reference below. 
 # Reference: https://github.com/astropy/astroquery/blob/main/astroquery/simbad/core.py 
-
-
 def mocked_no_network(*args, **kwargs):
     raise requests.exceptions.HTTPError("Mocked error message.")
 
@@ -145,7 +145,9 @@ def mocked_object_not_found(*args, **kwargs):
     return None
 
 
-# Unit testing for query_simbad_by_name() 
+########################################
+# Unit testing: query_simbad_by_name() #
+########################################
 class TestNameSearch(ut.TestCase):
     # Test network error (no connection, mocked). 
     @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
@@ -182,7 +184,9 @@ class TestNameSearch(ut.TestCase):
         self.assertEqual(main_id, "M   1")
 
 
-# Unit testing for query_simbad_by_coords()
+##########################################
+# Unit testing: query_simbad_by_coords() #
+##########################################
 class TestCoordSearch(ut.TestCase):
     def setUp(self): 
         # Sample SkyCoord object for testing.
