@@ -121,6 +121,11 @@ class TestCoordExtraction(ut.TestCase):
             query_simbad._get_coords_from_table(Table())
 
 
+    def test_none_table(self):
+        with self.assertRaises(ValueError):
+            query_simbad._get_coords_from_table(None)
+
+
 # Mock the situations where a network error occurs. 
 # See the reference below. 
 # Reference: https://github.com/astropy/astroquery/blob/main/astroquery/simbad/core.py 

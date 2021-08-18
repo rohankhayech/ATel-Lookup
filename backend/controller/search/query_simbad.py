@@ -79,7 +79,9 @@ def _get_coords_from_table(table: Table) -> SkyCoord:
         ValueError: if the table does not provide right ascension and 
         declination columns. 
     '''
-    if RA_COLUMN in table.colnames and DEC_COLUMN in table.colnames:
+    if table is None:
+        raise ValueError("Table is uninitialised.")
+    elif RA_COLUMN in table.colnames and DEC_COLUMN in table.colnames:
         # The table will always have one row in it, as if the object
         # was not found by SIMBAD, a UserWarning is raised. 
         ra = table[RA_COLUMN][0].astype('str')
