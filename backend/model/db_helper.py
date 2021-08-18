@@ -352,7 +352,10 @@ def find_reports_by_object(filters: SearchFilters, object_name: str = None) -> l
         cur.close()
         cn.close()
 
-    return reports
+    if len(reports) == 0:
+        return None
+    else:
+        return reports
 
 def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
     """
@@ -507,7 +510,7 @@ def _build_report_query(filters: SearchFilters):
     
     # Start with empty lists of terms and data
     data = ()
-    clauses:list[str] = []
+    clauses = []
     
     # Append term clause and data
     if filters.term:
