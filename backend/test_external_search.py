@@ -24,29 +24,25 @@ License Terms and Copyright:
 """
 
 
+from controller.search.query_simbad import QuerySimbadError
 import unittest as ut
-import warnings
 import numpy as np
-import random
 from unittest import mock
 import requests
 
 from controller.search import query_simbad
-from controller.search.query_simbad import QuerySimbadError
 
 from astropy.table import Table
 from astropy.table.column import Column
-from astropy.coordinates.angles import Angle
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 
-""" Test the get_names_from_table(Table) function. To test the real-world
-    process, this test will construct a manual Table data structure using
-    the same data types returned by the SIMBAD query functions. 
-"""
+########################################
+# Unit testing: get_names_from_table() #
+########################################
 class TestNameExtraction(ut.TestCase):
     def setUp(self):
-        # This way of storing strings mirrors how the astroquery query 
+        # This mock table mirrors how the astroquery query 
         # function works. The string is represented as bytes. 
         col_1 = Column(name="ID", data=[b"id1", b"id2", b"id3", b"id4"])
         self.alias_table = Table()
@@ -64,26 +60,34 @@ class TestNameExtraction(ut.TestCase):
     # Test the alias table (dtype is bytes30)
     def test_alias_table(self):
         lst = query_simbad._get_names_from_table(self.alias_table)
-        self.assertEqual(lst[0], "id1")
-        self.assertEqual(lst[1], "id2")
-        self.assertEqual(lst[2], "id3")
-        self.assertEqual(lst[3], "id4")
+        self.assertListEqual(lst, ["id1", "id2", "id3", "id4"])
+        for i in range(0, 3):
+            self.assertIsInstance(lst[i], str)
 
 
     # Test the region table (dtype is object)
     def test_region_table(self):
         lst = query_simbad._get_names_from_table(self.region_table)
-        self.assertEqual(lst[0], "id1")
-        self.assertEqual(lst[1], "id2")
-        self.assertEqual(lst[2], "id3")
-        self.assertEqual(lst[3], "id4")
+        self.assertListEqual(lst, ["id1", "id2", "id3", "id4"])
+        for i in range(0, 3):
+            self.assertIsInstance(lst[i], str)
 
 
-""" Test the coordinate extraction function. Like the TestNameExtraction class, 
-    a mock table is created to mimic the format used by astroquery. 
-"""
+    def test_invalid_table(self):
+        self.assertEqual(query_simbad._get_names_from_table(Table()), [])
+
+
+    def test_none_table(self):
+        with self.assertRaises(ValueError):
+            query_simbad._get_names_from_table(None)
+
+
+#########################################
+# Unit testing: get_coords_from_table() #
+#########################################
 class TestCoordExtraction(ut.TestCase):
     def setUp(self):
+        # Create a mock table.
         table_columns = ("MAIN_ID", "RA", "DEC", "COO_WAVELENGTH", "COO_BIBCODE")
         table_dtypes = ("object", "str", "str", "str", "object")
 
@@ -114,11 +118,20 @@ class TestCoordExtraction(ut.TestCase):
         self.assertEqual(coords_2.dec, self.expected_coords_2.dec)
 
 
-# Mock the situations where a network error occurs. 
+    def test_invalid_table(self):
+        with self.assertRaises(ValueError):
+            query_simbad._get_coords_from_table(Table())
+
+
+    def test_none_table(self):
+        with self.assertRaises(ValueError):
+            query_simbad._get_coords_from_table(None)
+
+
+# Mock the situations where a network error occurs.
+# Used by both query_...() functions.  
 # See the reference below. 
 # Reference: https://github.com/astropy/astroquery/blob/main/astroquery/simbad/core.py 
-
-
 def mocked_no_network(*args, **kwargs):
     raise requests.exceptions.HTTPError("Mocked error message.")
 
@@ -127,29 +140,37 @@ def mocked_blacklist(*args, **kwargs):
     raise requests.exceptions.ConnectionError("Mocked error message.")
 
 
-# A table is returned as None when no object is found. 
-def mocked_no_result(*args, **kwargs):
-    return None 
+# Mock the situation where no object is found. 
+def mocked_object_not_found(*args, **kwargs):
+    return None
 
 
+########################################
+# Unit testing: query_simbad_by_name() #
+########################################
 class TestNameSearch(ut.TestCase):
+    # Test network error (no connection, mocked). 
     @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
-    def test_no_network(self, mock_get):
-        with self.assertRaises(QuerySimbadError): 
-            query_simbad.query_simbad_by_name("test")
-
-
-    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
-    def test_blacklist(self, mock_get):
+    def test_no_network(self, _):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_name("test")
 
 
-    @mock.patch('astroquery.simbad.Simbad.query_object', side_effect=mocked_no_result)
-    def test_no_object_found(self, mock_get):
-        self.assertIsNone(query_simbad.query_simbad_by_name("fake_object"))
+    # Test server blacklist (mocked). 
+    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
+    def test_blacklist(self, _):
+        with self.assertRaises(QuerySimbadError):
+            query_simbad.query_simbad_by_name("test")
 
 
+    # Test object that does not exist (mocked)
+    @mock.patch('astroquery.simbad.Simbad.query_object', side_effect=mocked_object_not_found)
+    def test_no_object_found(self, _):
+        # This function is patched by the mocked method. 
+        self.assertIsNone(query_simbad.query_simbad_by_name("invalid_object"))
+
+
+    # Test valid data. 
     def test_query_object(self):
         """ This test uses a real-world object listed in the SIMBAD database. 
             While this is not the ideal way to conduct unit testing, it is 
@@ -161,26 +182,83 @@ class TestNameSearch(ut.TestCase):
         self.assertIsNotNone(aliases)
         self.assertIsNot(len(aliases), 0)
         self.assertEqual(main_id, "M   1")
-        # This test assumes that no astronomical object is ever called 
-        # "bogus_object_name", which is a reasonable assumption...
-        with self.assertWarns(UserWarning):
-            # Random object name to avoid caching. 
-            query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}")
 
 
-    def test_mass_query(self):
-        """ Query a random object identifier 100 times in immediate succession. 
-            The SIMBAD server may blacklist the host IP address when 'spamming' is
-            suspected. 
-        """
-        warnings.simplefilter('ignore')
+##########################################
+# Unit testing: query_simbad_by_coords() #
+##########################################
+class TestCoordSearch(ut.TestCase):
+    def setUp(self): 
+        # Sample SkyCoord object for testing.
+        # Derived from the Hardvard SIMBAD mirror.
+        # Reference: http://simbad.cfa.harvard.edu/simbad/sim-fcoo 
+        self.sample_coords = SkyCoord("20 54 05.689", "+37 01 17.38", unit=('hourangle','deg'))
+        # 30.0 arcseconds. 
+        self.sample_radius = 20.0
+
+
+    # Test with real data. 
+    def test_coord_search(self):
+        # Test a valid coordinate. 
+        # Test whether the result is not empty. 
+        # As this is real-world data, it is subject to change. 
+        result = query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
+        self.assertIsNotNone(result) 
+        self.assertNotEqual(result, { })
+        self.assertIsNotNone(result.items)
+        self.assertIsNotNone(result.values)
+        self.assertIsNotNone(result.keys)
+
+        for name in result:
+            self.assertFalse(len(name) == 0)
+
+        for aliases in result.items():
+            self.assertIsNotNone(aliases)
+
+
+    # See line 155 onwards. These are the same mocked functions, but for
+    # the coordinate search method. 
+    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
+    def test_no_network(self, _):
+        with self.assertRaises(QuerySimbadError):
+            query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
+
+
+    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
+    def test_blacklist(self, _):
+        with self.assertRaises(QuerySimbadError):
+            query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
+
+
+    @mock.patch('astroquery.simbad.Simbad.query_region', side_effect=mocked_object_not_found)
+    def test_no_object_found(self, _):
+        self.assertIsNone(query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius))
+
+
+    # A 'None' SkyCoord should raise an error. 
+    def test_invalid_coords(self):
+        with self.assertRaises(ValueError):
+            query_simbad.query_simbad_by_coords(None) 
+    
+
+    # Test radius (float between 0.0 and 20.0 inclusive)
+    def test_invalid_radius(self):
+        # This should fail as the radius should be validated already. 
+        with self.assertRaises(ValueError):
+            query_simbad.query_simbad_by_coords(self.sample_coords, 90.0)
+            query_simbad.query_simbad_by_coords(self.sample_coords, -0.1)
+    
+
+    def test_radius_bounds(self):
         try:
-            for _ in range(0, 100):
-                query_simbad.query_simbad_by_name(f"{random.randrange(10000, 99999)}")
-        except QuerySimbadError as e:
-            self.fail(f"Mass query failed due to error: {str(e)}")
-        except Exception as e2:
-            self.fail(f"An unexpected exception occurred due to a network failure: ${str(e2)}")
+            # None of these should fail as the radius value is on the boundaries. 
+            # Because 0.0 is an exact radius, an object may not be found (therefore
+            # a UserWarning may appear)
+            query_simbad.query_simbad_by_coords(self.sample_coords, 0.0)
+            query_simbad.query_simbad_by_coords(self.sample_coords, 10.0)
+            query_simbad.query_simbad_by_coords(self.sample_coords, 20.0)
+        except ValueError as e:
+            self.fail(f"Function raised ValueError for valid radius: ${str(e)}")
 
 
 # Run suite. 
