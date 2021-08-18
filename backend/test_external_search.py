@@ -74,7 +74,12 @@ class TestNameExtraction(ut.TestCase):
 
 
     def test_invalid_table(self):
-        self.assertEqual(query_simbad._get_names_from_table(Table()), [])
+        self.assertEqual(query_simbad._get_names_from_table(Table()))
+
+
+    def test_none_table(self):
+        with self.assertRaises(ValueError):
+            query_simbad._get_names_from_table(None)
 
 
 """ Test the coordinate extraction function. Like the TestNameExtraction class, 

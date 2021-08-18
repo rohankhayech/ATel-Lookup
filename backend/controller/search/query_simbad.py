@@ -77,7 +77,7 @@ def _get_coords_from_table(table: Table) -> SkyCoord:
 
     Raises:
         ValueError: if the table does not provide right ascension and 
-        declination columns. 
+        declination columns, or is uninitialised.
     '''
     if table is None:
         raise ValueError("Table is uninitialised.")
@@ -102,7 +102,12 @@ def _get_names_from_table(table: Table) -> list[str]:
 
     Returns:
         list[str]: List of object identifiers extracted from the table. 
+
+    Raises:
+        ValueError: if the table is not initialised.
     """
+    if table is None:
+        raise ValueError("Table is not initialised")
     # The table contains aliases (list of IDS)
     if IDS_COLUMN in table.colnames:
         column_name = IDS_COLUMN
