@@ -24,7 +24,8 @@ from controller.authentication.authentication import (
 app = Flask(__name__)
 jwt = JWTManager(app)
 
-app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+# app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+app.config["JWT_SCRET_KEY"] = "wheel"
 
 # Initialise the database
 init_db()
@@ -88,7 +89,7 @@ if __name__ == "__main__":
 
 #Tully's Pulbic Web Interface Functions
 
-def imports(json: json) -> json:
+def imports(json_import: json) -> json:
     '''Called by the web interface with the flag auto or manual (determining 
     whether a specific report is to be added, or to just import any new reports since last import)
 
@@ -99,6 +100,12 @@ def imports(json: json) -> json:
         json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
 
     '''
+
+    json_dict = json.loads(json_import)
+
+    print(json_dict)
+
+
     return jsonify("") #stub
 
 
