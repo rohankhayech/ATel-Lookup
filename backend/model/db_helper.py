@@ -313,7 +313,7 @@ def get_object_coords(alias: str) -> SkyCoord:
     return SkyCoord(0.0, 0.0)
 
 
-def find_reports_by_object(filters: SearchFilters, object_name: str = None) -> list[ReportResult]:
+def find_reports_by_object(filters: SearchFilters = None, object_name: str = None) -> list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -324,38 +324,41 @@ def find_reports_by_object(filters: SearchFilters, object_name: str = None) -> l
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
-    cn = _connect()
-    cur:MySQLCursor = cn.cursor()
+    if (filters or object_name):
+        cn = _connect()
+        cur:MySQLCursor = cn.cursor()
 
-    query, data = _build_report_query(filters)
+        query, data = _build_report_query(filters)
 
-    #TODO Check object.
+        #TODO Check object.
 
-    reports = []
+        reports = []
 
-    try:
-        cur.execute(query, data)
-        for row in cur.fetchall():
-            #extract data
-            atel_num = row[0]
-            title = row[1]
-            authors = row[2]
-            body = row[3]
-            submission_date = row[4]
+        try:
+            cur.execute(query, data)
+            for row in cur.fetchall():
+                #extract data
+                atel_num = row[0]
+                title = row[1]
+                authors = row[2]
+                body = row[3]
+                submission_date = row[4]
 
-            #create result object and add to list
-            report = ReportResult(atel_num,title,authors,body,submission_date)
-            reports.append(report)
-    except mysql.connector.Error as e:
-        raise e
-    finally:
-        cur.close()
-        cn.close()
+                #create result object and add to list
+                report = ReportResult(atel_num,title,authors,body,submission_date)
+                reports.append(report)
+        except mysql.connector.Error as e:
+            raise e
+        finally:
+            cur.close()
+            cn.close()
 
-    if len(reports) == 0:
+        if len(reports) == 0:
+            return None
+        else:
+            return reports
+    else: # If no parameters given, return None.
         return None
-    else:
-        return reports
 
 def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
     """
