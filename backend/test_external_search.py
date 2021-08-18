@@ -37,13 +37,12 @@ from astropy.table.column import Column
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 
-""" Test the get_names_from_table(Table) function. To test the real-world
-    process, this test will construct a manual Table data structure using
-    the same data types returned by the SIMBAD query functions. 
-"""
+########################################
+# Unit testing: get_names_from_table() #
+########################################
 class TestNameExtraction(ut.TestCase):
     def setUp(self):
-        # This way of storing strings mirrors how the astroquery query 
+        # This mock table mirrors how the astroquery query 
         # function works. The string is represented as bytes. 
         col_1 = Column(name="ID", data=[b"id1", b"id2", b"id3", b"id4"])
         self.alias_table = Table()
@@ -62,10 +61,8 @@ class TestNameExtraction(ut.TestCase):
     def test_alias_table(self):
         lst = query_simbad._get_names_from_table(self.alias_table)
         self.assertListEqual(lst, ["id1", "id2", "id3", "id4"])
-        self.assertEqual(lst[0], "id1")
-        self.assertEqual(lst[1], "id2")
-        self.assertEqual(lst[2], "id3")
-        self.assertEqual(lst[3], "id4")
+        for i in range(0, 3):
+            self.assertIsInstance(lst[i], str)
 
 
     # Test the region table (dtype is object)
