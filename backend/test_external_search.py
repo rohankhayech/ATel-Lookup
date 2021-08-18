@@ -68,10 +68,9 @@ class TestNameExtraction(ut.TestCase):
     # Test the region table (dtype is object)
     def test_region_table(self):
         lst = query_simbad._get_names_from_table(self.region_table)
-        self.assertEqual(lst[0], "id1")
-        self.assertEqual(lst[1], "id2")
-        self.assertEqual(lst[2], "id3")
-        self.assertEqual(lst[3], "id4")
+        self.assertListEqual(lst, ["id1", "id2", "id3", "id4"])
+        for i in range(0, 3):
+            self.assertIsInstance(lst[i], str)
 
 
     def test_invalid_table(self):
