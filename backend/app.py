@@ -104,6 +104,8 @@ def imports(json_import: json) -> json:
     json_dict = json.loads(json_import)
 
     print(json_dict)
+    
+    print("testtesttest pog")
 
     return jsonify("") #stub
 
