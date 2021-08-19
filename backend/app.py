@@ -25,7 +25,7 @@ app = Flask(__name__)
 jwt = JWTManager(app)
 
 # app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
-app.config["JWT_SCRET_KEY"] = "wheel"
+app.config["JWT_SCRET_KEY"]
 
 # Initialise the database
 init_db()
@@ -89,7 +89,8 @@ if __name__ == "__main__":
 
 #Tully's Pulbic Web Interface Functions
 
-def imports(json_import: json) -> json:
+@app.route("/import", methods=["POST"])
+def imports() -> json:
     '''Called by the web interface with the flag auto or manual (determining 
     whether a specific report is to be added, or to just import any new reports since last import)
 
@@ -101,13 +102,13 @@ def imports(json_import: json) -> json:
 
     '''
 
-    json_dict = json.loads(json_import)
+    import_mode_in = request.json.get("import_mode")
+    #atel_num_in = request.json.get("atel_num")
 
-    print(json_dict)
-    
-    print("testtesttest pog")
+    print("THE IMPORT MODE IS: " + import_mode_in)
+    #print("\nTHE ATEL NUMBER IS: " + atel_num_in)
 
-    return jsonify("") #stub
+    return 0 #stub
 
 
 def search(json: json) -> json:

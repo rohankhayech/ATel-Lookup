@@ -23,18 +23,69 @@ License Terms and Copyright:
 import json
 import unittest as ut
 
+import json
+import jwt
+from datetime import datetime
+from flask import Flask, jsonify
+
+
 from app import imports
+import app
+
+from flask import Flask, jsonify, request
+from flask_jwt_extended import (
+    JWTManager,
+    current_user,
+    jwt_required,
+)
+
+app = Flask(__name__)
+jwt = JWTManager(app)
+
+import requests
+from unittest import mock
 
 test_manual = {
     "import_mode": "manual",
-    "atel_num": "14726"
+    "atel_num": "14126"
 }
 
-class TestWebInterface(ut.TestCase):
+def mocked_requests_get(*args, **kwargs):
+    class MockResponse:
+        def __init__(self, json_data, status_code):
+            self.json_data = json_data
+            self.status_code = status_code
 
-    def test_imports_manual(self):
-        print('hello!')
-        imports(test_manual)
+        def json(self):
+            return self.json_data
+    
+    if args[0] == 'http://someurl.com/test.json':
+        return MockResponse({"import_mode": "manual"}, 200)
+    elif args[0] == 'http://someotherurl.com/anothertest.json':
+        return MockResponse({"import_mode": "automatic"}, 200)
+
+    return MockResponse(None, 404)
+
+        
+
+class TestWebInterface(ut.TestCase):
+    @mock.patch('requests.get', side_effect = mocked_requests_get)
+    def test_imports_manual(self, mock_get):
+        # Assert requests.get calls
+        app_moment = app()
+        json_data = app_moment.fetch_json('http://someurl.com/test.json')
+        self.assertEqual(json_data, {"import_mode": "manual"})
+        json_data = app_moment.fetch_json('http://someotherurl.com/anothertest.json')
+        self.assertEqual(json_data, {"import_mode": "automatic"})
+        json_data = app_moment.fetch_json('http://nonexistenturl.com/cantfindme.json')
+        self.assertIsNone(json_data)
+
+        # We can even assert that our mocked method was called with the right parameters
+        self.assertIn(mock.call('http://someurl.com/test.json'), mock_get.call_args_list)
+        self.assertIn(mock.call('http://someotherurl.com/anothertest.json'), mock_get.call_args_list)
+
+        self.assertEqual(len(mock_get.call_args_list), 3)
+        
 
 # Run suite. 
 if __name__ == '__main__':
