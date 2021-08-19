@@ -14,6 +14,7 @@ from flask_jwt_extended import (
     current_user,
     jwt_required,
 )
+import requests
 
 from model.db_helper import UserNotFoundError, init_db
 from controller.authentication.authentication import (
@@ -25,7 +26,7 @@ app = Flask(__name__)
 jwt = JWTManager(app)
 
 # app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
-app.config["JWT_SCRET_KEY"]
+app.config["JWT_SCRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 
 # Initialise the database
 init_db()
@@ -89,26 +90,28 @@ if __name__ == "__main__":
 
 #Tully's Pulbic Web Interface Functions
 
-@app.route("/import", methods=["POST"])
-def imports() -> json:
-    '''Called by the web interface with the flag auto or manual (determining 
-    whether a specific report is to be added, or to just import any new reports since last import)
+class A():
 
-    Args:
-        json (json): A JSON object. See SAS for breakdown of objects fields.
+    @app.route("/import", methods=["POST"])
+    def imports() -> json:
+        '''Called by the web interface with the flag auto or manual (determining 
+        whether a specific report is to be added, or to just import any new reports since last import)
+
+        Args:
+            json (json): A JSON object. See SAS for breakdown of objects fields.
     
-    Returns:
-        json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
+        Returns:
+            json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
 
-    '''
+        '''
 
-    import_mode_in = request.json.get("import_mode")
-    #atel_num_in = request.json.get("atel_num")
+        import_mode_in = request.json.get("import_mode")
+        #atel_num_in = request.json.get("atel_num")
 
-    print("THE IMPORT MODE IS: " + import_mode_in)
-    #print("\nTHE ATEL NUMBER IS: " + atel_num_in)
+        print("THE IMPORT MODE IS: " + import_mode_in)
+        #print("\nTHE ATEL NUMBER IS: " + atel_num_in)
 
-    return 0 #stub
+        return 0 #stub
 
 
 def search(json: json) -> json:

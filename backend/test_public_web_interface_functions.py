@@ -27,9 +27,9 @@ import json
 import jwt
 from datetime import datetime
 from flask import Flask, jsonify
+from requests.models import requote_uri
 
-
-from app import imports
+from app import A
 import app
 
 from flask import Flask, jsonify, request
@@ -59,9 +59,9 @@ def mocked_requests_get(*args, **kwargs):
         def json(self):
             return self.json_data
     
-    if args[0] == 'http://someurl.com/test.json':
+    if args[0] == 'manual test':
         return MockResponse({"import_mode": "manual"}, 200)
-    elif args[0] == 'http://someotherurl.com/anothertest.json':
+    elif args[0] == 'auto test':
         return MockResponse({"import_mode": "automatic"}, 200)
 
     return MockResponse(None, 404)
@@ -72,17 +72,13 @@ class TestWebInterface(ut.TestCase):
     @mock.patch('requests.get', side_effect = mocked_requests_get)
     def test_imports_manual(self, mock_get):
         # Assert requests.get calls
-        app_moment = app()
-        json_data = app_moment.fetch_json('http://someurl.com/test.json')
+        a = A()
+        json_data = a.imports()
         self.assertEqual(json_data, {"import_mode": "manual"})
-        json_data = app_moment.fetch_json('http://someotherurl.com/anothertest.json')
+        json_data = a.imports()
         self.assertEqual(json_data, {"import_mode": "automatic"})
-        json_data = app_moment.fetch_json('http://nonexistenturl.com/cantfindme.json')
+        json_data = a.imports()
         self.assertIsNone(json_data)
-
-        # We can even assert that our mocked method was called with the right parameters
-        self.assertIn(mock.call('http://someurl.com/test.json'), mock_get.call_args_list)
-        self.assertIn(mock.call('http://someotherurl.com/anothertest.json'), mock_get.call_args_list)
 
         self.assertEqual(len(mock_get.call_args_list), 3)
         
