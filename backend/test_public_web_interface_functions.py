@@ -1,5 +1,5 @@
 """
-Test suite for the web interface modules. 
+Test suite for the public web interface modules. 
 
 Author:
     Tully Slattery
