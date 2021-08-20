@@ -73,13 +73,11 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
             the name, or None if no object is found. 
     """
     # Get a list of existing reports in the database. 
-    existing_reports = False # Stub, TODO: awaiting db.object_exists() function. 
-    report_exists = existing_reports is not None
+    exists, last_updated = False, datetime(2021, 8, 20) # Stub, TODO: awaiting db.object_exists() function. 
 
-    if report_exists:
+    if exists:
         # Check each object for updates. 
-        for object in existing_reports:
-            check_object_updates(object)
+        check_object_updates(name, last_updated)
     else:
         query_result = qs.query_simbad_by_name(name)
         if query_result is not None:
@@ -101,12 +99,13 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     return reports
 
 
-def check_object_updates(object: ReportResult):
+def check_object_updates(name: str, last_updated: datetime):
     """ Check if an object, specified by its identifier, requires an update. 
         (i.e., more than 60 days have elapsed since its last update). If so, 
         update the object. 
     
     Args: 
-        object (ReportResult): The object in the database. 
+        name (str): The object's identifier. 
+        last_updated (datetime): The last updated date. 
     """
     pass # Stub
