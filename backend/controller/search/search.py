@@ -71,6 +71,11 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     Returns:
         list[ReportResult]: The reports found in the local database that match
             the name, or None if no object is found. 
+
+    Raises:
+        QuerySimbadError: If there is an issue connecting to the SIMBAD server. 
+            It's important this error is handled by the front-end as an error/warning
+            message should be displayed to the user. 
     """
     # Check if the object already exists in the local database. 
     exists, last_updated = False, datetime(2021, 8, 20) # Stub, TODO: awaiting db.object_exists() function. 
