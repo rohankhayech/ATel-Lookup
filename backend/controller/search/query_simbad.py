@@ -258,7 +258,7 @@ def query_simbad_by_name(object_name: str,
         if get_aliases:
             return main_id, coords, _get_aliases(object_name)
 
-        return main_id, coords
+        return main_id, coords, []
     except ConnectionError as e:
         raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
     except HTTPError as e:

@@ -31,6 +31,8 @@ from astropy.coordinates import SkyCoord
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
 from model.ds.search_filters import SearchFilters
+import model.db_helper as db
+from controller.search import query_simbad as qs
 
 
 def search_reports_by_coords(search_filters: SearchFilters, 
@@ -68,18 +70,43 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
 
     Returns:
         list[ReportResult]: The reports found in the local database that match
-            the name. 
+            the name, or None if no object is found. 
     """
-    return [] # Stub
+    # Get a list of existing reports in the database. 
+    existing_reports = False # Stub, TODO: awaiting db.object_exists() function. 
+    report_exists = existing_reports is not None
+
+    if report_exists:
+        # Check each object for updates. 
+        for object in existing_reports:
+            check_object_updates(object)
+    else:
+        query_result = qs.query_simbad_by_name(name)
+        if query_result is not None:
+            main_id = query_result[0]
+            coordinates = query_result[1]
+            aliases = query_result[2]
+            db.add_object(main_id, coordinates, aliases)
+        else:
+            # There were no reports found in the local database
+            # and no results found by SIMBAD, therefore there is no result.
+            return None
+    
+    reports = db.find_reports_by_object(search_filters, name)
+    coords = db.get_object_coords(reports[0])
+
+    for additional_report in db.find_reports_in_coord_range(search_filters, coords, 0.0):
+        reports.append(additional_report)
+
+    return reports
 
 
-def check_object_updates(alias: str, last_update: datetime):
+def check_object_updates(object: ReportResult):
     """ Check if an object, specified by its identifier, requires an update. 
         (i.e., more than 60 days have elapsed since its last update). If so, 
         update the object. 
     
     Args: 
-        alias (str): The object's identifier (can be an alias or MAIN_ID). 
-        last_update (datetime): The date and time the object was last updated. 
+        object (ReportResult): The object in the database. 
     """
     pass # Stub
