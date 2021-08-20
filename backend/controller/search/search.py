@@ -72,15 +72,18 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
         list[ReportResult]: The reports found in the local database that match
             the name, or None if no object is found. 
     """
-    # Get a list of existing reports in the database. 
+    # Check if the object already exists in the local database. 
     exists, last_updated = False, datetime(2021, 8, 20) # Stub, TODO: awaiting db.object_exists() function. 
 
     if exists:
-        # Check each object for updates. 
+        # The object exists, check to see if it needs to be updated. 
         check_object_updates(name, last_updated)
     else:
+        # The object does not exist, invoke an external (SIMBAD) search. 
         query_result = qs.query_simbad_by_name(name)
+
         if query_result is not None:
+            # Add the object to the local database.
             main_id = query_result[0]
             coordinates = query_result[1]
             aliases = query_result[2]
@@ -90,12 +93,16 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
             # and no results found by SIMBAD, therefore there is no result.
             return None
     
+    # After update checking and external search, query the local database 
+    # for all reports. 
     reports = db.find_reports_by_object(search_filters, name)
     coords = db.get_object_coords(reports[0])
 
+    # Append the list with reports with the same coordinates. 
+    # TODO: Use exact coordinates (0.0) or DEFAULT_RADIUS?
     for additional_report in db.find_reports_in_coord_range(search_filters, coords, 0.0):
         reports.append(additional_report)
-
+        
     return reports
 
 
