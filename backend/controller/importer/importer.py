@@ -30,6 +30,7 @@ from model.ds.report_types import ImportedReport
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession
+from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
@@ -99,11 +100,12 @@ def download_report(atel_num: int) -> str:
         # Closes connection
         session.close()
 
-def parse_report(html_string: str) -> ImportedReport:
+def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     """
     Extracts data from ATel report as stated in non-functional requirement 1 in the SRS.
 
     Args:
+        atel_num (int): The ATel number of the report to be parsed.
         html_string (str): String representation of the downloaded HTML of ATel report from which to extract data from.
 
     Returns:
@@ -112,7 +114,20 @@ def parse_report(html_string: str) -> ImportedReport:
     Raises:
         MissingReportElementException: Thrown when important data could not be extracted or are missing from the report.
     """
-    return ImportedReport(1, '', '', '', datetime(2000, 1, 1), [], [], [], [], [], [])
+
+    soup = BeautifulSoup(html_string, 'html.parser')
+
+    title = soup.find('h1', {'class': 'title'}).get_text(strip=True)
+    authors = soup.find('strong').get_text(strip=True)
+    body = ''
+
+    texts = soup.find_all('p', {'class': None, 'align': None})
+
+    for text in texts:
+        if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and (text.find('a') == None)):
+            body += text.get_text(strip=True) + '\n\n'
+
+    return ImportedReport(atel_num, title, authors, body.strip(), datetime(2000, 1, 1), [], [], [], [], [], [])
 
 def extract_coords(body_text: str) -> list[str]:
     """
