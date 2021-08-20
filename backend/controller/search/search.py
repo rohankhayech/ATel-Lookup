@@ -58,7 +58,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
     return [] # Stub
 
 
-def search_reports_by_id(search_filters: SearchFilters, name: str) -> list[ReportResult]:
+def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[ReportResult]:
     """ Query the local database and the SIMBAD database by an object identifier
         and return the reports that match. 
 
