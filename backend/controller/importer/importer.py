@@ -26,6 +26,8 @@ import re
 
 from model.constants import FIXED_KEYWORDS_REGEX
 from model.ds.report_types import ImportedReport
+#from model.db_helper import report_exists
+#from model.db_helper import add_report
 
 from datetime import datetime
 from astropy.coordinates import SkyCoord
@@ -38,6 +40,9 @@ from pyppeteer.errors import TimeoutError
 MONTHS_REGEX = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'
 
 # Custom exceptions
+class ReportAlreadyExistsError(Exception):
+    pass
+
 class NetworkError(Exception):
     pass
 
@@ -53,9 +58,14 @@ def import_report(atel_num: int):
         atel_num (int): The ATel number of the new report to be added.
 
     Raises:
-        ReportAlreadyExistsException: Thrown when report with the ATel number has been added to the database previously.
+        ReportAlreadyExistsError: Thrown when report with the ATel number has been added to the database previously.
         ReportNotFoundException: Thrown when report with the ATel number is not found on the AT website.
     """
+
+    #if(report_exists(atel_num) == True):
+        #raise ReportAlreadyExistsError(f'ATel #{atel_num} already exists in the database')
+    
+    #parse_report(download_report(atel_num))
     pass
 
 def import_all_reports():
