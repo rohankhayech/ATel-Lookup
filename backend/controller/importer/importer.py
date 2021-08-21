@@ -34,6 +34,7 @@ from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
+# Regex for extracting the month of submission date
 MONTHS_REGEX = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'
 
 # Custom exceptions
@@ -117,14 +118,18 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
         MissingReportElementException: Thrown when important data could not be extracted or are missing from the report.
     """
 
+    # Parses HTML into a tree
     soup = BeautifulSoup(html_string, 'html.parser')
 
+    # Extracts title and authors of ATel report
     title = soup.find('h1', {'class': 'title'}).get_text(strip=True)
     authors = soup.find('strong').get_text(strip=True)
     body = ''
 
+    # Finds all possible paragraphs in the HTML
     texts = soup.find_all('p', {'class': None, 'align': None})
 
+    # Filters out non body text elements and formats the body text
     for text in texts:
         if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
             if('\n' in text.get_text()):
@@ -132,14 +137,17 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
             else:
                 body += text.get_text() + '\n'
 
+    # Extracts submission date of ATel report
     elements = soup.find_all('strong')
     submission_date = elements[1].get_text(strip=True)
 
+    # Extracts submission date elements
     datetime_values = re.findall('\d+', submission_date)
     month = re.search(MONTHS_REGEX, submission_date).group()
 
     month_number = 0
 
+    # Assigns appropriate month number based on the month name
     if(month == 'Jan'):
         month_number = 1
     elif(month == 'Feb'):
@@ -165,6 +173,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     elif(month == 'Dec'):
         month_number = 12
 
+    # Submission date is bundled into datetime object
     formatted_submission_date = datetime(year=int(datetime_values[1]), month=month_number, day=int(datetime_values[0]), hour=int(datetime_values[2]), minute=int(datetime_values[3]))
 
     return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, [], [], extract_keywords(body.strip()), [], [], [])
