@@ -124,8 +124,11 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     texts = soup.find_all('p', {'class': None, 'align': None})
 
     for text in texts:
-        if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and (text.find('a') == None)):
-            body += text.get_text(strip=True) + '\n\n'
+        if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
+            if('\n' in text.get_text()):
+                body += text.get_text()
+            else:
+                body += text.get_text() + '\n'
 
     return ImportedReport(atel_num, title, authors, body.strip(), datetime(2000, 1, 1), [], [], [], [], [], [])
 
