@@ -34,6 +34,8 @@ from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
+MONTHS_REGEX = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'
+
 # Custom exceptions
 class NetworkError(Exception):
     pass
@@ -130,7 +132,42 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
             else:
                 body += text.get_text() + '\n'
 
-    return ImportedReport(atel_num, title, authors, body.strip(), datetime(2000, 1, 1), [], [], [], [], [], [])
+    elements = soup.find_all('strong')
+    submission_date = elements[1].get_text(strip=True)
+
+    datetime_values = re.findall('\d+', submission_date)
+    month = re.search(MONTHS_REGEX, submission_date).group()
+
+    month_number = 0
+
+    if(month == 'Jan'):
+        month_number = 1
+    elif(month == 'Feb'):
+        month_number = 2
+    elif(month == 'Mar'):
+        month_number = 3
+    elif(month == 'Apr'):
+        month_number = 4
+    elif(month == 'May'):
+        month_number = 5
+    elif(month == 'Jun'):
+        month_number = 6
+    elif(month == 'Jul'):
+        month_number = 7
+    elif(month == 'Aug'):
+        month_number = 8
+    elif(month == 'Sep'):
+        month_number = 9
+    elif(month == 'Oct'):
+        month_number = 10
+    elif(month == 'Nov'):
+        month_number = 11
+    elif(month == 'Dec'):
+        month_number = 12
+
+    formatted_submission_date = datetime(year=int(datetime_values[1]), month=month_number, day=int(datetime_values[0]), hour=int(datetime_values[2]), minute=int(datetime_values[3]))
+
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, [], [], extract_keywords(body.strip()), [], [], [])
 
 def extract_coords(body_text: str) -> list[str]:
     """
