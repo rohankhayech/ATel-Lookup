@@ -162,7 +162,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Submission date is bundled into datetime object
     formatted_submission_date = datetime(year=int(datetime_values[1]), month=month_number, day=int(datetime_values[0]), hour=int(datetime_values[2]), minute=int(datetime_values[3]))
 
-    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, [], [], extract_keywords(body.strip()), [], [], [])
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()))
 
 def extract_coords(body_text: str) -> list[str]:
     """
