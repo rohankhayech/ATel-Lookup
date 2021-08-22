@@ -131,6 +131,14 @@ class TestSearchFilters(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.sf.keyword_mode = 5
 
+    def testEquals(self):
+        sf2 = SearchFilters("term",["key", "word"],KeywordMode.ALL,datetime(2021,7,30),datetime(2021,7,31))
+        self.assertEqual(self.sf, sf2)
+
+        # test not equal
+        sf3 = SearchFilters("term",["key","word"],KeywordMode.ANY,datetime(2021,7,30),datetime(2021,7,31))
+        self.assertNotEqual(self.sf, sf3)
+        
 class TestReportTypes(unittest.TestCase):
     def setUp(self):
         self.ir = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30), [14001], [datetime(2021,8,30)], ["Radio", "sTAR"], ["X1"], [], [13000])
