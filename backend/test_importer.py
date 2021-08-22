@@ -26,6 +26,7 @@ import unittest
 from controller.importer.importer import *
 from model.ds.report_types import ImportedReport
 
+from datetime import datetime
 from bs4 import BeautifulSoup
 from unittest import mock
 from requests.exceptions import ConnectionError, HTTPError
@@ -50,12 +51,12 @@ class TestImporterFunctions(unittest.TestCase):
         mock_get.return_value = []
 
         # Parses HTML of ATel #1000
-        f = open('atel1000.html', 'r')
+        f = open('test-data/atel1000.html', 'r')
         imported_report = parse_report(1000, f.read())
         f.close()
 
         # Retrieves ATel #1000 body text
-        f = open('atel1000_body.txt', 'r')
+        f = open('test-data/atel1000_body.txt', 'r')
         body = f.read()
         f.close()
 
@@ -63,11 +64,8 @@ class TestImporterFunctions(unittest.TestCase):
         self.assertEqual(imported_report.title, 'INTEGRAL observations of GX339-4: preliminary spectral fit results')
         self.assertEqual(imported_report.authors, 'M. D. Caballero-Garcia (LAEFF/INTA), J. Miller (Univ. of Michigan), E. Kuulkers (ESA/ESAC), M. Diaz Trigo (ESA/ESAC), on behalf of a larger collaboration')
         self.assertEqual(imported_report.body, body)
-        self.assertEqual(imported_report.submission_date.day, 11)
-        self.assertEqual(imported_report.submission_date.month, 2)
-        self.assertEqual(imported_report.submission_date.year, 2007)
-        self.assertEqual(imported_report.submission_date.hour, 9)
-        self.assertEqual(imported_report.submission_date.minute, 48)
+        self.assertEqual(imported_report.submission_date, datetime(year=2007, month=2, day=11, hour=9, minute=48))
+
         self.assertCountEqual(imported_report.referenced_reports, [])
         self.assertCountEqual(imported_report.observation_dates, [])
         self.assertCountEqual(imported_report.keywords, [])
@@ -76,12 +74,12 @@ class TestImporterFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.referenced_by, [])
 
         # Parses HTML of ATel #10000
-        f = open('atel10000.html', 'r')
+        f = open('test-data/atel10000.html', 'r')
         imported_report = parse_report(10000, f.read())
         f.close()
 
         # Retrieves ATel #10000 body text
-        f = open('atel10000_body.txt', 'r')
+        f = open('test-data/atel10000_body.txt', 'r')
         body = f.read()
         f.close()
 
@@ -89,11 +87,8 @@ class TestImporterFunctions(unittest.TestCase):
         self.assertEqual(imported_report.title, 'ASASSN-17bd: Discovery of A Probable Supernova in 2MASX J15591858+1336487')
         self.assertEqual(imported_report.authors, 'J. Brimacombe (Coral Towers Observatory), J. S. Brown, K. Z. Stanek, T. W.-S. Holoien, C. S. Kochanek, J. Shields, T. A. Thompson (Ohio State), B. J. Shappee (Hubble Fellow, Carnegie Observatories), J. L. Prieto (Diego Portales; MAS), D. Bersier (LJMU), Subo Dong, S. Bose, Ping Chen (KIAA-PKU), R. A. Koff (Antelope Hills Observatory), G. Masi (Virtual Telescope Project, Ceccano, Italy), R. S. Post (Post Astronomy), G. Stone (Sierra Remote Observatories)')
         self.assertEqual(imported_report.body, body)
-        self.assertEqual(imported_report.submission_date.day, 25)
-        self.assertEqual(imported_report.submission_date.month, 1)
-        self.assertEqual(imported_report.submission_date.year, 2017)
-        self.assertEqual(imported_report.submission_date.hour, 5)
-        self.assertEqual(imported_report.submission_date.minute, 0)
+        self.assertEqual(imported_report.submission_date, datetime(year=2017, month=1, day=25, hour=5, minute=0))
+        
         self.assertCountEqual(imported_report.referenced_reports, [])
         self.assertCountEqual(imported_report.observation_dates, [])
         self.assertCountEqual(imported_report.keywords, [])
