@@ -296,6 +296,18 @@ def add_aliases(object_id: str, aliases: list[str]):
     """
     pass
 
+def object_exists(alias:str)->tuple[bool,datetime]:
+    """
+    Checks whether an object with the specified alias exists in the database.
+
+    Args:
+        alias (str): The alias to lookup.
+
+    Returns:
+        bool: True if an object with the specified alias exists, false otherwise.
+        datetime: The date the specified object was last updated via SIMBAD, or None if no object exists.
+    """
+    return False, None
 
 def get_object_coords(alias: str) -> SkyCoord:
     """
@@ -360,14 +372,14 @@ def find_reports_by_object(filters: SearchFilters = None, object_name: str = Non
     else: # If no parameters given, return None.
         return None
 
-def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
+def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:float)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
     Args:
         filters (SearchFilters): The search criteria to filter the report query with.
         coords (SkyCoord): The coordinates to search around.
-        radius (int): The radius defining the range around the specified coordinates to search.
+        radius (float): The radius defining the range around the specified coordinates to search.
 
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
@@ -417,17 +429,16 @@ class ExistingUserError(Exception):
     """
     Raised when the specified username is already associated with another user stored in the database.
     """
+
 class ExistingReportError(Exception):
     """
     When the ATel number of the specified report is already associated with a report stored in the database.
     """
 
-
 class UserNotFoundError(Exception):
     """
     Raised when the specified user is not found in the database.
     """
-
 
 # Private functions
 def _link_reports(object_id: str, aliases: list[str]):
