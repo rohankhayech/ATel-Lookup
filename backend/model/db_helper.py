@@ -372,14 +372,14 @@ def find_reports_by_object(filters: SearchFilters = None, object_name: str = Non
     else: # If no parameters given, return None.
         return None
 
-def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
+def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:float)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
     Args:
         filters (SearchFilters): The search criteria to filter the report query with.
         coords (SkyCoord): The coordinates to search around.
-        radius (int): The radius defining the range around the specified coordinates to search.
+        radius (float): The radius defining the range around the specified coordinates to search.
 
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
