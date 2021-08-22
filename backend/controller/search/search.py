@@ -78,7 +78,7 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
             message should be displayed to the user. 
     """
     # Check if the object already exists in the local database. 
-    exists, last_updated = False, datetime(2021, 8, 20) # Stub, TODO: awaiting db.object_exists() function. 
+    exists, last_updated = db.object_exists()
 
     if exists:
         # The object exists, check to see if it needs to be updated. 
