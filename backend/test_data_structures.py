@@ -62,6 +62,16 @@ class TestAliasResult(unittest.TestCase):
         self.assertEqual(self.ar._alias,"Name")
         self.assertEqual(self.ar._object_ID, "OBJ")
 
+    def test_equal(self):
+        ar2 = AliasResult("Name", "OBJ")
+        self.assertEqual(self.ar, ar2)
+
+        ar3 = AliasResult("Name","obj")
+        self.assertNotEqual(self.ar, ar3)
+
+        ar4 = AliasResult("name","OBJ")
+        self.assertNotEqual(self.ar, ar4)
+
 class TestSearchFilters(unittest.TestCase):
     def setUp(self):
         self.sf = SearchFilters("term",["key", "word"],KeywordMode.ALL,datetime(2021,7,30),datetime(2021,7,31))
@@ -138,7 +148,7 @@ class TestSearchFilters(unittest.TestCase):
         # test not equal
         sf3 = SearchFilters("term",["key","word"],KeywordMode.ANY,datetime(2021,7,30),datetime(2021,7,31))
         self.assertNotEqual(self.sf, sf3)
-        
+
 class TestReportTypes(unittest.TestCase):
     def setUp(self):
         self.ir = ImportedReport(14000, "ATel Title", "R. Khayech", "Body text", datetime(2021,7,30), [14001], [datetime(2021,8,30)], ["Radio", "sTAR"], ["X1"], [], [13000])
