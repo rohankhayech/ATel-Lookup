@@ -40,6 +40,21 @@ class AliasResult:
     def __str__(self) -> str:
         return f"{self.alias} refers to object: {self.object_ID}"
 
+    def __eq__(self, other)->bool:
+        """
+        Checks whether the given object is equal to this AliasResult
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal. 
+        """
+        if isinstance(other,AliasResult):
+            return self.alias == other.alias and self.object_ID == other.object_ID
+        else:
+            return False
+
     @property
     def alias(self)->str:
         """
