@@ -407,9 +407,8 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:f
 
 def init_db():
     """
-    Connects to the database 
+    Initializes the database, creating/upgrading it if needed.
     """
-
     # Check schema version
     schema_version = _get_schema_version()
     if (schema_version is None): # Database does not yet exist.
