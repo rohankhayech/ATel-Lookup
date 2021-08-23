@@ -36,7 +36,7 @@ from astropy.coordinates.sky_coordinate import SkyCoord
 from astropy.table.table import Table 
 from astropy.table.column import Column
 
-from controller.search import search
+from controller.search import search as search
 from model.constants import DEFAULT_RADIUS
 
 
@@ -67,10 +67,18 @@ def db_mock_object_exists() -> tuple[bool, datetime]:
     return True, datetime.today() 
 
 
-def create_mock_table(type: TableType) -> tuple[Table, SkyCoord, list[str]]:
+# TODO: Move this to the other test suite for more robust and reliable testing.
+def create_mock_table(type: TableType) -> tuple[Table, str, SkyCoord, list[str]]:
     '''
         Create a mock astropy Table data structure with random values. 
         Also creates a random SkyCoord and alias list. 
+        Random names are integer strings for simplicity. 
+
+        Returns:
+            Table: the mock table
+            str: randomly generated MAIN_ID
+            SkyCoord: randomly generated SkyCoord object. 
+            list[str]: randomly generated list of aliases. 
     '''
     random_id = str(r.randint(1000, 9999))
     random_aliases = [] 
@@ -95,14 +103,18 @@ def create_mock_table(type: TableType) -> tuple[Table, SkyCoord, list[str]]:
         col_1 = Column(name="MAIN_ID", data=[random_id], dtype=np.object0)
         col_2 = Column(name="RA", data=[random_ra_str], dtype=np.str0)
         col_3 = Column(name="DEC", data=[random_dec_str], dtype=np.str0)
+
         for col in [col_1, col_2, col_3]:
             mock_table.add_column(col)
     elif type == TableType.QUERY_OBJECT_IDS:
         # Mock an alias table similar to Simbad.query_objectids() 
         bytestrings = [] 
+
         for name in random_aliases:
             bytestrings.append(bytes(name))
+
         col_1 = Column(name="ID", data=bytestrings, dtype=np.bytes0)
+
         mock_table.add_column(col_1)
     elif type == TableType.QUERY_REGION:
         # Generate a new list of random objects.
@@ -126,9 +138,10 @@ def create_mock_table(type: TableType) -> tuple[Table, SkyCoord, list[str]]:
         col_2 = Column(name="RA", data=random_ra_list, dtype=np.str0)
         col_3 = Column(name="DEC", data=random_dec_list, dtype=np.str0)
 
-    return mock_table, random_skycoord, random_aliases
+        for col in [col_1, col_2, col_3]:
+            mock_table.add_column(col)
 
-        
+    return mock_table, random_id, random_skycoord, random_aliases
 
 
 class TestSearchByName(ut.TestCase):
@@ -143,4 +156,4 @@ class TestSearchByName(ut.TestCase):
             Test case 1: user searches an object identifier that is valid,
             and is NOT in the local database. 
         '''
-        name = ""
+        pass
