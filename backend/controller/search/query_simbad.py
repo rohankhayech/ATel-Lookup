@@ -208,7 +208,7 @@ def query_simbad_by_coords(coords: SkyCoord,
         # Get the aliases for each ID. Assign the alias list to 
         # the value of the main ID.
         for id in main_ids:
-            results[id] = _get_aliases(id)
+            results[id] = get_aliases(id)
 
         return results
     except ConnectionError as e:
@@ -256,7 +256,7 @@ def query_simbad_by_name(object_name: str,
         coords = _get_coords_from_table(table)
 
         if get_aliases:
-            return main_id, coords, _get_aliases(object_name)
+            return main_id, coords, get_aliases(object_name)
 
         return main_id, coords, []
     except ConnectionError as e:
