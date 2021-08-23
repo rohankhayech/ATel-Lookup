@@ -90,28 +90,26 @@ if __name__ == "__main__":
 
 #Tully's Pulbic Web Interface Functions
 
-class A():
+@app.route("/import", methods=["POST"])
+def imports() -> json:
+    '''Called by the web interface with the flag auto or manual (determining 
+    whether a specific report is to be added, or to just import any new reports since last import)
 
-    @app.route("/import", methods=["POST"])
-    def imports(self) -> json:
-        '''Called by the web interface with the flag auto or manual (determining 
-        whether a specific report is to be added, or to just import any new reports since last import)
+    Args:
+        json (json): A JSON object. See SAS for breakdown of objects fields.
 
-        Args:
-            json (json): A JSON object. See SAS for breakdown of objects fields.
-    
-        Returns:
-            json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
+    Returns:
+        json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
 
-        '''
-        print(request.json)
-        import_mode_in = request.json.get("import_mode")
-        #atel_num_in = request.json.get("atel_num")
+    '''
+    print("REQUEST.JSON PRINTOUT -> ", request.json)
+    import_mode_in = request.json.get("import_mode")
+    atel_num_in = request.json.get("atel_num")
 
-        print("THE IMPORT MODE IS: " + import_mode_in)
-        #print("\nTHE ATEL NUMBER IS: " + atel_num_in)
+    print("THE IMPORT MODE IS: " + import_mode_in)
+    print("THE ATEL NUMBER IS: " + atel_num_in)
 
-        return 0 #stub
+    return jsonify("-==RETURN==-") #stub
 
 
 def search(json: json) -> json:
