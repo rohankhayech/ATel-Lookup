@@ -220,13 +220,13 @@ def query_simbad_by_coords(coords: SkyCoord,
 
 
 def query_simbad_by_name(object_name: str, 
-                         get_aliases: bool=True
+                         retrieve_aliases: bool=True
 ) -> tuple[str, SkyCoord, list[str]]:
     """ Queries the SIMBAD database by an object identifier string. 
 
     Args:
         object_name (str): An object MAIN_ID or alias. 
-        get_aliases (bool): Specify whether the aliases for the object should
+        retrieve_aliases (bool): Specify whether the aliases for the object should
             be retrieved. Defaults to True. If True, an alias list will
             be returned by this function, otherwise only the coordinates
             will be returned. 
@@ -234,7 +234,7 @@ def query_simbad_by_name(object_name: str,
         str: The object's MAIN_ID as listed in the SIMBAD database. 
         SkyCoord: The object's coordinates, retrieved from SIMBAD. 
         list[str]: A list of aliases for the object, returned only if 
-            get_aliases == True.
+            retrieve_aliases == True.
     Raises:
         QuerySimbadError: if a network error occurs while contacting the 
             SIMBAD server using the Astroquery package. 
@@ -254,7 +254,7 @@ def query_simbad_by_name(object_name: str,
         main_id = _get_names_from_table(table)[0]
         coords = _get_coords_from_table(table)
 
-        if get_aliases:
+        if retrieve_aliases:
             return main_id, coords, get_aliases(object_name)
 
         return main_id, coords, []

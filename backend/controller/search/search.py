@@ -101,7 +101,7 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
         _check_object_updates(name, last_updated)
     else:
         # The object does not exist, invoke an external (SIMBAD) search. 
-        query_result = qs.query_simbad_by_name(name, get_aliases=True)
+        query_result = qs.query_simbad_by_name(name, True)
 
         if query_result is not None:
             # Add the object to the local database.
