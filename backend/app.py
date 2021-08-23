@@ -93,7 +93,7 @@ if __name__ == "__main__":
 class A():
 
     @app.route("/import", methods=["POST"])
-    def imports() -> json:
+    def imports(self) -> json:
         '''Called by the web interface with the flag auto or manual (determining 
         whether a specific report is to be added, or to just import any new reports since last import)
 
@@ -104,7 +104,7 @@ class A():
             json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
 
         '''
-
+        print(request.json)
         import_mode_in = request.json.get("import_mode")
         #atel_num_in = request.json.get("atel_num")
 

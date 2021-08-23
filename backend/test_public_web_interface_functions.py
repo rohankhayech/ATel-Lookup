@@ -50,27 +50,29 @@ test_manual = {
     "atel_num": "14126"
 }
 
-def mocked_requests_get(*args, **kwargs):
-    class MockResponse:
-        def __init__(self, json_data, status_code):
-            self.json_data = json_data
-            self.status_code = status_code
+# def mocked_requests_get(*args, **kwargs): #create fake json
+#     class MockResponse:
+#         def __init__(self, json_data, status_code):
+#             self.json_data = json_data
+#             self.status_code = status_code
 
-        def json(self):
-            return self.json_data
+#         def json(self):
+#             return self.json_data
     
-    if args[0] == 'manual test':
-        return MockResponse({"import_mode": "manual"}, 200)
-    elif args[0] == 'auto test':
-        return MockResponse({"import_mode": "automatic"}, 200)
+#     if args[0] == 'manual test':
+#         return MockResponse({"import_mode": "manual"}, 200)
+#     elif args[0] == 'auto test':
+#         return MockResponse({"import_mode": "automatic"}, 200)
 
-    return MockResponse(None, 404)
+#     return MockResponse(None, 404)
 
+def mocked_requests_get():
+    return test_manual
         
 
 class TestWebInterface(ut.TestCase):
     @mock.patch('requests.get', side_effect = mocked_requests_get)
-    def test_imports_manual(self, mock_get):
+    def test_imports_manual(self, mock_get): #actual test module
         # Assert requests.get calls
         a = A()
         json_data = a.imports()
