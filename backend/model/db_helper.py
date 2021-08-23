@@ -576,7 +576,7 @@ def _create_db():
 
         #Add single metadata entry
         cur.execute(
-            "insert into Metadata (metadata, schemaVersion) values ('metadata',%s);", (LATEST_SCHEMA_VERSION,))
+            "insert into Metadata (metadata, schemaVersion) values ('metadata', %s);", (LATEST_SCHEMA_VERSION,))
     except mysql.connector.Error as err:
         print(err.msg)
     finally:
@@ -722,3 +722,28 @@ def _build_report_query(filters: SearchFilters):
     query = base_query + where_clause
 
     return query, data
+
+def _reset_db():
+    """
+    Resets and recreates the database.
+    This should only be used if the current schema version is incompatible with the latest schema version.
+    This should only be called from the console, do not call internally.
+    
+    WARNING: This function will DELETE ALL stored application data.
+    """
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    try:
+        cur.execute("drop table AdminUsers;")
+        cur.execute("drop table Metadata;")
+        cur.execute("drop table Reports;")
+    except mysql.connector.Error as err:
+        print(err.msg)
+    finally:
+        # Close connection
+        cn.commit()
+        cur.close()
+        cn.close()
+
+    _create_db()
