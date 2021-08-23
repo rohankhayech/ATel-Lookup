@@ -24,6 +24,7 @@ License Terms and Copyright:
 import unittest
 
 from controller.importer.importer import *
+from model.db_helper import report_exists
 from model.ds.report_types import ImportedReport
 
 from datetime import datetime
@@ -34,6 +35,29 @@ from pyppeteer.errors import TimeoutError
 
 # Importer functions
 class TestImporterFunctions(unittest.TestCase):
+    # Tests import_report function
+    @mock.patch('controller.importer.importer.download_report')
+    def test_manual_import(self, mock_get):
+        # Checks that ATel reports has not been added into the database
+        self.assertEqual(report_exists(1000), False)
+        self.assertEqual(report_exists(10000), False)
+
+        # Reads HTML string of ATel #1000
+        f = open('test-data/atel1000.html', 'r')
+        mock_get.return_value = f.read()
+        f.close()
+
+        import_report(1000)
+        self.assertEqual(report_exists(1000), True)
+
+        # Reads HTML string of ATel #10000
+        f = open('test-data/atel10000.html', 'r')
+        mock_get.return_value = f.read()
+        f.close()
+
+        import_report(10000)
+        self.assertEqual(report_exists(10000), True)
+
     # Tests download_report function
     '''def test_html_download(self):
         # ATel report titles for comparison
@@ -108,6 +132,20 @@ class TestImporterFunctions(unittest.TestCase):
 
 # Importer exceptions
 class TestImporterExceptions(unittest.TestCase):
+    # Tests that ReportAlreadyExistsError is being raised
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_report_already_exists_error(self, mock_get):
+        mock_get.return_value = True
+        with self.assertRaises(ReportAlreadyExistsError):
+            import_report(1)
+
+    # Tests that ReportNotFoundError is being raised
+    @mock.patch('controller.importer.importer.download_report')
+    def test_report_not_found_error(self, mock_get):
+        mock_get.return_value = ''
+        with self.assertRaises(ReportNotFoundError):
+            import_report(1)
+
     # Tests that NetworkError is being raised
     @mock.patch('requests_html.HTMLSession.get')
     def test_network_error(self, mock_get):
