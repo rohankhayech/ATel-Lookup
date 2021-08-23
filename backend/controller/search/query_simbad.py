@@ -29,22 +29,20 @@ from astropy.coordinates.angles import Angle
 from astropy.table import Table
 from astroquery.simbad import Simbad as simbad
 
+from model.constants import DEFAULT_RADIUS, RADIUS_UNIT
+
 from requests import ConnectionError, HTTPError
+
 
 #############################
 # External module constants #
 #############################
 
-# The default radius for a coordinate search. 
-# The unit is defined in the constant RADIUS_UNIT.
-DEFAULT_RADIUS = 10.0
-
-# The unit used for the radius of a coordinate search. 
-RADIUS_UNIT = 'arcsecond'
 
 # Mirror for the SIMBAD database.
 # Using the Harvard mirror.
 SIMBAD_MIRROR = "http://simbad.cfa.harvard.edu/simbad/sim-script"
+
 
 # The name of the object ID column in the Astroquery Table data structure. 
 IDS_COLUMN = "ID"

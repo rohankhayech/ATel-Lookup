@@ -148,3 +148,12 @@ FIXED_KEYWORDS_REGEX = ["radio",
                         "transient",
                         "variables",
                         "young stellar object" ]
+
+
+# The default radius for a coordinate search. 
+# The unit is defined in the constant RADIUS_UNIT.
+DEFAULT_RADIUS: float = 10.0
+
+
+# The unit used for the radius of a coordinate search. 
+RADIUS_UNIT: str = 'arcsecond'
