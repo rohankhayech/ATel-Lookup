@@ -26,7 +26,7 @@ License Terms and Copyright:
 
 from datetime import datetime
 import os
-from typing import Union
+import warnings
 
 from astropy.coordinates import SkyCoord
 import mysql.connector
@@ -42,13 +42,13 @@ from model.ds.alias_result import AliasResult
 # Constants
 
 
-LATEST_SCHEMA_VERSION:int = 2 
+_LATEST_SCHEMA_VERSION:int = 2 
 """ 
 Version number of the latest database schema.
 This must be increased every time the schema is upgraded.
 """
 
-LATEST_SCHEMA_VERSION_REQUIRES_RESET: bool = False
+_LATEST_SCHEMA_VERSION_REQUIRES_RESET: bool = False
 """
 Flag indiciating whether the database requires a hard reset to upgrade.
 This should only be set to True if the database cannot be altered using SQL.
@@ -415,16 +415,16 @@ def init_db():
     if (schema_version is None): # Database does not yet exist.
         # Create db from schema
         _create_db()
-    elif (schema_version == LATEST_SCHEMA_VERSION-1): # Database schema is previous version.
-        if LATEST_SCHEMA_VERSION_REQUIRES_RESET:
-            raise IncompatibleSchemaVersionError(schema_version)
+    elif (schema_version == _LATEST_SCHEMA_VERSION-1): # Database schema is previous version.
+        if _LATEST_SCHEMA_VERSION_REQUIRES_RESET:
+            _warn_schema_incompatible(schema_version)
         else:
             # Create any new tables added.
             _create_db()
             # Alter existing tables
-            _upgrade_db()
-    elif (schema_version != LATEST_SCHEMA_VERSION): # Database schema is an older/newer version.
-        raise IncompatibleSchemaVersionError(schema_version)
+            _upgrade_db(schema_version)
+    elif (schema_version != _LATEST_SCHEMA_VERSION): # Database schema is an older/newer version.
+        _warn_schema_incompatible(schema_version)
 
 # Exceptions
 class ExistingUserError(Exception):
@@ -442,20 +442,15 @@ class UserNotFoundError(Exception):
     Raised when the specified user is not found in the database.
     """
 
-class IncompatibleSchemaVersionError(Exception):
+class IncompatibleSchemaVersionWarning(Warning):
     """
-    Raised when the schema version is old and must be reset to be upgraded.
-    This should not be handled as it should be raised to the user.
-    Handling this error and allowing the application to continue could lead to unstable results.
+    Raised when the schema version is incompatible with the latest version and must be reset to be upgraded.
     """
-    def __init_(self, schema_version:int):
-        """
-        Creates a new IncompatibleSchemaVersionError.
 
-        Args:
-            schema_version (int): The current schema version.
-        """
-        self.message = f"Database schema version {schema_version} is incompatible with the latest schema version {LATEST_SCHEMA_VERSION} and cannot be upgraded.\nDatabase must be reset by calling _reset_db().\nWARNING: This will delete all stored application data."
+class SchemaUpgradedWarning(Warning):
+    """
+    Raised when the schema version has been upgraded.
+    """
 
 # Private functions
 def _link_reports(object_id: str, aliases: list[str]):
@@ -576,7 +571,7 @@ def _create_db():
 
         #Add single metadata entry
         cur.execute(
-            "insert into Metadata (metadata, schemaVersion) values ('metadata', %s);", (LATEST_SCHEMA_VERSION,))
+            "insert into Metadata (metadata, schemaVersion) values ('metadata', %s);", (_LATEST_SCHEMA_VERSION,))
     except mysql.connector.Error as err:
         print(err.msg)
     finally:
@@ -586,10 +581,13 @@ def _create_db():
         cn.close()
 
 
-def _upgrade_db():
+def _upgrade_db(old_schema_version:int):
     """
     Upgrades the database to the next version using the upgrade schema.
     Should only be called if the schema was the previous version.
+
+    Args:
+        old_schema_version (int): The schema version to upgrade from.
     """
 
     # Connect to mysql server
@@ -602,7 +600,7 @@ def _upgrade_db():
     metadata_table = _read_table_upgrade("Metadata")
 
     metadata_query = ("update Metadata "
-                      "set schemaVersion = %s")
+                      "set schemaVersion = %s;")
 
     try:
         # Alter tables
@@ -611,7 +609,9 @@ def _upgrade_db():
         cur.execute(metadata_table)
 
         #Update version
-        cur.execute(metadata_query, (LATEST_SCHEMA_VERSION,))
+        cur.execute(metadata_query, (_LATEST_SCHEMA_VERSION,))
+
+        _warn_schema_upgraded(old_schema_version)
     except mysql.connector.Error as err:
         print(err.msg)
     finally:
@@ -747,3 +747,23 @@ def _reset_db():
         cn.close()
 
     _create_db()
+
+def _warn_schema_incompatible(schema_version:int):
+    """
+    Warns that the schema version is incompatible with the latest version.
+
+    Args:
+        schema_version (int): The current schema version.
+    """
+    msg = f"\n\nWARNING: Incompatible Schema Version:\nDatabase schema version v{schema_version} is incompatible with the latest schema version v{_LATEST_SCHEMA_VERSION} and cannot be upgraded automatically.\nDatabase must be reset by calling _reset_db().\nIMPORTANT NOTE: This will delete all stored application data.\nAllowing the application to continue without resetting the database could lead to unstable results.\n"
+    warnings.warn(msg,IncompatibleSchemaVersionWarning)
+
+def _warn_schema_upgraded(schema_version:int):
+    """
+    Warns that the schema version has been upgraded.
+
+    Args:
+        schema_version (int): The current schema version.
+    """
+    msg = f"Database schema upgraded from v{schema_version} to v{_LATEST_SCHEMA_VERSION}."
+    warnings.warn(msg, SchemaUpgradedWarning)
