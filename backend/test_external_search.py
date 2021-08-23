@@ -1,4 +1,4 @@
-""" Test suite for the search module.
+""" Test suite for the search module (external)
 
 These functions are used to access the SIMBAD database, providing a way to
 search by name (ID) or coordinates. Data is formatted appropriately. 
@@ -176,7 +176,7 @@ class TestNameSearch(ut.TestCase):
             While this is not the ideal way to conduct unit testing, it is 
             required in order to test real data and use cases. 
         """
-        main_id, coords, aliases = query_simbad.query_simbad_by_name('M 1', get_aliases=True)
+        main_id, coords, aliases = query_simbad.query_simbad_by_name('M 1', True)
         self.assertIsNotNone(main_id)
         self.assertIsNotNone(coords)
         self.assertIsNotNone(aliases)
