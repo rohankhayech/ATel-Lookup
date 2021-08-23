@@ -26,8 +26,10 @@ License Terms and Copyright:
 """
 
 
-from datetime import datetime
 from astropy.coordinates import SkyCoord
+
+from datetime import datetime
+
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
 from model.ds.search_filters import SearchFilters
@@ -42,6 +44,11 @@ from controller.search import query_simbad as qs
 
 # The amount of days elapsed before updating an object. 
 UPDATE_OBJECT_DAYS: int = 60 
+
+
+####################
+# Public functions #
+####################
 
 
 def search_reports_by_coords(search_filters: SearchFilters, 
@@ -91,7 +98,7 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
 
     if exists:
         # The object exists, check to see if it needs to be updated. 
-        check_object_updates(name, last_updated)
+        _check_object_updates(name, last_updated)
     else:
         # The object does not exist, invoke an external (SIMBAD) search. 
         query_result = qs.query_simbad_by_name(name, get_aliases=True)
@@ -121,7 +128,12 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     return reports
 
 
-def check_object_updates(name: str, last_updated: datetime):
+#####################
+# Private functions #
+#####################
+
+
+def _check_object_updates(name: str, last_updated: datetime):
     """ Check if an object, specified by its identifier, requires an update. 
         (i.e., more than 60 days have elapsed since its last update). If so, 
         update the object. 
