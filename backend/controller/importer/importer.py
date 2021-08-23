@@ -26,8 +26,7 @@ import re
 
 from model.constants import FIXED_KEYWORDS_REGEX
 from model.ds.report_types import ImportedReport
-#from model.db_helper import report_exists
-#from model.db_helper import add_report
+from model.db_helper import report_exists, add_report
 
 from datetime import datetime
 from astropy.coordinates import SkyCoord
@@ -41,6 +40,9 @@ MONTHS_REGEX = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'
 
 # Custom exceptions
 class ReportAlreadyExistsError(Exception):
+    pass
+
+class ReportNotFoundError(Exception):
     pass
 
 class NetworkError(Exception):
@@ -59,14 +61,21 @@ def import_report(atel_num: int):
 
     Raises:
         ReportAlreadyExistsError: Thrown when report with the ATel number has been added to the database previously.
-        ReportNotFoundException: Thrown when report with the ATel number is not found on the AT website.
+        ReportNotFoundError: Thrown when report with the ATel number is not found on the AT website.
     """
 
-    #if(report_exists(atel_num) == True):
-        #raise ReportAlreadyExistsError(f'ATel #{atel_num} already exists in the database')
+    # Raises error when ATel report is already imported into the database
+    if(report_exists(atel_num) == True):
+        raise ReportAlreadyExistsError(f'ATel #{atel_num} already exists in the database')
     
-    #parse_report(download_report(atel_num))
-    pass
+    html_string = download_report(atel_num)
+
+    # Raises error when ATel report is not found
+    if(html_string == ''):
+        raise ReportNotFoundError(f'ATel #{atel_num} does not exists')
+
+    # Parses HTML and imports ATel report into the database
+    add_report(parse_report(atel_num, html_string))
 
 def import_all_reports():
     """
