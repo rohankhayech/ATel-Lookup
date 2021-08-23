@@ -102,14 +102,30 @@ def imports() -> json:
         json: JSON flag – Flag that states whether the import was successful or unsuccessful. 
 
     '''
-    print("REQUEST.JSON PRINTOUT -> ", request.json)
-    import_mode_in = request.json.get("import_mode")
-    atel_num_in = request.json.get("atel_num")
+    # print("REQUEST.JSON PRINTOUT -> ", request.json)
+    flag = 1
 
-    print("THE IMPORT MODE IS: " + import_mode_in)
-    print("THE ATEL NUMBER IS: " + atel_num_in)
+    import_mode_in = request.json.get("import_mode", None)
+    atel_num_in = request.json.get("atel_num", None)
 
-    return jsonify("-==RETURN==-") #stub
+    if import_mode_in != "manual" and import_mode_in != "auto":
+        flag = 0
+    elif import_mode_in == "manual" and atel_num_in is None:
+        flag = 0
+
+    if flag == 1:
+        # try:
+        #     if import_mode_in == "manual":
+        #         importreport()
+        #     elif import_mode_in == "auto":
+        #         importallreports()
+        # except ReportAlreadyExistsException as e:
+        #     flag = 0
+        # except ReportNotFoundException as e:
+        #     flag = 0
+        pass
+
+    return jsonify({"flag": flag})
 
 
 def search(json: json) -> json:

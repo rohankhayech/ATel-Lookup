@@ -50,9 +50,9 @@ test_manual_fail = {
     "import_mode": "manual"
 }
 
-success_flag = {
-    "success_flag": 0
-}
+# success_flag = {
+#     "flag": 0
+# }
      
 class TestWebInterface(ut.TestCase):
     def setUp(self):
@@ -60,12 +60,12 @@ class TestWebInterface(ut.TestCase):
 
     def test_imports_manual_success(self): #actual test module
         response = self.app.post('/import', json = test_manual_success)
-        print(response.json)
+        self.assertEqual(response.json.get("flag"), 1)
         # should show a successful manual import (both import mode and atel num given correctly)
 
     def test_imports_manual_fail(self): #actual test module
         response = self.app.post('/import', json = test_manual_fail)
-        print(response.json)
+        self.assertEqual(response.json.get("flag"), 0)
         #should show a failure (no atel number in json object)
 
         
