@@ -26,6 +26,7 @@ License Terms and Copyright:
 """
 
 
+from backend.controller.search.query_simbad import query_simbad_by_name
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from model.constants import DEFAULT_RADIUS
@@ -33,6 +34,15 @@ from model.ds.report_types import ReportResult
 from model.ds.search_filters import SearchFilters
 import model.db_helper as db
 from controller.search import query_simbad as qs
+
+
+###########################
+# Search module constants #
+###########################
+
+
+# The amount of days elapsed before updating an object. 
+UPDATE_OBJECT_DAYS: int = 60 
 
 
 def search_reports_by_coords(search_filters: SearchFilters, 
@@ -122,8 +132,15 @@ def check_object_updates(name: str, last_updated: datetime):
         last_updated (datetime): The last updated date. 
     """
     try:
-        pass 
+        diff = datetime.today() - last_updated
+        if diff.days >= UPDATE_OBJECT_DAYS:
+            aliases = qs.query_simbad_by_name(name, True)[2]
+            db.add_aliases(name, aliases)
     except ObjectNotFoundError as e:
+        # If the object is not found in the local database, should it
+        # be added when this error is raised? Does the db module 
+        # handle connections between similar objects?
+        # TODO: Handle ObjectNotFoundError. 
         pass
 
 

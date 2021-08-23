@@ -31,9 +31,9 @@ from astroquery.simbad import Simbad as simbad
 
 from requests import ConnectionError, HTTPError
 
-###########################
-# Search module constants #
-###########################
+#############################
+# External module constants #
+#############################
 
 # The default radius for a coordinate search. 
 # The unit is defined in the constant RADIUS_UNIT.
