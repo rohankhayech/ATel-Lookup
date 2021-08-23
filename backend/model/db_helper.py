@@ -26,6 +26,7 @@ License Terms and Copyright:
 
 from datetime import datetime
 import os
+from typing import Union
 
 from astropy.coordinates import SkyCoord
 import mysql.connector
@@ -37,6 +38,21 @@ from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport, ReportResult
 from model.ds.search_filters import SearchFilters, KeywordMode
 from model.ds.alias_result import AliasResult
+
+# Constants
+
+
+LATEST_SCHEMA_VERSION:int = 2 
+""" 
+Version number of the latest database schema.
+This must be increased every time the schema is upgraded.
+"""
+
+LATEST_SCHEMA_VERSION_REQUIRES_RESET: bool = False
+"""
+Flag indiciating whether the database requires a hard reset to upgrade.
+This should only be set to True if the database cannot be altered using SQL.
+"""
 
 # Public functions
 def get_hashed_password(username: str) -> str:
@@ -135,7 +151,7 @@ def add_report(report: ImportedReport):
     """
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
-
+    
     # Format keywords
     sep = ','
     keywords = sep.join(report.keywords)  
@@ -391,38 +407,24 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:f
 
 def init_db():
     """
-    Connects to the database and creates the schema if not already created.
+    Connects to the database 
     """
-    # Connect to mysql server
-    cn = _connect()
-    cur:MySQLCursor = cn.cursor()
 
-    # Load table schema from file
-    user_table = _read_table("AdminUsers")
-    reports_table = _read_table("Reports")
-    metadata_table = _read_table("Metadata")
-
-    # Add keywords to reports schema
-    sep = "', '"
-    kw_set = sep.join(FIXED_KEYWORDS)
-    reports_table = reports_table.format(kw_set)
-   
-    try:
-        # Add tables
-        cur.execute(user_table)
-        cur.execute(reports_table)
-        cur.execute(metadata_table)
-
-        #Add single metadata entry
-        cur.execute("insert into Metadata (metadata) values ('metadata');")
-    except mysql.connector.Error as err:
-        print(err.msg)
-    finally:
-        # Close connection
-        cn.commit()
-        cur.close()
-        cn.close()
-
+    # Check schema version
+    schema_version = _get_schema_version()
+    if (schema_version is None): # Database does not yet exist.
+        # Create db from schema
+        _create_db()
+    elif (schema_version == LATEST_SCHEMA_VERSION-1): # Database schema is previous version.
+        if LATEST_SCHEMA_VERSION_REQUIRES_RESET:
+            raise IncompatibleSchemaVersionError(schema_version)
+        else:
+            # Create any new tables added.
+            _create_db()
+            # Alter existing tables
+            _upgrade_db()
+    elif (schema_version != LATEST_SCHEMA_VERSION): # Database schema is an older/newer version.
+        raise IncompatibleSchemaVersionError(schema_version)
 
 # Exceptions
 class ExistingUserError(Exception):
@@ -439,6 +441,21 @@ class UserNotFoundError(Exception):
     """
     Raised when the specified user is not found in the database.
     """
+
+class IncompatibleSchemaVersionError(Exception):
+    """
+    Raised when the schema version is old and must be reset to be upgraded.
+    This should not be handled as it should be raised to the user.
+    Handling this error and allowing the application to continue could lead to unstable results.
+    """
+    def __init_(self, schema_version:int):
+        """
+        Creates a new IncompatibleSchemaVersionError.
+
+        Args:
+            schema_version (int): The current schema version.
+        """
+        self.message = f"Database schema version {schema_version} is incompatible with the latest schema version {LATEST_SCHEMA_VERSION} and cannot be upgraded.\nDatabase must be reset by calling _reset_db().\nWARNING: This will delete all stored application data."
 
 # Private functions
 def _link_reports(object_id: str, aliases: list[str]):
@@ -470,7 +487,8 @@ def _connect() -> MySQLConnection:
     )
 
 def _read_table(table_name:str)->str:
-    """Reads schema for the given table from it's SQL file.
+    """
+    Reads schema for the given table from it's SQL file.
 
     Args:
         table_name (str): The name of the table to import.
@@ -479,7 +497,33 @@ def _read_table(table_name:str)->str:
         str: The SQL schema for the given table.
     """
     schema_path = os.path.join("model", "schema", f"{table_name}.sql")
-    return open(schema_path).read()
+    return _read_schema(schema_path)
+
+def _read_table_upgrade(table_name:str)->str:
+    """
+    Reads schema to for upgrading the given table from it's SQL file.
+
+    Args:
+        table_name (str): The name of the table to import.
+
+    Returns:
+        str: The SQL schema for the given table.
+    """
+    schema_path = os.path.join("model", "schema", "upgrade", f"upgrade_{table_name}.sql")
+    return _read_schema(schema_path)
+
+def _read_schema(file_path:str)->str:
+    """
+    Reads schema for the given table from it's SQL file.
+
+    Args:
+        table_name (str): The name of the table to import.
+
+    Returns:
+        str: The SQL schema for the given table.
+    """
+    return open(file_path).read()
+
 
 def _record_exists(table_name:str,primary_key:str,id:str)->bool:
     """
@@ -504,6 +548,112 @@ def _record_exists(table_name:str,primary_key:str,id:str)->bool:
         return True
     else:
         return False
+
+
+def _create_db():
+    """
+    Connects to the database and creates the schema if not already created.
+    """
+    # Connect to mysql server
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    # Load table schema from file
+    user_table = _read_table("AdminUsers")
+    reports_table = _read_table("Reports")
+    metadata_table = _read_table("Metadata")
+
+    # Add keywords to reports schema
+    sep = "', '"
+    kw_set = sep.join(FIXED_KEYWORDS)
+    reports_table = reports_table.format(kw_set)
+
+    try:
+        # Add tables
+        cur.execute(user_table)
+        cur.execute(reports_table)
+        cur.execute(metadata_table)
+
+        #Add single metadata entry
+        cur.execute(
+            "insert into Metadata (metadata, schemaVersion) values ('metadata',%s);", (LATEST_SCHEMA_VERSION,))
+    except mysql.connector.Error as err:
+        print(err.msg)
+    finally:
+        # Close connection
+        cn.commit()
+        cur.close()
+        cn.close()
+
+
+def _upgrade_db():
+    """
+    Upgrades the database to the next version using the upgrade schema.
+    Should only be called if the schema was the previous version.
+    """
+
+    # Connect to mysql server
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    # Load table upgrade schema from file
+    user_table = _read_table_upgrade("AdminUsers")
+    reports_table = _read_table_upgrade("Reports")
+    metadata_table = _read_table_upgrade("Metadata")
+
+    metadata_query = ("update Metadata "
+                      "set schemaVersion = %s")
+
+    try:
+        # Alter tables
+        cur.execute(user_table)
+        cur.execute(reports_table)
+        cur.execute(metadata_table)
+
+        #Update version
+        cur.execute(metadata_query, (LATEST_SCHEMA_VERSION,))
+    except mysql.connector.Error as err:
+        print(err.msg)
+    finally:
+        # Close connection
+        cn.commit()
+        cur.close()
+        cn.close()
+
+def _get_schema_version() -> int:
+    """
+    Retrieves the version number of the current database schema.
+
+    Returns:
+        int: Version number of the current schema or None if the database is not created.
+    """
+
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    # Check if the database was created.
+    cur.execute(f"show tables like 'Metadata';")
+    exists_result = cur.fetchone()
+
+    # If the database is not created return none.
+    if exists_result is None:
+        return None
+
+    query = "select schemaVersion from Metadata"
+
+    try:
+        cur.execute(query)
+        result = cur.fetchone()
+
+        ver = result[0]
+    except mysql.connector.Error as e:
+        # If metadata field does not exist, but db does, schema version is 1.
+        return 1
+    finally:
+        cur.close()
+        cn.close()
+
+    return ver
 
 def _build_report_query(filters: SearchFilters):
     """
