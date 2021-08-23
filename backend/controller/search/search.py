@@ -26,7 +26,6 @@ License Terms and Copyright:
 """
 
 
-from backend.controller.search.query_simbad import query_simbad_by_name
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from model.constants import DEFAULT_RADIUS
@@ -95,7 +94,7 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
         check_object_updates(name, last_updated)
     else:
         # The object does not exist, invoke an external (SIMBAD) search. 
-        query_result = qs.query_simbad_by_name(name)
+        query_result = qs.query_simbad_by_name(name, get_aliases=True)
 
         if query_result is not None:
             # Add the object to the local database.
@@ -134,13 +133,13 @@ def check_object_updates(name: str, last_updated: datetime):
     try:
         diff = datetime.today() - last_updated
         if diff.days >= UPDATE_OBJECT_DAYS:
-            aliases = qs.query_simbad_by_name(name, True)[2]
+            # The object requires updating, check for its aliases. 
+            aliases = qs.get_aliases(name)
             db.add_aliases(name, aliases)
-    except ObjectNotFoundError as e:
-        # If the object is not found in the local database, should it
-        # be added when this error is raised? Does the db module 
-        # handle connections between similar objects?
+    except ObjectNotFoundError:
         # TODO: Handle ObjectNotFoundError. 
+        # Perhaps this should not be handled as the object should 
+        # exist in the database prior to calling this function. 
         pass
 
 

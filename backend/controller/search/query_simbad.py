@@ -102,6 +102,7 @@ def _get_names_from_table(table: Table) -> list[str]:
 
     Returns:
         list[str]: List of object identifiers extracted from the table. 
+            If no names could be extracted, an empty list is returned. 
 
     Raises:
         ValueError: if the table is not initialised.
