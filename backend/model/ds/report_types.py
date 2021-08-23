@@ -74,7 +74,7 @@ class ReportResult:
             and self.title == other.title
             and self.authors == other.authors
             and self.body == other.body
-            and self.referenced_reports.sort() == other.referenced_reports.sort()
+            and sorted(self.referenced_reports) == sorted(other.referenced_reports)
             and self.submission_date == self.submission_date)
         else:
             return False
@@ -256,7 +256,6 @@ class ImportedReport(ReportResult):
         self.keywords = keywords
         self.referenced_by = referenced_by
         self.observation_dates = observation_dates
-        self.keywords = keywords
         self.objects = objects
         self.coordinates = coordinates
 
@@ -266,6 +265,26 @@ class ImportedReport(ReportResult):
             str: A description of the report.
         """
         return f"{super().__str__()} Observation Date/s: {self.observation_dates}. Keywords: {self.keywords}. Objects: {self.objects}. Coords: {self.coordinates}. Referenced by: {self.referenced_by}"
+
+    def __eq__(self, other) -> bool:
+        """
+        Checks if the given object is equal to this ImportedReport. If the object is a base ReportResult it will be considered equal if the common fields are equal. 
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal.
+        """
+        if (isinstance(other, ImportedReport)):
+            return (super().__eq__(other) 
+            and sorted(self.keywords) == sorted(other.keywords)
+            and sorted(self.referenced_by) == sorted(other.referenced_by)
+            and sorted(self.observation_dates) == sorted(other.observation_dates)
+            and sorted(self.objects) == sorted(other.objects)
+            and sorted(self.coordinates) == sorted(other.coordinates))
+        else:
+            return super().__eq__(other)
 
     @property
     def referenced_by(self)->list[int]:
