@@ -121,4 +121,12 @@ def check_object_updates(name: str, last_updated: datetime):
         name (str): The object's identifier. 
         last_updated (datetime): The last updated date. 
     """
-    pass # Stub
+    try:
+        pass 
+    except ObjectNotFoundError as e:
+        pass
+
+
+# TODO: Stub, move this to the database module. 
+class ObjectNotFoundError(Exception):
+    pass 
