@@ -133,7 +133,19 @@ def _get_names_from_table(table: Table) -> list[str]:
     return lst
 
 
-def _get_aliases(id: str) -> list[str]:
+def _set_mirror(): 
+    """ Sets the mirror for SIMBAD to the one defined by the
+        SIMBAD_MIRROR constant.
+    """
+    simbad.SIMBAD_URL = SIMBAD_MIRROR
+
+
+#####################
+# Public functions. #
+#####################
+
+
+def get_aliases(id: str) -> list[str]:
     """ Queries the SIMBAD database by an object name/identifier and returns the 
         list of alternative names (aliases). 
 
@@ -146,18 +158,6 @@ def _get_aliases(id: str) -> list[str]:
     aliases_table = simbad.query_objectids(id)
     aliases_list = _get_names_from_table(aliases_table)
     return aliases_list
-
-
-def _set_mirror(): 
-    """ Sets the mirror for SIMBAD to the one defined by the
-        SIMBAD_MIRROR constant.
-    """
-    simbad.SIMBAD_URL = SIMBAD_MIRROR
-
-
-#####################
-# Public functions. #
-#####################
 
 
 def query_simbad_by_coords(coords: SkyCoord, 
