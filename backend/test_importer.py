@@ -24,11 +24,8 @@ License Terms and Copyright:
 import unittest
 
 from controller.importer.importer import *
-from model.db_helper import report_exists
-from model.ds.report_types import ImportedReport
 
 from datetime import datetime
-from bs4 import BeautifulSoup
 from unittest import mock
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
@@ -36,27 +33,31 @@ from pyppeteer.errors import TimeoutError
 # Importer functions
 class TestImporterFunctions(unittest.TestCase):
     # Tests import_report function
+    @mock.patch('controller.importer.importer.add_report')
     @mock.patch('controller.importer.importer.download_report')
-    def test_manual_import(self, mock_get):
-        # Checks that ATel reports has not been added into the database
-        self.assertEqual(report_exists(1000), False)
-        self.assertEqual(report_exists(10000), False)
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_manual_import(self, mock_report_exists, mock_download_report, mock_add_report):
+        mock_report_exists.return_value = False
 
         # Reads HTML string of ATel #1000
         f = open('test-data/atel1000.html', 'r')
-        mock_get.return_value = f.read()
+        html_string = f.read()
         f.close()
+        mock_download_report.return_value = html_string
 
+        # Checks that add_report is called with expected ImportedReport object
         import_report(1000)
-        self.assertEqual(report_exists(1000), True)
+        mock_add_report.assert_called_with(parse_report(1000, html_string))
 
         # Reads HTML string of ATel #10000
         f = open('test-data/atel10000.html', 'r')
-        mock_get.return_value = f.read()
+        html_string = f.read()
         f.close()
+        mock_download_report.return_value = html_string
 
+        # Checks that add_report is called with expected ImportedReport object
         import_report(10000)
-        self.assertEqual(report_exists(10000), True)
+        mock_add_report.assert_called_with(parse_report(10000, html_string))
 
     # Tests download_report function
     '''def test_html_download(self):
@@ -71,8 +72,8 @@ class TestImporterFunctions(unittest.TestCase):
 
     # Tests parse_report function
     @mock.patch('controller.importer.importer.extract_keywords')
-    def test_html_parser(self, mock_get):
-        mock_get.return_value = []
+    def test_html_parser(self, mock_extract_keywords):
+        mock_extract_keywords.return_value = []
 
         # Parses HTML of ATel #1000
         f = open('test-data/atel1000.html', 'r')
@@ -134,15 +135,15 @@ class TestImporterFunctions(unittest.TestCase):
 class TestImporterExceptions(unittest.TestCase):
     # Tests that ReportAlreadyExistsError is being raised
     @mock.patch('controller.importer.importer.report_exists')
-    def test_report_already_exists_error(self, mock_get):
-        mock_get.return_value = True
+    def test_report_already_exists_error(self, mock_report_exists):
+        mock_report_exists.return_value = True
         with self.assertRaises(ReportAlreadyExistsError):
             import_report(1)
 
     # Tests that ReportNotFoundError is being raised
     @mock.patch('controller.importer.importer.download_report')
-    def test_report_not_found_error(self, mock_get):
-        mock_get.return_value = ''
+    def test_report_not_found_error(self, mock_download_report):
+        mock_download_report.return_value = ''
         with self.assertRaises(ReportNotFoundError):
             import_report(1)
 
@@ -159,8 +160,8 @@ class TestImporterExceptions(unittest.TestCase):
     
     # Tests that DownloadFailError is being raised
     @mock.patch('requests_html.HTML.render')
-    def test_download_fail_error(self, mock_get):
-        mock_get.side_effect = TimeoutError
+    def test_download_fail_error(self, mock_render):
+        mock_render.side_effect = TimeoutError
         with self.assertRaises(DownloadFailError):
             download_report(1)
     
