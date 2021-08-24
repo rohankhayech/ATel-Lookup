@@ -78,6 +78,25 @@ class SearchFilters:
         """
         return f"Free text: {self.term}, Keywords ({self.keyword_mode.name}): {self.keywords}, Submitted between {self.start_date} and {self.end_date}"
 
+    def __eq__(self, other)->bool: 
+        """
+        Checks if the given object is equal to this SearchFilters object.
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal.
+        """
+        if isinstance(other,SearchFilters):
+            return (self.term == other.term
+            and sorted(self.keywords) == sorted(other.keywords)
+            and self.keyword_mode == other.keyword_mode
+            and self.start_date == other.start_date
+            and self.end_date == other.end_date)
+        else:
+            return False
+
     @property
     def term(self)->str:
         """
@@ -93,14 +112,20 @@ class SearchFilters:
         Args:
             term (str): String representing a free-text search term. 
         """
-        self._term = str(term)
+        if term is None:
+            self._term = None
+        else:
+            self._term = str(term)
 
     @property
     def keywords(self)->list[str]:
         """
-        The mode to use for filtering on keywords.
+        The list of keywords to filter by.
         """
-        return self._keywords.copy()
+        if self._keywords is None:
+            return None
+        else:
+            return self._keywords.copy()
 
     @keywords.setter
     def keywords(self, keywords:list[str]):

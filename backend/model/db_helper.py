@@ -33,12 +33,13 @@ from mysql.connector import errorcode
 from mysql.connector.connection import MySQLConnection
 from mysql.connector.cursor import CursorBase, MySQLCursor
 
+from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport, ReportResult
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, KeywordMode
 from model.ds.alias_result import AliasResult
 
 # Public functions
-def get_hashed_password(username:str)->str:
+def get_hashed_password(username: str) -> str:
     """
     Retrieves the stored hashed password for the specified user if the user exists.
 
@@ -55,17 +56,17 @@ def get_hashed_password(username:str)->str:
     cn = _connect()
     cur: MySQLCursor = cn.cursor()
 
-    query = ("select passwordHash from AdminUsers where username = %s")
+    query = "select passwordHash from AdminUsers where username = %s"
 
     cur.execute(query, (username,))
     result = cur.fetchone()
-    
+
     if result is not None:
         return result[0]
     else:
         raise UserNotFoundError()
 
-def user_exists(username:str)->bool:
+def user_exists(username: str) -> bool:
     """
     Checks if an admin user with the specified username exists in the database.
 
@@ -75,21 +76,9 @@ def user_exists(username:str)->bool:
     Returns:
         bool: True if the user was found, False otherwise.
     """
-    # Connect to mysql server
-    cn = _connect()
-    cur:MySQLCursor = cn.cursor()
+    return _record_exists("AdminUsers", "username", username)
 
-    query = ("select username from AdminUsers"
-            " where username = %s")
-    
-    cur.execute(query,(username,))
-
-    if cur.fetchone() is None:
-        return False
-    else:
-        return True
-
-def add_admin_user(username:str, password:str):
+def add_admin_user(username: str, password: str):
     """
     Stores a new admin user with the specified username and password if the user does not already exist.
 
@@ -106,19 +95,17 @@ def add_admin_user(username:str, password:str):
     password = str(password)
 
     # Check length is valid
-    if (len(username) in range(1,25) and len(password) in range(1,255)):
+    if len(username) in range(1, 25) and len(password) in range(1, 255):
         # connect to database
         cn = _connect()
-        cur:MySQLCursor = cn.cursor()
+        cur: MySQLCursor = cn.cursor()
 
-        #setup query
-        query = ("insert into AdminUsers"
-                " (username, passwordHash)"
-                " values (%s, %s)")
+        # setup query
+        query = "insert into AdminUsers" " (username, passwordHash)" " values (%s, %s)"
 
         data = (username, password)
 
-        #execute query and handle errors
+        # execute query and handle errors
         try:
             cur.execute(query, data)
         except mysql.connector.Error as e:
@@ -131,9 +118,12 @@ def add_admin_user(username:str, password:str):
             cur.close()
             cn.close()
     else:
-        raise ValueError("Specified username and password must be valid lengths and non-empty.")
+        raise ValueError(
+            "Specified username and password must be valid lengths and non-empty."
+        )
 
-def add_report(report:ImportedReport):
+
+def add_report(report: ImportedReport):
     """
     Stores a new report in the database with all the fields specified in the given report object. This method also creates relational records between reports and objects, related reports and coordinates.
 
@@ -143,9 +133,44 @@ def add_report(report:ImportedReport):
     Raises:
         ExistingReportError: When the ATel number of the specified report is already associated with a report stored in the database.
     """
-    pass #stub
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
 
-def report_exists(atel_num:int)->bool:
+    # Format keywords
+    sep = ','
+    keywords = sep.join(report.keywords)  
+    sub_date = report.submission_date.strftime("%Y-%m-%d %H:%M:%S")
+
+    report_query = ("insert into Reports "
+                    "(atelNum, title, authors, body, submissionDate, keywords) "
+                    "values (%s, %s, %s, %s, %s, %s)")
+
+    data = (report.atel_num, report.title, report.authors, report.body, sub_date, keywords)
+
+    metadata_query = ("update Metadata "
+                      "set lastUpdatedDate = CURDATE()")                
+
+    #execute query and handle errors
+    try:
+        cur.execute(report_query, data)
+        cur.execute(metadata_query)
+    except mysql.connector.Error as e:
+        if e.errno == errorcode.ER_DUP_ENTRY:
+            raise ExistingReportError()
+        else:
+            raise e
+    finally:
+        cn.commit()
+        cur.close()
+        cn.close()
+
+    #TODO: Add objects.
+    #TODO: Add observation dates.
+    #TODO: Convert and and coordinates.
+    #TODO: Add referenced reports/by. 
+
+
+def report_exists(atel_num: int) -> bool:
     """
     Checks whether a report with the specified ATel number is stored in the database.
 
@@ -155,45 +180,95 @@ def report_exists(atel_num:int)->bool:
     Returns:
         bool: True if the report was found, False otherwise.
     """
-    return False
+    return _record_exists("Reports","atelNum",atel_num)
 
-def get_all_aliases()->list[AliasResult]:
+
+def get_all_aliases() -> list[AliasResult]:
     """
     Retrieves a list of all object aliases stored in the database and their associated object IDs.
 
     Returns:
         list[AliasResult]: A list of AliasResult objects, containing aliases and their associated object ID, or None if no aliases are stored.
     """
-    return [AliasResult("example","x")] #stub
+    return [AliasResult("example", "x")]  # stub
 
-def get_next_atel_num()->int:
+
+def get_next_atel_num() -> int:
     """
     Retrieves the number of the next ATel report to start auto import from. This is equal to the last ATel number added to the database via the auto import function plus one. If no reports have been auto imported, this will be equal to one.
 
     Returns:
         int: The number of the next ATel report to start auto import from.
     """
-    return 1 #stub
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
 
-def set_next_atel_num(nextNum:int):
+    query = "select nextATelNum from Metadata"
+
+    try:
+        #Add single metadata entry
+        cur.execute(query)
+        result = cur.fetchone()
+
+        next_atel_num = result[0]
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cur.close()
+        cn.close()
+
+    return next_atel_num
+
+def set_next_atel_num(nextNum: int):
     """
     Sets the number of the next ATel report to start auto import from. This method should be called after the auto import function has finished.
 
     Args:
         nextNum (int): The number of the next ATel report to start auto import from. Should be equal to the last ATel number imported via auto import plus one.
     """
-    pass
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
 
-def get_last_updated_date()->datetime:
+    query = ("update Metadata "
+             "set nextATelNum = %s")
+
+    try:
+        cur.execute(query, (nextNum,))
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cn.commit()
+        cur.close()
+        cn.close()
+
+
+def get_last_updated_date() -> datetime:
     """
     Retrieves the date that the database was updated with the latest ATel reports.
 
     Returns:
         datetime: The date the database was last updated with the latest ATel reports.
     """
-    return datetime(2021,7,30) #stub
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
 
-def add_object(object_id:str, coords:SkyCoord, aliases:list[str]):
+    query = "select lastUpdatedDate from Metadata"
+
+    try:
+        cur.execute(query)
+        result = cur.fetchone()
+
+        date = result[0]
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cur.close()
+        cn.close()
+
+    return date
+
+
+def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
     """
     Stores a new celestial object with the specified coordinates and it’s known aliases in the database.
 
@@ -207,7 +282,8 @@ def add_object(object_id:str, coords:SkyCoord, aliases:list[str]):
     """
     pass
 
-def add_aliases(object_id:str, aliases:list[str]):
+
+def add_aliases(object_id: str, aliases: list[str]):
     """
     Adds the specified aliases to the given stored object.
 
@@ -220,7 +296,20 @@ def add_aliases(object_id:str, aliases:list[str]):
     """
     pass
 
-def get_object_coords(alias:str)->SkyCoord:
+def object_exists(alias:str)->tuple[bool,datetime]:
+    """
+    Checks whether an object with the specified alias exists in the database.
+
+    Args:
+        alias (str): The alias to lookup.
+
+    Returns:
+        bool: True if an object with the specified alias exists, false otherwise.
+        datetime: The date the specified object was last updated via SIMBAD, or None if no object exists.
+    """
+    return False, None
+
+def get_object_coords(alias: str) -> SkyCoord:
     """
     Retrieves the coordinates of the stored celestial object with the specified alias.
 
@@ -233,9 +322,10 @@ def get_object_coords(alias:str)->SkyCoord:
     Raises:
         ObjectNotFoundError: Raised when the specified alias is not stored in the database.
     """
-    return SkyCoord(0.0,0.0)
+    return SkyCoord(0.0, 0.0)
 
-def find_reports_by_object(filters:SearchFilters, object_name:str=None)->list[ReportResult]:
+
+def find_reports_by_object(filters: SearchFilters = None, object_name: str = None) -> list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -246,21 +336,57 @@ def find_reports_by_object(filters:SearchFilters, object_name:str=None)->list[Re
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
-    return None #stub
+    if (filters or object_name):
+        cn = _connect()
+        cur:MySQLCursor = cn.cursor()
 
-def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:int)->list[ReportResult]:
+        query, data = _build_report_query(filters)
+
+        #TODO Check object.
+
+        reports = []
+
+        try:
+            cur.execute(query, data)
+            for row in cur.fetchall():
+                #extract data
+                atel_num = row[0]
+                title = row[1]
+                authors = row[2]
+                body = row[3]
+                submission_date = row[4]
+
+                #create result object and add to list
+                report = ReportResult(atel_num,title,authors,body,submission_date)
+                reports.append(report)
+        except mysql.connector.Error as e:
+            raise e
+        finally:
+            cur.close()
+            cn.close()
+
+        if len(reports) == 0:
+            return None
+        else:
+            return reports
+    else: # If no parameters given, return None.
+        return None
+
+def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:float)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
     Args:
         filters (SearchFilters): The search criteria to filter the report query with.
         coords (SkyCoord): The coordinates to search around.
-        radius (int): The radius defining the range around the specified coordinates to search.
+        radius (float): The radius defining the range around the specified coordinates to search.
 
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
-    return None # stub
+    return find_reports_by_object()  # stub
+
+    #TODO: Check in coord range.
 
 
 def init_db():
@@ -269,20 +395,34 @@ def init_db():
     """
     # Connect to mysql server
     cn = _connect()
-    cur = cn.cursor()
+    cur:MySQLCursor = cn.cursor()
 
     # Load table schema from file
-    user_table = open(os.path.join("model","schema","AdminUsers.sql")).read()
+    user_table = _read_table("AdminUsers")
+    reports_table = _read_table("Reports")
+    metadata_table = _read_table("Metadata")
 
-    # Add tables
+    # Add keywords to reports schema
+    sep = "', '"
+    kw_set = sep.join(FIXED_KEYWORDS)
+    reports_table = reports_table.format(kw_set)
+   
     try:
+        # Add tables
         cur.execute(user_table)
+        cur.execute(reports_table)
+        cur.execute(metadata_table)
+
+        #Add single metadata entry
+        cur.execute("insert into Metadata (metadata) values ('metadata');")
     except mysql.connector.Error as err:
         print(err.msg)
+    finally:
+        # Close connection
+        cn.commit()
+        cur.close()
+        cn.close()
 
-    # Close connection
-    cur.close()
-    cn.close()
 
 # Exceptions
 class ExistingUserError(Exception):
@@ -290,13 +430,18 @@ class ExistingUserError(Exception):
     Raised when the specified username is already associated with another user stored in the database.
     """
 
+class ExistingReportError(Exception):
+    """
+    When the ATel number of the specified report is already associated with a report stored in the database.
+    """
+
 class UserNotFoundError(Exception):
     """
     Raised when the specified user is not found in the database.
     """
 
-#Private functions
-def _link_reports(object_id:str, aliases:list[str]):
+# Private functions
+def _link_reports(object_id: str, aliases: list[str]):
     """
     Adds records relating reports and the specified object ID, where the report contains one or more of the specified aliases.
 
@@ -309,16 +454,121 @@ def _link_reports(object_id:str, aliases:list[str]):
     """
     pass
 
-def _connect()->MySQLConnection:
+
+def _connect() -> MySQLConnection:
     """
     Connects to the MySQL server and database and returns the connection object.
 
     Returns:
-        MySQLConnection: Connection to the MySQL Server. Must be closed by the calling method once finished. 
+        MySQLConnection: Connection to the MySQL Server. Must be closed by the calling method once finished.
     """
     return mysql.connector.connect(
-        host=os.getenv("MYSQL_HOST"), 
-        user=os.getenv("MYSQL_USER"), 
-        password=os.getenv("MYSQL_PASSWORD"), 
-        database=os.getenv("MYSQL_DB")
+        host=os.getenv("MYSQL_HOST"),
+        user=os.getenv("MYSQL_USER"),
+        password=os.getenv("MYSQL_PASSWORD"),
+        database=os.getenv("MYSQL_DB"),
     )
+
+def _read_table(table_name:str)->str:
+    """Reads schema for the given table from it's SQL file.
+
+    Args:
+        table_name (str): The name of the table to import.
+
+    Returns:
+        str: The SQL schema for the given table.
+    """
+    schema_path = os.path.join("model", "schema", f"{table_name}.sql")
+    return open(schema_path).read()
+
+def _record_exists(table_name:str,primary_key:str,id:str)->bool:
+    """
+    Checks if the given record exists.
+
+    Args:
+        table_name (str): Name of the table.
+        primary_key (str): Primary key of the table.
+        id (str): ID of the record to check.
+    """
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = (f"select count(*) from {table_name}"
+             f" where {primary_key} = %s")
+
+    cur.execute(query, (id,))
+
+    result = cur.fetchone()
+
+    if result[0] >= 1:
+        return True
+    else:
+        return False
+
+def _build_report_query(filters: SearchFilters):
+    """
+    Builds an SQL query to select reports based on the specified search filters.
+
+    Args:
+        filters (SearchFilters): A valid search filters object to build the query with.
+
+    Returns:
+        str: The SQL query.
+        tuple: The data to inject into the query on execution. 
+    """
+
+    # Define base Select from Reports query
+    base_query = ("select atelNum, title, authors, body, submissionDate"
+            " from Reports"
+            " where ")
+    
+    # Start with empty lists of terms and data
+    data = ()
+    clauses = []
+    
+    # Append term clause and data
+    if filters.term:
+        clauses.append("(title like %s or body like %s) ")
+        data = data + (filters.term,filters.term)
+    
+    # Append date clauses and data
+    if filters.start_date:
+        clauses.append("submissionDate >= %s ")
+        data = data + (filters.start_date,)
+    
+    if filters.end_date:
+        clauses.append("submissionDate <= %s ")
+        data = data + (filters.end_date,)
+    
+    # Append keyword clauses and data
+    if filters.keywords:
+        kw_clauses = []
+        if filters.keyword_mode == KeywordMode.NONE:
+            # Add a clause for each keyword in filters to not be in set
+            for kw in filters.keywords:
+                kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
+                data = data + (kw,)
+            kw_sep = " and "  
+        else:
+            # Append a clause for each keyword to be in set
+            for kw in filters.keywords:
+                kw_clauses.append("FIND_IN_SET(%s, keywords) > 0") # If kw in set.
+                data = data + (kw,)
+
+            # Set or/and condition
+            if filters.keyword_mode == KeywordMode.ALL:
+                kw_sep = " and "
+            elif filters.keyword_mode == KeywordMode.ANY:
+                kw_sep = " or "
+        # Join keyword clauses into one clause
+        kw_clause = "(" + kw_sep.join(kw_clauses)+") "
+        clauses.append(kw_clause)
+    
+    # Join where clauses together
+    sep = "and "
+    where_clause = sep.join(clauses)
+
+    # Assemble final query and return with data
+    query = base_query + where_clause
+
+    return query, data

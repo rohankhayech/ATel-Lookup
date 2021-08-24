@@ -20,28 +20,37 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+from model.ds.search_filters import KeywordMode
+from datetime import datetime
 from typing import Tuple
 import unittest
 
 from mysql.connector.cursor import MySQLCursor
-from mysql.connector.errors import IntegrityError
+import mysql.connector
 
 from model import db_helper
+from model.ds.report_types import ImportedReport, ReportResult
+from model.ds.search_filters import SearchFilters
 
 class TestInitTables(unittest.TestCase):
     #Verify tables exist/were created on container init
     def testTables(self):
-        cn = db_helper._connect()
-        cur:MySQLCursor = cn.cursor()
+        _verifyTable(self,"AdminUsers")
+        _verifyTable(self, "Reports")
+        _verifyTable(self,"Metadata")
 
-        cur.execute("show tables like 'AdminUsers'")
+def _verifyTable(self, table_name):
+    cn = db_helper._connect()
+    cur:MySQLCursor = cn.cursor()
 
-        result = cur.fetchone()
+    cur.execute(f"show tables like '{table_name}'")
 
-        cur.close()
-        cn.close()
+    result = cur.fetchone()
 
-        self.assertTrue(result)
+    cur.close()
+    cn.close()
+
+    self.assertTrue(result)
 
 class TestAuth(unittest.TestCase):
     
@@ -80,6 +89,170 @@ class TestAuth(unittest.TestCase):
         cur.execute("delete from AdminUsers where username = 'test'")
         cur.close()
         cn.commit()
+        cn.close()
+
+class TestReports(unittest.TestCase):
+    def setUp(self):
+        pass
+
+    def testNextATelNum(self):
+        #set up
+        old_num = db_helper.get_next_atel_num()
+
+        db_helper.set_next_atel_num(20000)
+        self.assertEqual(db_helper.get_next_atel_num(),20000)
+
+        db_helper.set_next_atel_num(old_num)
+
+    def testLastUpdatedDate(self):
+        #set up
+        old_date = db_helper.get_last_updated_date()
+
+        _set_last_updated_date(datetime(2021,8,16))
+        self.assertEqual(db_helper.get_last_updated_date(),datetime(2021, 8, 16))
+
+        _set_last_updated_date(old_date)
+
+    def testReports(self):
+        report = ImportedReport(20000,"db_test_report","A","B",datetime(2021,8,12), keywords=["star","radio"])
+
+        db_helper.add_report(report)
+        try:
+            results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+            result = results[0]
+
+            self.assertEqual(report,result)
+            self.assertTrue(db_helper.report_exists(20000))
+        finally:
+            #delete report
+            cn = db_helper._connect()
+            cur:MySQLCursor = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20000")
+            cur.close()
+            cn.commit()
+            cn.close()
+
+    def testBuildQuery(self):
+        #Test full query
+        sf = SearchFilters("term",["star","planet"],KeywordMode.ANY,datetime(2021,8,16),datetime(2021,8,17))
+        query, data = db_helper._build_report_query(sf)
+        self.maxDiff = None
+        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where (title like %s or body like %s) and submissionDate >= %s and submissionDate <= %s and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data,(sf.term,sf.term,sf.start_date,sf.end_date,sf.keywords[0],sf.keywords[1]))
+
+        #Test keyword modes / single filter
+        sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
+        query2, data2 = db_helper._build_report_query(sf2)
+        self.assertEqual(query2,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data2,(sf.keywords[0],sf.keywords[1]))
+
+        sf2.keyword_mode = KeywordMode.NONE
+        query3, data3 = db_helper._build_report_query(sf2)
+        self.assertEqual(query3,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
+        self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
+
+    def testFindGeneric(self):
+        report = ImportedReport(20001,"db_test_report","A","B", datetime(2021,8,12), keywords=["star","radio"])
+
+        db_helper.add_report(report)
+        try:
+            #test search body
+            results = db_helper.find_reports_by_object(SearchFilters(term="B"))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #test search title
+            results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test search author (not possible)
+            results = db_helper.find_reports_by_object(SearchFilters(term="A"))
+            self.assertIsNone(results)
+
+            #Test start date
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", start_date=datetime(2021,8,11)))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test end date
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", end_date=datetime(2021,8,13)))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test keywords - all
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ALL))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ALL))
+            self.assertIsNone(results)
+
+            #Test keywords - any
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ANY))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ANY))
+            result = results[0]
+            self.assertEqual(report,result)
+
+            #Test keywords - none
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star", "radio"], keyword_mode=KeywordMode.NONE))
+            self.assertIsNone(results)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.NONE))
+            self.assertIsNone(results)
+
+            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["nova","planet"],keyword_mode=KeywordMode.NONE))
+            result = results[0]
+            self.assertEqual(report, result)
+
+            #Test composite
+            results = db_helper.find_reports_by_object(
+                SearchFilters(
+                    term="B", 
+                    keywords=["star","radio"], 
+                    keyword_mode=KeywordMode.ALL, 
+                    start_date=datetime(2021,8,11), 
+                    end_date=datetime(2021,8,13)
+                )
+            )
+            result = results[0]
+            self.assertEqual(report, result)
+
+        finally:
+            #delete report
+            cn = db_helper._connect()
+            cur:MySQLCursor = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20001")
+            cur.close()
+            cn.commit()
+            cn.close()
+
+
+# Helper methods
+def _set_last_updated_date(date: datetime):
+    """
+    Sets the date that the database was updated with the latest ATel reports.
+    For testing purposes only, in production this should only be set to CURDATE() by add_report().
+
+    Args:
+        date (datetime): The date that the database was updated with the latest ATel reports.
+    """
+    cn = db_helper._connect()
+    cur:MySQLCursor = cn.cursor()
+
+    query = ("update Metadata "
+             "set lastUpdatedDate = %s")
+
+    try:
+        cur.execute(query, (date,))
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cn.commit()
+        cur.close()
         cn.close()
 
 if __name__ == '__main__':
