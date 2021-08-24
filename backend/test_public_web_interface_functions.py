@@ -43,30 +43,70 @@ from unittest import mock
 
 test_manual_success = {
     "import_mode": "manual",
-    "atel_num": "14126"
+    "atel_num": 14126
 }
 
 test_manual_fail = {
     "import_mode": "manual"
 }
 
+test_manual_fail_invalid_atel = {
+    "import_mode": "manual",
+    "atel_num": -87
+}
+
+test_auto_with_atel_num = {
+    "import_mode": "auto",
+    "atel_num": -6326
+}
+
+test_bad_import_mode_name_fail = {
+    "import_mode": "garbage",
+    "atel_num": 17722
+}
+
+test_auto_success_no_atel_given = {
+    "import_mode": "auto",
+}
+
+
 # success_flag = {
 #     "flag": 0
 # }
      
-class TestWebInterface(ut.TestCase):
+class TestWebInterfaceImports(ut.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-    def test_imports_manual_success(self): #actual test module
+    def test_imports_manual_success(self): 
         response = self.app.post('/import', json = test_manual_success)
         self.assertEqual(response.json.get("flag"), 1)
         # should show a successful manual import (both import mode and atel num given correctly)
 
-    def test_imports_manual_fail(self): #actual test module
+    def test_imports_manual_fail(self): 
         response = self.app.post('/import', json = test_manual_fail)
         self.assertEqual(response.json.get("flag"), 0)
         #should show a failure (no atel number in json object)
+
+    def test_imports_manual_fail_invalid_atel(self): 
+        response = self.app.post('/import', json = test_manual_fail_invalid_atel)
+        self.assertEqual(response.json.get("flag"), 0)
+        #should show a failure (atel number provided but is 0 or less (invalid))
+
+    def test_auto_with_atel_num(self): 
+        response = self.app.post('/import', json = test_auto_with_atel_num)
+        self.assertEqual(response.json.get("flag"), 1)
+        #Should succeed as the atel number is not needed with the auto import
+
+    def test_bad_import_mode_name_fail(self): 
+        response = self.app.post('/import', json = test_bad_import_mode_name_fail)
+        self.assertEqual(response.json.get("flag"), 0)
+        #Should fail as the import mode name is not correct
+
+    def test_auto_success_no_atel_given(self): 
+        response = self.app.post('/import', json = test_auto_success_no_atel_given)
+        self.assertEqual(response.json.get("flag"), 1)
+        #Should succeed as auto import mode does not need an atel number
 
         
 

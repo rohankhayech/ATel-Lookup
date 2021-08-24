@@ -108,17 +108,19 @@ def imports() -> json:
     import_mode_in = request.json.get("import_mode", None)
     atel_num_in = request.json.get("atel_num", None)
 
-    if import_mode_in != "manual" and import_mode_in != "auto":
+    if import_mode_in != "manual" and import_mode_in != "auto": # import mode not named correctly
         flag = 0
-    elif import_mode_in == "manual" and atel_num_in is None:
+    elif import_mode_in == "manual" and atel_num_in is None: # import mode set to manual but atel number was not provided
+        flag = 0
+    elif import_mode_in == "manual" and atel_num_in <= 0: # atel number not valid
         flag = 0
 
     if flag == 1:
         # try:
         #     if import_mode_in == "manual":
-        #         importreport()
+        #         import_report(atel_num_in)
         #     elif import_mode_in == "auto":
-        #         importallreports()
+        #         import_all_reports()
         # except ReportAlreadyExistsException as e:
         #     flag = 0
         # except ReportNotFoundException as e:
