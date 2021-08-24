@@ -1,3 +1,4 @@
+
 from typing import Tuple
 
 import flask
@@ -7,6 +8,8 @@ import jwt
 from datetime import datetime
 from flask import Flask, jsonify
 import os
+
+from controller.importer.importer import *
 
 from flask import Flask, jsonify, request
 from flask_jwt_extended import (
@@ -113,18 +116,18 @@ def imports() -> json:
     elif import_mode_in == "manual" and atel_num_in is None: # import mode set to manual but atel number was not provided
         flag = 0
     elif import_mode_in == "manual" and atel_num_in <= 0: # atel number not valid
-        flag = 0
+        flag = 0   
 
     if flag == 1:
-        # try:
-        #     if import_mode_in == "manual":
-        #         import_report(atel_num_in)
-        #     elif import_mode_in == "auto":
-        #         import_all_reports()
-        # except ReportAlreadyExistsException as e:
-        #     flag = 0
-        # except ReportNotFoundException as e:
-        #     flag = 0
+        try:
+            if import_mode_in == "manual":
+                import_report(atel_num_in)
+            elif import_mode_in == "auto":
+                import_all_reports()
+        except ReportAlreadyExistsException as e:
+            flag = 0
+        except ReportNotFoundException as e:
+            flag = 0
         pass
 
     return jsonify({"flag": flag})
