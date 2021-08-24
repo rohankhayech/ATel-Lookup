@@ -151,15 +151,15 @@ def imports() -> json:
         flag = 0   
 
     if flag == 1:
-        try:
-            if import_mode_in == "manual":
-                import_report(atel_num_in)
-            elif import_mode_in == "auto":
-                import_all_reports()
-        except ReportAlreadyExistsException as e:
-            flag = 0
-        except ReportNotFoundException as e:
-            flag = 0
+        # try:
+        #     if import_mode_in == "manual":
+        #         import_report(atel_num_in)
+        #     elif import_mode_in == "auto":
+        #         import_all_reports()
+        # except ReportAlreadyExistsException as e:
+        #     flag = 0
+        # except ReportNotFoundException as e:
+        #     flag = 0
         pass
 
     return jsonify({"flag": flag})
