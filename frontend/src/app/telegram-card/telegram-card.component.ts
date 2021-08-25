@@ -1,4 +1,5 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
+import { environment } from 'src/environments/environment';
 import { Telegram } from '../telegram.interface';
 
 @Component({
@@ -6,10 +7,14 @@ import { Telegram } from '../telegram.interface';
   templateUrl: './telegram-card.component.html',
   styleUrls: ['./telegram-card.component.scss'],
 })
-export class TelegramCardComponent implements OnInit {
+export class TelegramCardComponent {
   @Input() public telegram?: Telegram;
 
-  constructor() {}
+  public get url() {
+    return `${environment.astronomersTelegramUrl}/?read=${this.telegram?.id}`;
+  }
 
-  ngOnInit(): void {}
+  visit() {
+    window.open(this.url, '_blank');
+  }
 }

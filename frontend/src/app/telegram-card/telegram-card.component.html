@@ -9,4 +9,15 @@
     <p>Authors: {{ telegram?.authors }}</p>
     <p>Keywords: {{ telegram?.keywords }}</p>
   </mat-card-content>
+
+  <mat-card-actions>
+    <button
+      mat-raised-button
+      color="primary"
+      class="wide uppercase"
+      (click)="visit()"
+    >
+      View on Astronomer's Telegram
+    </button>
+  </mat-card-actions>
 </mat-card>
