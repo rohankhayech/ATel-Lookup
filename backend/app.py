@@ -54,6 +54,8 @@ from controller.authentication import (
     login,
 )
 
+from controller.importer.importer import ReportAlreadyExistsException, ReportNotFoundException
+
 app = Flask(__name__)
 jwt = JWTManager(app)
 CORS(app)
@@ -151,15 +153,17 @@ def imports() -> json:
         flag = 0   
 
     if flag == 1:
-        try:
-            if import_mode_in == "manual":
-                import_report(atel_num_in)
-            elif import_mode_in == "auto":
-                import_all_reports()
-        except ReportAlreadyExistsException as e:
-            flag = 0
-        except ReportNotFoundException as e:
-            flag = 0
+        # try:
+        #     if import_mode_in == "manual":
+        #         import_report(atel_num_in)
+        #         print("made it here")
+        #     elif import_mode_in == "auto":
+        #         import_all_reports()
+        # except ReportAlreadyExistsException as e:
+        #     flag = 0
+        # except ReportNotFoundException as e:
+        #     flag = 0
+        pass
 
     return jsonify({"flag": flag})
 

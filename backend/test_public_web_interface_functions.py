@@ -108,6 +108,12 @@ class TestWebInterfaceImports(ut.TestCase):
         self.assertEqual(response.json.get("flag"), 1)
         #Should succeed as auto import mode does not need an atel number
 
+    
+
+    def test_import_calls(self):
+        response = self.app.post('/import', json = test_manual_success)
+        self.assertEqual(response.json.get("flag"), 1)
+        #Here and below is where i will test the import_report and import_all_reports function calls + exception handling
         
 
 # Run suite. 
