@@ -47,22 +47,6 @@ class TableType(Enum):
     QUERY_OBJECT_IDS=3
 
 
-def none_return():
-    return None 
-
-
-def db_add_object_stub(object_id: str, coords: SkyCoord, aliases: list[str]):
-    pass 
-
-
-def db_mock_object_dne() -> tuple[bool, datetime]:
-    return False, None 
-
-
-def db_mock_object_exists() -> tuple[bool, datetime]:
-    return True, datetime.today() 
-
-
 def create_mock_table(type: TableType) -> tuple[Table, str, SkyCoord, list[str]]:
     '''
         Create a mock astropy Table data structure with random values. 
@@ -232,6 +216,18 @@ def mocked_object_not_found(*args, **kwargs):
     return None
 
 
+def mocked_object_table(*args, **kwargs):
+    return create_mock_table(TableType.QUERY_OBJECT)[0]
+
+
+def mocked_objectids_table(*args, **kwargs):
+    return create_mock_table(TableType.QUERY_OBJECT_IDS)[0]
+
+
+def mocked_region_table(*args, **kwargs):
+    return create_mock_table(TableType.QUERY_REGION)[0]
+
+
 ########################################
 # Unit testing: query_simbad_by_name() #
 ########################################
@@ -258,17 +254,17 @@ class TestNameSearch(ut.TestCase):
 
 
     # Test valid data. 
-    def test_query_object(self):
+    @mock.patch('astroquery.simbad.Simbad.query_object', return_value=mocked_object_table())
+    def test_query_object(self, _):
         """ This test uses a real-world object listed in the SIMBAD database. 
             While this is not the ideal way to conduct unit testing, it is 
             required in order to test real data and use cases. 
         """
-        main_id, coords, aliases = query_simbad.query_simbad_by_name('M 1', True)
+        main_id, coords, aliases = query_simbad.query_simbad_by_name('M  1', True)
         self.assertIsNotNone(main_id)
         self.assertIsNotNone(coords)
         self.assertIsNotNone(aliases)
-        self.assertIsNot(len(aliases), 0)
-        self.assertEqual(main_id, "M   1")
+        self.assertFalse(len(aliases) == 0)
 
 
 ##########################################
@@ -280,12 +276,13 @@ class TestCoordSearch(ut.TestCase):
         # Derived from the Hardvard SIMBAD mirror.
         # Reference: http://simbad.cfa.harvard.edu/simbad/sim-fcoo 
         self.sample_coords = SkyCoord("20 54 05.689", "+37 01 17.38", unit=('hourangle','deg'))
-        # 30.0 arcseconds. 
+        # 20.0 arcseconds. 
         self.sample_radius = 20.0
 
 
-    # Test with real data. 
-    def test_coord_search(self):
+    @mock.patch('astroquery.simbad.Simbad.query_region', return_value=mocked_region_table())
+    @mock.patch('astroquery.simbad.Simbad.query_objectids', return_value=mocked_objectids_table())
+    def test_coord_search(self, _, __):
         # Test a valid coordinate. 
         # Test whether the result is not empty. 
         # As this is real-world data, it is subject to change. 
