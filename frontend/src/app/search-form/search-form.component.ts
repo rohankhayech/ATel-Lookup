@@ -1,23 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { environment } from 'src/environments/environment';
-
-interface Metadata {
-  keywords: string[];
-  lastUpdated: string;
-  reportCount: number;
-}
-
-enum SearchMode {
-  Name,
-  Coordinate,
-}
-
-enum Match {
-  Any = 'any',
-  All = 'all',
-  None = 'none',
-}
+import { Coordinates } from '../coordinates.interface';
+import { Match } from '../match.enum';
+import { Metadata } from '../metadata.interface';
+import { Parameters } from '../parameters.interface';
+import { SearchMode } from '../search-mode.enum';
 
 interface Keywords {
   [key: string]: boolean;
@@ -29,7 +17,7 @@ interface Keywords {
   styleUrls: ['./search-form.component.scss'],
 })
 export class SearchFormComponent implements OnInit {
-  @Output() public search = new EventEmitter<unknown>();
+  @Output() public search = new EventEmitter<Parameters>();
 
   public SearchMode = SearchMode;
   public Match = Match;
@@ -70,13 +58,13 @@ export class SearchFormComponent implements OnInit {
       (keyword) => this.keywords[keyword]
     );
 
-    const coordinates = {
-      ra: this.ra,
-      declination: this.declination,
-      radius: this.radius,
+    const coordinates: Coordinates = {
+      ra: +this.ra,
+      declination: +this.declination,
+      radius: +this.radius,
     };
 
-    const payload = {
+    const parameters: Parameters = {
       query: this.query,
       mode: this.mode,
       name: this.name,
@@ -87,6 +75,6 @@ export class SearchFormComponent implements OnInit {
       end: this.end,
     };
 
-    this.search.emit(payload);
+    this.search.emit(parameters);
   }
 }

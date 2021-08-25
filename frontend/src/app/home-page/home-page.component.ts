@@ -1,5 +1,7 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { Parameters } from '../parameters.interface';
 import { SearchResultsComponent } from '../search-results/search-results.component';
+import { SearchService } from '../search.service';
 import { Telegram } from '../telegram.interface';
 
 @Component({
@@ -13,34 +15,36 @@ export class HomePageComponent {
 
   public telegrams?: Telegram[];
 
-  constructor() {}
+  constructor(private searchService: SearchService) {}
 
-  search(payload: unknown) {
-    console.log(payload);
+  search(parameters: Parameters) {
+    console.log(parameters);
 
-    this.telegrams = [
-      {
-        id: 1,
-        title: 'Apple',
-        date: new Date(),
-        authors: ['A', 'B', 'C'],
-        keywords: ['A', 'B', 'C'],
-      },
-      {
-        id: 2,
-        title: 'Banana',
-        date: new Date(),
-        authors: ['A', 'B', 'C'],
-        keywords: ['A', 'B', 'C'],
-      },
-      {
-        id: 3,
-        title: 'Citrus',
-        date: new Date(),
-        authors: ['A', 'B', 'C'],
-        keywords: ['A', 'B', 'C'],
-      },
-    ];
+    this.searchService.search(parameters).subscribe((telegrams) => {
+      this.telegrams = [
+        {
+          id: 1,
+          title: 'Apple',
+          date: new Date(),
+          authors: ['A', 'B', 'C'],
+          keywords: ['A', 'B', 'C'],
+        },
+        {
+          id: 2,
+          title: 'Banana',
+          date: new Date(),
+          authors: ['A', 'B', 'C'],
+          keywords: ['A', 'B', 'C'],
+        },
+        {
+          id: 3,
+          title: 'Citrus',
+          date: new Date(),
+          authors: ['A', 'B', 'C'],
+          keywords: ['A', 'B', 'C'],
+        },
+      ];
+    });
 
     this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
   }
