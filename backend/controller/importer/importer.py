@@ -26,7 +26,7 @@ import re
 
 from model.constants import FIXED_KEYWORDS_REGEX
 from model.ds.report_types import ImportedReport
-from model.db_helper import report_exists, add_report
+from model.db.db_interface import report_exists, add_report
 
 from datetime import datetime
 from astropy.coordinates import SkyCoord

@@ -24,8 +24,8 @@ License Terms and Copyright:
 from flask_jwt_extended import create_access_token
 from werkzeug.security import check_password_hash, generate_password_hash
 
-import model.db_helper
-from model.db_helper import ExistingUserError, get_hashed_password
+import model.db.db_interface
+from model.db.db_interface import ExistingUserError, get_hashed_password
 
 
 class InvalidCredentialsError(Exception):
@@ -48,7 +48,7 @@ def add_admin_user(username: str, password: str):
 
     hashed = generate_password_hash(password)
     try:
-        model.db_helper.add_admin_user(
+        model.db.db_interface.add_admin_user(
             username,
             password=hashed,
         )
