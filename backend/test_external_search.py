@@ -29,7 +29,6 @@ import unittest as ut
 import numpy as np
 import random as r
 from enum import Enum 
-from datetime import datetime
 from unittest import mock
 
 from controller.search import query_simbad
@@ -233,28 +232,28 @@ def mocked_region_table(*args, **kwargs):
 ########################################
 class TestNameSearch(ut.TestCase):
     # Test network error (no connection, mocked). 
-    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
+    @mock.patch('controller.search.query_simbad.simbad._request', side_effect=mocked_no_network)
     def test_no_network(self, _):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_name("test")
 
 
     # Test server blacklist (mocked). 
-    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
+    @mock.patch('controller.search.query_simbad.simbad._request', side_effect=mocked_blacklist)
     def test_blacklist(self, _):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_name("test")
 
 
     # Test object that does not exist (mocked)
-    @mock.patch('astroquery.simbad.Simbad.query_object', side_effect=mocked_object_not_found)
+    @mock.patch('controller.search.query_simbad.simbad.query_object', side_effect=mocked_object_not_found)
     def test_no_object_found(self, _):
         # This function is patched by the mocked method. 
         self.assertIsNone(query_simbad.query_simbad_by_name("invalid_object"))
 
 
     # Test valid data. 
-    @mock.patch('astroquery.simbad.Simbad.query_object', return_value=mocked_object_table())
+    @mock.patch('controller.search.query_simbad.simbad.query_object', return_value=mocked_object_table())
     def test_query_object(self, _):
         """ This test uses a real-world object listed in the SIMBAD database. 
             While this is not the ideal way to conduct unit testing, it is 
@@ -280,8 +279,8 @@ class TestCoordSearch(ut.TestCase):
         self.sample_radius = 20.0
 
 
-    @mock.patch('astroquery.simbad.Simbad.query_region', return_value=mocked_region_table())
-    @mock.patch('astroquery.simbad.Simbad.query_objectids', return_value=mocked_objectids_table())
+    @mock.patch('controller.search.query_simbad.simbad.query_region', side_effect=mocked_region_table)
+    @mock.patch('controller.search.query_simbad.simbad.query_objectids', side_effect=mocked_objectids_table)
     def test_coord_search(self, _, __):
         # Test a valid coordinate. 
         # Test whether the result is not empty. 
@@ -302,19 +301,19 @@ class TestCoordSearch(ut.TestCase):
 
     # See line 155 onwards. These are the same mocked functions, but for
     # the coordinate search method. 
-    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_no_network)
+    @mock.patch('controller.search.query_simbad.simbad._request', side_effect=mocked_no_network)
     def test_no_network(self, _):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
 
 
-    @mock.patch('astroquery.simbad.Simbad._request', side_effect=mocked_blacklist)
+    @mock.patch('controller.search.query_simbad.simbad._request', side_effect=mocked_blacklist)
     def test_blacklist(self, _):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius)
 
 
-    @mock.patch('astroquery.simbad.Simbad.query_region', side_effect=mocked_object_not_found)
+    @mock.patch('controller.search.query_simbad.simbad.query_region', side_effect=mocked_object_not_found)
     def test_no_object_found(self, _):
         self.assertIsNone(query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius))
 
