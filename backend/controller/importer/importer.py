@@ -35,9 +35,6 @@ from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
-# Regex for extracting the month of submission date
-MONTHS_REGEX = 'Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec'
-
 # Custom exceptions
 class ReportAlreadyExistsError(Exception):
     pass
