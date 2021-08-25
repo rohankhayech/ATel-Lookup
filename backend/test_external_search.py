@@ -24,17 +24,120 @@ License Terms and Copyright:
 """
 
 
-from controller.search.query_simbad import QuerySimbadError
+import requests
 import unittest as ut
 import numpy as np
+import random as r
+from enum import Enum 
+from datetime import datetime
 from unittest import mock
-import requests
 
 from controller.search import query_simbad
+from controller.search.query_simbad import QuerySimbadError
+from model.constants import DEFAULT_RADIUS
 
 from astropy.table import Table
 from astropy.table.column import Column
 from astropy.coordinates.sky_coordinate import SkyCoord
+
+
+class TableType(Enum):
+    QUERY_OBJECT=1
+    QUERY_REGION=2
+    QUERY_OBJECT_IDS=3
+
+
+def none_return():
+    return None 
+
+
+def db_add_object_stub(object_id: str, coords: SkyCoord, aliases: list[str]):
+    pass 
+
+
+def db_mock_object_dne() -> tuple[bool, datetime]:
+    return False, None 
+
+
+def db_mock_object_exists() -> tuple[bool, datetime]:
+    return True, datetime.today() 
+
+
+def create_mock_table(type: TableType) -> tuple[Table, str, SkyCoord, list[str]]:
+    '''
+        Create a mock astropy Table data structure with random values. 
+        Also creates a random SkyCoord and alias list. 
+        Random names are integer strings for simplicity. 
+
+        Returns:
+            Table: the mock table
+            str: randomly generated MAIN_ID
+            SkyCoord: randomly generated SkyCoord object. 
+            list[str]: randomly generated list of aliases. 
+            list[str]: randomly generated list of object IDs (where a table returns multiple MAIN_IDs)
+    '''
+    random_id = str(r.randint(1000, 9999))
+    random_aliases = [] 
+    random_objects = []
+
+    for _ in range(0, r.randint(1, 15)):
+        random_aliases.append(str(r.randint(1000, 9999)))
+
+    random_ra_str = f"{r.randint(0, 20)} {r.randint(0, 20)} {float(r.randint(0, 20))}"
+    random_dec_str = f"{r.randint(0, 20)} {r.randint(0, 20)} {float(r.randint(0, 20))}"
+
+    random_skycoord = SkyCoord(
+        random_ra_str, 
+        random_dec_str, 
+        frame='icrs', 
+        unit=('hourangle','deg')
+    )
+
+    mock_table = Table() 
+
+    if type == TableType.QUERY_OBJECT:
+        # Mocking a table similar to Simbad.query_object()
+        col_1 = Column(name="MAIN_ID", data=[random_id], dtype=np.object0)
+        col_2 = Column(name="RA", data=[random_ra_str], dtype=np.str0)
+        col_3 = Column(name="DEC", data=[random_dec_str], dtype=np.str0)
+
+        for col in [col_1, col_2, col_3]:
+            mock_table.add_column(col)
+    elif type == TableType.QUERY_OBJECT_IDS:
+        # Mock an alias table similar to Simbad.query_objectids() 
+        bytestrings = [] 
+
+        for name in random_aliases:
+            bytestrings.append(bytes(name, encoding='UTF-8'))
+
+        col_1 = Column(name="ID", data=bytestrings, dtype=np.bytes0)
+
+        mock_table.add_column(col_1)
+    elif type == TableType.QUERY_REGION:
+        # Generate a new list of random objects.
+        num_objects = r.randint(1, 15)
+        for _ in range(num_objects):
+            random_objects.append(str(r.randint(1000, 9999)))
+        col_1 = Column(name="MAIN_ID", data=random_objects, dtype=np.object0)
+
+        random_ra_list = [] 
+        random_dec_list = []
+        r_ra_split = random_ra_str.split(' ')
+        r_dec_split = random_dec_str.split(' ')
+
+        for _ in range(num_objects):
+            new_random_ra = f"{r_ra_split[0]} {r_ra_split[1]} {float(r_ra_split[2]) + ((r.random() - 0.5) * DEFAULT_RADIUS) * 2}"
+            new_random_dec = f"{r_dec_split[0]} {r_dec_split[1]} {float(r_dec_split[2]) + ((r.random() - 0.5) * DEFAULT_RADIUS) * 2}"
+            random_ra_list.append(new_random_ra)
+            random_dec_list.append(new_random_dec)
+
+        col_2 = Column(name="RA", data=random_ra_list, dtype=np.str0)
+        col_3 = Column(name="DEC", data=random_dec_list, dtype=np.str0)
+
+        for col in [col_1, col_2, col_3]:
+            mock_table.add_column(col)
+
+    return mock_table, random_id, random_skycoord, random_aliases, random_objects
 
 
 ########################################
@@ -42,35 +145,29 @@ from astropy.coordinates.sky_coordinate import SkyCoord
 ########################################
 class TestNameExtraction(ut.TestCase):
     def setUp(self):
-        # This mock table mirrors how the astroquery query 
-        # function works. The string is represented as bytes. 
-        col_1 = Column(name="ID", data=[b"id1", b"id2", b"id3", b"id4"])
-        self.alias_table = Table()
-        self.alias_table.add_column(col_1)
-
-        # For region queries, astropy returns a column of objects for the 
-        # main ID. This is different to an alias search which is an array of bytes. 
-        col_2 = Column(name="MAIN_ID", data=["id1", "id2", "id3", "id4"], dtype=np.object0)
-        col_3 = Column(name="RA", data=["", "", "", ""], dtype=np.str0)
-        self.region_table = Table()
-        self.region_table.add_column(col_2)
-        self.region_table.add_column(col_3)
+        self.table_1_data = create_mock_table(TableType.QUERY_OBJECT)
+        self.table_2_data = create_mock_table(TableType.QUERY_OBJECT_IDS)
+        self.table_3_data = create_mock_table(TableType.QUERY_REGION)
 
 
-    # Test the alias table (dtype is bytes30)
-    def test_alias_table(self):
-        lst = query_simbad._get_names_from_table(self.alias_table)
-        self.assertListEqual(lst, ["id1", "id2", "id3", "id4"])
-        for i in range(0, 3):
-            self.assertIsInstance(lst[i], str)
+    # Test the id table (table 1)
+    def test_id_table(self):
+        # Expecting one name to be extracted. 
+        result = query_simbad._get_names_from_table(self.table_1_data[0])
+        self.assertNotEqual(result, [])
+        # Name extracted should be main ID. 
+        self.assertEqual(result[0], self.table_1_data[1])
+        for value in result:
+            self.assertIsInstance(value, str)
 
 
     # Test the region table (dtype is object)
     def test_region_table(self):
-        lst = query_simbad._get_names_from_table(self.region_table)
-        self.assertListEqual(lst, ["id1", "id2", "id3", "id4"])
-        for i in range(0, 3):
-            self.assertIsInstance(lst[i], str)
+        result = query_simbad._get_names_from_table(self.table_3_data[0])
+        self.assertNotEqual(result, [])
+        self.assertListEqual(result, self.table_3_data[4])
+        for value in result:
+            self.assertIsInstance(value, str)
 
 
     def test_invalid_table(self):
