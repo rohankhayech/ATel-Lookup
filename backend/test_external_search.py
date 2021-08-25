@@ -194,7 +194,7 @@ class TestNameExtraction(ut.TestCase):
 class TestCoordExtraction(ut.TestCase):
     def setUp(self):
         self.tables = []
-        for _ in range(5):
+        for _ in range(50):
             self.tables.append(create_mock_table(TableType.QUERY_REGION))
         
 
