@@ -83,8 +83,8 @@ def create_mock_table(type: TableType) -> tuple[Table, str, SkyCoord, list[str]]
     for _ in range(0, r.randint(1, 15)):
         random_aliases.append(str(r.randint(1000, 9999)))
 
-    random_ra_str = f"{r.randint(0, 20)} {r.randint(0, 20)} {float(r.randint(0, 20))}"
-    random_dec_str = f"{r.randint(0, 20)} {r.randint(0, 20)} {float(r.randint(0, 20))}"
+    random_ra_str = f"{r.randint(-23, 23)} {r.randint(0, 59)} {float(r.randint(0, 59))}"
+    random_dec_str = f"{r.randint(0, 20)} {r.randint(0, 59)} {float(r.randint(0, 59))}"
 
     random_skycoord = SkyCoord(
         random_ra_str, 
@@ -126,8 +126,8 @@ def create_mock_table(type: TableType) -> tuple[Table, str, SkyCoord, list[str]]
         r_dec_split = random_dec_str.split(' ')
 
         for _ in range(num_objects):
-            new_random_ra = f"{r_ra_split[0]} {r_ra_split[1]} {float(r_ra_split[2]) + ((r.random() - 0.5) * DEFAULT_RADIUS) * 2}"
-            new_random_dec = f"{r_dec_split[0]} {r_dec_split[1]} {float(r_dec_split[2]) + ((r.random() - 0.5) * DEFAULT_RADIUS) * 2}"
+            new_random_ra = f"{r_ra_split[0]} {r_ra_split[1]} {min(59.0, float(r_ra_split[2]) + round(abs((0.5 - r.random()) * DEFAULT_RADIUS)))}"
+            new_random_dec = f"{r_dec_split[0]} {r_dec_split[1]} {min(59.0, float(r_ra_split[2]) + round(abs((0.5 - r.random()) * DEFAULT_RADIUS)))}"
             random_ra_list.append(new_random_ra)
             random_dec_list.append(new_random_dec)
 
@@ -193,35 +193,16 @@ class TestNameExtraction(ut.TestCase):
 #########################################
 class TestCoordExtraction(ut.TestCase):
     def setUp(self):
-        # Create a mock table.
-        table_columns = ("MAIN_ID", "RA", "DEC", "COO_WAVELENGTH", "COO_BIBCODE")
-        table_dtypes = ("object", "str", "str", "str", "object")
-
-        # Reference objects are m13 and m1 respectively. 
-        # COO_WAVE_LENGTH and COO_BIBCODE are excluded for simplicity. 
-        table_ids = ("M 13", "M 1")
-        table_ra = ("16 41 41.634", "05 34 31.94")
-        table_dec = ("+36 27 40.75", "+22 00 52.2") 
-        self._table_1 = Table(names=table_columns, dtype=table_dtypes)
-        self._table_1.add_row(vals=(table_ids[0], table_ra[0], table_dec[0], "", None))
-        self._table_2 = Table(names=table_columns, dtype=table_dtypes)
-        self._table_2.add_row(vals=(table_ids[1], table_ra[1], table_dec[1], "", None))
-
-        self.expected_coords_1 = SkyCoord(table_ra[0], table_dec[0], frame='icrs', unit=('hourangle', 'deg'))
-        self.expected_coords_2 = SkyCoord(table_ra[1], table_dec[1], frame='icrs', unit=('hourangle', 'deg'))
+        self.tables = []
+        for _ in range(5):
+            self.tables.append(create_mock_table(TableType.QUERY_REGION))
         
 
-    def test_table_1(self):
-        # Extract the coordinates from the Table data structure. 
-        coords_1 = query_simbad._get_coords_from_table(self._table_1)
-        self.assertEqual(coords_1.ra, self.expected_coords_1.ra)
-        self.assertEqual(coords_1.dec, self.expected_coords_1.dec)
-
-
-    def test_table_2(self):
-        coords_2 = query_simbad._get_coords_from_table(self._table_2)
-        self.assertEqual(coords_2.ra, self.expected_coords_2.ra)
-        self.assertEqual(coords_2.dec, self.expected_coords_2.dec)
+    def test_tables(self):
+        for table in self.tables:
+            result = query_simbad._get_coords_from_table(table[0])
+            self.assertIsNotNone(result) 
+            self.assertAlmostEqual(0.0, table[2].separation(result).radian, places=2)
 
 
     def test_invalid_table(self):
