@@ -155,8 +155,17 @@ class TestNameExtraction(ut.TestCase):
         # Expecting one name to be extracted. 
         result = query_simbad._get_names_from_table(self.table_1_data[0])
         self.assertNotEqual(result, [])
+        self.assertEqual(len(result), 1)
         # Name extracted should be main ID. 
         self.assertEqual(result[0], self.table_1_data[1])
+        for value in result:
+            self.assertIsInstance(value, str)
+
+
+    def test_alias_table(self):
+        result = query_simbad._get_names_from_table(self.table_2_data[0])
+        self.assertNotEqual(result, [])
+        self.assertListEqual(result, self.table_2_data[3])
         for value in result:
             self.assertIsInstance(value, str)
 
