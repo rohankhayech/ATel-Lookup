@@ -201,6 +201,14 @@ def search() -> json:
     print(start_date_in)
     print(end_date_in)
 
+    if search_mode_in == "coords":
+        if len(search_data_in) == 3:
+            ra = search_data_in[1]
+            dec = search_data_in[0]
+            radius = search_data_in[2]
+        else:
+            flag = 0
+
     if search_data_in == None and keywords_in == None and keyword_mode_in == None:
         flag = 0
     
@@ -216,6 +224,8 @@ def search() -> json:
     if flag == 1:
         if search_mode_in == "name":
             search_reports_by_id(search_filters, search_data_in)
+        elif search_mode_in == "coords":
+            search_reports_by_coords(search_filters, )
 
 
     return jsonify({"flag": flag})

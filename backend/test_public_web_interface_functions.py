@@ -78,6 +78,15 @@ test_search_basic = {
     "end_date": "2021-06-22"
 }
 
+test_search_basic_coords = {
+    "search_mode": "coords",
+    "search_data": [263.520, -22.022, 3.4],
+    "keywords": "Air ball, bricks, throwing stones",
+    "keyword_mode": "None",
+    "start_date": "2005-03-15",
+    "end_date": "2010-09-12"
+}
+
 
 # success_flag = {
 #     "flag": 0
