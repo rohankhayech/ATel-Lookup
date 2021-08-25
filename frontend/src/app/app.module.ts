@@ -24,6 +24,8 @@ import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
+import { SearchResultsComponent } from './search-results/search-results.component';
+import { SearchFormComponent } from './search-form/search-form.component';
 
 @NgModule({
   declarations: [
@@ -32,6 +34,8 @@ import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
     AdminPageComponent,
     HomePageComponent,
     HeaderComponent,
+    SearchResultsComponent,
+    SearchFormComponent,
   ],
   imports: [
     BrowserModule,
