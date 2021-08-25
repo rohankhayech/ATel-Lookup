@@ -1,5 +1,5 @@
 """
-Testing for importer functions and exceptions.
+Testing for importer and parser functions as well as custom exceptions.
 
 Author:
     Nathan Sutardi
@@ -25,9 +25,10 @@ import os
 import unittest
 
 from controller.importer.importer import *
+from controller.importer.parser import *
 
-from datetime import datetime
 from unittest import mock
+from datetime import datetime
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
@@ -71,8 +72,10 @@ class TestImporterFunctions(unittest.TestCase):
             soup = BeautifulSoup(html, 'html.parser')
             self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])'''
 
+# Parser functions
+class TestParserFunctions(unittest.TestCase):
     # Tests parse_report function
-    @mock.patch('controller.importer.importer.extract_keywords')
+    @mock.patch('controller.importer.parser.extract_keywords')
     def test_html_parser(self, mock_extract_keywords):
         mock_extract_keywords.return_value = []
 
@@ -132,8 +135,8 @@ class TestImporterFunctions(unittest.TestCase):
         self.assertCountEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
         self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
 
-# Importer exceptions
-class TestImporterExceptions(unittest.TestCase):
+# Custom exceptions
+class TestCustomExceptions(unittest.TestCase):
     # Tests that ReportAlreadyExistsError is being raised
     @mock.patch('controller.importer.importer.report_exists')
     def test_report_already_exists_error(self, mock_report_exists):

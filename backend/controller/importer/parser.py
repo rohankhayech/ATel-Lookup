@@ -23,8 +23,8 @@ License Terms and Copyright:
 
 import re
 
-from model.ds.report_types import ImportedReport
 from model.constants import FIXED_KEYWORDS_REGEX
+from model.ds.report_types import ImportedReport
 
 from bs4 import BeautifulSoup
 from datetime import datetime

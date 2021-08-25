@@ -22,7 +22,7 @@ License Terms and Copyright:
 """
 
 from model.db.db_interface import report_exists, add_report
-from importer.parser import parse_report
+from controller.importer.parser import parse_report
 
 from requests_html import HTMLSession
 from requests.exceptions import ConnectionError, HTTPError
