@@ -204,9 +204,18 @@ def search() -> json:
     if search_data_in == None and keywords_in == None and keyword_mode_in == None:
         flag = 0
     
+
+    search_filters = {
+        "term": search_data_in,
+        "keywords": keywords_in,
+        "keyword_mode": keyword_mode_in,
+        "start_date": start_date_in,
+        "end_date": end_date_in
+    }
+
     if flag == 1:
         if search_mode_in == "name":
-            search_reports_by_id(blah, search_data_in)
+            search_reports_by_id(search_filters, search_data_in)
 
 
     return jsonify({"flag": flag})
