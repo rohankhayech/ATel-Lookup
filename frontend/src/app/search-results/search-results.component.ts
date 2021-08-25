@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input } from '@angular/core';
 import { Telegram } from '../telegram.interface';
 
 @Component({
@@ -6,10 +6,10 @@ import { Telegram } from '../telegram.interface';
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
 })
-export class SearchResultsComponent implements OnInit {
+export class SearchResultsComponent {
   @Input() public telegrams?: Telegram[];
 
-  constructor() {}
-
-  ngOnInit(): void {}
+  top() {
+    window.scrollTo({ top: 0 });
+  }
 }
