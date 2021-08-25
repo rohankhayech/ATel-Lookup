@@ -212,9 +212,13 @@ class TestReportTypes(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ir.atel_num = 0
 
-    def test_invalid_body_len(self):
+    def test_invalid_lens(self):
         with self.assertRaises(ValueError):
             self.ir.body = "a"*4001
+        with self.assertRaises(ValueError):
+            self.ir.title = "a"*1025
+        with self.assertRaises(ValueError):
+            self.ir.authors = "a"*1025
 
     def test_invalid_keyword(self):
         with self.assertRaises(ValueError):
