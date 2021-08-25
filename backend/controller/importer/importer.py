@@ -160,16 +160,8 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     elements = soup.find_all('strong')
     submission_date = elements[1].get_text(strip=True)
 
-    # Extracts submission date elements
-    datetime_values = re.findall('\d+', submission_date)
-    month_name = re.search(MONTHS_REGEX, submission_date).group()
-
-    # Assigns appropriate month number based on the month name
-    datetime_conversion = datetime.strptime(month_name, '%b')
-    month_number = datetime_conversion.month
-
-    # Submission date is bundled into datetime object
-    formatted_submission_date = datetime(year=int(datetime_values[1]), month=month_number, day=int(datetime_values[0]), hour=int(datetime_values[2]), minute=int(datetime_values[3]))
+    # Formats submission date
+    formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
 
     return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()))
 
