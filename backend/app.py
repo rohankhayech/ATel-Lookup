@@ -39,6 +39,7 @@ from flask_cors import CORS
 import os
 
 from controller.importer.importer import *
+from controller.search.search import *
 
 from flask import Flask, jsonify, request
 from flask_jwt_extended import (
@@ -53,8 +54,6 @@ from controller.authentication import (
     InvalidCredentialsError,
     login,
 )
-
-from controller.importer.importer import ReportAlreadyExistsException, ReportNotFoundException
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -168,6 +167,7 @@ def imports() -> json:
     return jsonify({"flag": flag})
 
 
+@app.route("/search", methods=["POST"])
 def search() -> json:
     """The purpose of this function is to help with the actual searching aspect of our system,
     it will be called by the submit search form, and will call the either of the search functions
@@ -184,12 +184,32 @@ def search() -> json:
 
     """
 
+    flag = 1
+
     search_mode_in = request.json.get("search_mode", None)
+    search_data_in = request.json.get("search_data", None)
+    keywords_in = request.json.get("keywords", None)
+    keyword_mode_in = request.json.get("keyword_mode", None)
+    start_date_in = request.json.get("start_date", None)
+    end_date_in = request.json.get("end_date", None)
+
+    print("\n")
+    print(search_mode_in)
+    print(search_data_in)
+    print(keywords_in)
+    print(keyword_mode_in)
+    print(start_date_in)
+    print(end_date_in)
+
+    if search_data_in == None and keywords_in == None and keyword_mode_in == None:
+        flag = 0
     
+    if flag == 1:
+        if search_mode_in == "name":
+            search_reports_by_id(blah, search_data_in)
 
 
-
-    return jsonify("")  # stub
+    return jsonify({"flag": flag})
 
 
 @app.route("/metadata", methods=["GET"])

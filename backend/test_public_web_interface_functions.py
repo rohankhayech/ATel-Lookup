@@ -69,6 +69,15 @@ test_auto_success_no_atel_given = {
     "import_mode": "auto",
 }
 
+test_search_basic = {
+    "search_mode": "name",
+    "search_data": "Steph Curry",
+    "keywords": "Deep threes, Swish",
+    "keyword_mode": "All",
+    "start_date": "2021-01-22",
+    "end_date": "2021-06-22"
+}
+
 
 # success_flag = {
 #     "flag": 0
@@ -114,6 +123,16 @@ class TestWebInterfaceImports(ut.TestCase):
         response = self.app.post('/import', json = test_manual_success)
         self.assertEqual(response.json.get("flag"), 1)
         #Here and below is where i will test the import_report and import_all_reports function calls + exception handling
+
+
+
+class TestWebInterfaceSearch(ut.TestCase):
+    def setUp(self):
+        self.app = app.test_client()
+
+    def test_search_basic(self): 
+        response = self.app.post('/search', json = test_search_basic)
+        self.assertEqual(response.json.get("flag"), 1)
         
 
 # Run suite. 
