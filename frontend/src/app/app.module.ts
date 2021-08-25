@@ -26,6 +26,7 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { SearchResultsComponent } from './search-results/search-results.component';
 import { SearchFormComponent } from './search-form/search-form.component';
+import { TelegramCardComponent } from './telegram-card/telegram-card.component';
 
 @NgModule({
   declarations: [
@@ -36,6 +37,7 @@ import { SearchFormComponent } from './search-form/search-form.component';
     HeaderComponent,
     SearchResultsComponent,
     SearchFormComponent,
+    TelegramCardComponent,
   ],
   imports: [
     BrowserModule,

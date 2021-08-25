@@ -1,0 +1,12 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-subtitle>ATel #{{ telegram?.id }}</mat-card-subtitle>
+    <mat-card-title>{{ telegram?.title }}</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p>Submission Date: {{ telegram?.date | date }}</p>
+    <p>Authors: {{ telegram?.authors }}</p>
+    <p>Keywords: {{ telegram?.keywords }}</p>
+  </mat-card-content>
+</mat-card>

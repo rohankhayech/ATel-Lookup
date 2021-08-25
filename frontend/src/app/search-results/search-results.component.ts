@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { Telegram } from '../telegram.interface';
 
 @Component({
   selector: 'app-search-results',
@@ -6,7 +7,7 @@ import { Component, Input, OnInit } from '@angular/core';
   styleUrls: ['./search-results.component.scss'],
 })
 export class SearchResultsComponent implements OnInit {
-  @Input() public results: any;
+  @Input() public telegrams?: Telegram[];
 
   constructor() {}
 
