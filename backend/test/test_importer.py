@@ -1,5 +1,5 @@
 """
-Testing for importer functions and exceptions.
+Testing for importer and parser functions as well as custom exceptions.
 
 Author:
     Nathan Sutardi
@@ -21,12 +21,14 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+import os
 import unittest
 
 from controller.importer.importer import *
+from controller.importer.parser import *
 
-from datetime import datetime
 from unittest import mock
+from datetime import datetime
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
@@ -40,7 +42,7 @@ class TestImporterFunctions(unittest.TestCase):
         mock_report_exists.return_value = False
 
         # Reads HTML string of ATel #1000
-        f = open('test-data/atel1000.html', 'r')
+        f = open(os.path.join('test','res','atel1000.html'), 'r')
         html_string = f.read()
         f.close()
         mock_download_report.return_value = html_string
@@ -50,7 +52,7 @@ class TestImporterFunctions(unittest.TestCase):
         mock_add_report.assert_called_with(parse_report(1000, html_string))
 
         # Reads HTML string of ATel #10000
-        f = open('test-data/atel10000.html', 'r')
+        f = open(os.path.join('test','res','atel10000.html'), 'r')
         html_string = f.read()
         f.close()
         mock_download_report.return_value = html_string
@@ -70,18 +72,20 @@ class TestImporterFunctions(unittest.TestCase):
             soup = BeautifulSoup(html, 'html.parser')
             self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])'''
 
+# Parser functions
+class TestParserFunctions(unittest.TestCase):
     # Tests parse_report function
-    @mock.patch('controller.importer.importer.extract_keywords')
+    @mock.patch('controller.importer.parser.extract_keywords')
     def test_html_parser(self, mock_extract_keywords):
         mock_extract_keywords.return_value = []
 
         # Parses HTML of ATel #1000
-        f = open('test-data/atel1000.html', 'r')
+        f = open(os.path.join('test','res','atel1000.html'), 'r')
         imported_report = parse_report(1000, f.read())
         f.close()
 
         # Retrieves ATel #1000 body text
-        f = open('test-data/atel1000_body.txt', 'r')
+        f = open(os.path.join('test', 'res', 'atel1000_body.txt'), 'r')
         body = f.read()
         f.close()
 
@@ -99,12 +103,12 @@ class TestImporterFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.referenced_by, [])
 
         # Parses HTML of ATel #10000
-        f = open('test-data/atel10000.html', 'r')
+        f = open(os.path.join('test','res','atel10000.html'), 'r')
         imported_report = parse_report(10000, f.read())
         f.close()
 
         # Retrieves ATel #10000 body text
-        f = open('test-data/atel10000_body.txt', 'r')
+        f = open(os.path.join('test','res','atel10000_body.txt'), 'r')
         body = f.read()
         f.close()
 
@@ -131,8 +135,8 @@ class TestImporterFunctions(unittest.TestCase):
         self.assertCountEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
         self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
 
-# Importer exceptions
-class TestImporterExceptions(unittest.TestCase):
+# Custom exceptions
+class TestCustomExceptions(unittest.TestCase):
     # Tests that ReportAlreadyExistsError is being raised
     @mock.patch('controller.importer.importer.report_exists')
     def test_report_already_exists_error(self, mock_report_exists):
