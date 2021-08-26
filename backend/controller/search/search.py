@@ -109,23 +109,23 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
             coordinates = query_result[1]
             aliases = query_result[2]
             db.add_object(main_id, coordinates, aliases)
+
+            # After update checking and external search, query the local database 
+            # for all reports. 
+            reports = db.find_reports_by_object(search_filters, name)
+            coords = db.find_reports_in_coord_range(search_filters, coordinates, 0.0)
+
+            # Append the list with reports with the same coordinates. 
+            # TODO: Use exact coordinates (0.0) or DEFAULT_RADIUS?
+            for additional_report in db.find_reports_in_coord_range(search_filters, coords, 0.0):
+                if not additional_report in reports:
+                    reports.append(additional_report)
+
+            return reports
         else:
             # There were no reports found in the local database
             # and no results found by SIMBAD, therefore there is no result.
             return None
-    
-    # After update checking and external search, query the local database 
-    # for all reports. 
-    reports = db.find_reports_by_object(search_filters, name)
-    coords = db.get_object_coords(reports[0])
-
-    # Append the list with reports with the same coordinates. 
-    # TODO: Use exact coordinates (0.0) or DEFAULT_RADIUS?
-    for additional_report in db.find_reports_in_coord_range(search_filters, coords, 0.0):
-        if not additional_report in reports:
-            reports.append(additional_report)
-
-    return reports
 
 
 #####################
