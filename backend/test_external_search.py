@@ -232,29 +232,29 @@ def mocked_region_table(*args, **kwargs):
 ########################################
 class TestNameSearch(ut.TestCase):
     # Test network error (no connection, mocked). 
-    @mock.patch('controller.search.query_simbad.simbad._request', side_effect=mocked_no_network)
-    def test_no_network(self, _):
+    @mock.patch('controller.search.query_simbad.simbad._request', new=mocked_no_network)
+    def test_no_network(self):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_name("test")
 
 
     # Test server blacklist (mocked). 
-    @mock.patch('controller.search.query_simbad.simbad._request', side_effect=mocked_blacklist)
-    def test_blacklist(self, _):
+    @mock.patch('controller.search.query_simbad.simbad._request', new=mocked_blacklist)
+    def test_blacklist(self):
         with self.assertRaises(QuerySimbadError):
             query_simbad.query_simbad_by_name("test")
 
 
     # Test object that does not exist (mocked)
-    @mock.patch('controller.search.query_simbad.simbad.query_object', side_effect=mocked_object_not_found)
-    def test_no_object_found(self, _):
+    @mock.patch('controller.search.query_simbad.simbad.query_object', new=mocked_object_not_found)
+    def test_no_object_found(self):
         # This function is patched by the mocked method. 
         self.assertIsNone(query_simbad.query_simbad_by_name("invalid_object"))
 
 
     # Test valid data. 
-    @mock.patch('controller.search.query_simbad.simbad.query_object', side_effect=mocked_object_table)
-    def test_query_object(self, _):
+    @mock.patch('controller.search.query_simbad.simbad.query_object', new=mocked_object_table)
+    def test_query_object(self):
         main_id, coords, aliases = query_simbad.query_simbad_by_name('M  1', True)
         self.assertIsNotNone(main_id)
         self.assertIsNotNone(coords)
