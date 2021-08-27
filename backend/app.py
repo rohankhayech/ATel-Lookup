@@ -39,7 +39,7 @@ from flask_cors import CORS
 import os
 
 from controller.importer.importer import *
-from controller.search.search import *
+# from controller.search.search import *
 
 from flask import Flask, jsonify, request
 from flask_jwt_extended import (
@@ -223,10 +223,11 @@ def search() -> json:
     }
 
     if flag == 1:
-        if search_mode_in == "name":
-            search_reports_by_id(search_filters, search_data_in)
-        elif search_mode_in == "coords":
-            search_reports_by_coords(search_filters, )
+        # if search_mode_in == "name":
+        #     search_reports_by_id(search_filters, search_data_in)
+        # elif search_mode_in == "coords":
+        #     search_reports_by_coords(search_filters, )
+        pass
 
 
     return jsonify({"flag": flag})
