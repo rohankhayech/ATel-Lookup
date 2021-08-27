@@ -96,35 +96,40 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     # Check if the object already exists in the local database. 
     exists, last_updated = db.object_exists(name)
 
+    # Check if the object exists in the database. 
     if exists:
-        # The object exists, check to see if it needs to be updated. 
+        # The object exists in the local database, check to see if it needs to be updated. 
         _check_object_updates(name, last_updated)
     else:
         # The object does not exist, invoke an external (SIMBAD) search. 
         query_result = qs.query_simbad_by_name(name, True)
 
         if query_result is not None:
+            # There is a result from the SIMBAD search. 
             # Add the object to the local database.
             main_id = query_result[0]
             coordinates = query_result[1]
             aliases = query_result[2]
             db.add_object(main_id, coordinates, aliases)
-
-            # After update checking and external search, query the local database 
-            # for all reports. 
-            reports = db.find_reports_by_object(search_filters, name)
-            coords = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
-
-            # Append the list with reports with the same coordinates. 
-            for additional_report in coords:
-                if not additional_report in reports:
-                    reports.append(additional_report)
-
-            return reports
         else:
             # There were no reports found in the local database
             # and no results found by SIMBAD, therefore there is no result.
             return None
+
+    # After update checking and external search, query the local database 
+    # for all reports. 
+
+    # Reports in the database by name. 
+    reports = db.find_reports_by_object(search_filters, name)
+    # Search the coordinate range for additional related reports. 
+    by_coord_range = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
+
+    # Append the list with reports with the same coordinates. 
+    for additional_report in by_coord_range:
+        if not additional_report in reports:
+            reports.append(additional_report)
+
+    return reports
 
 
 #####################
