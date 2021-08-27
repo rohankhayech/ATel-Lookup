@@ -27,7 +27,7 @@ License Terms and Copyright:
 from astropy.coordinates import SkyCoord
 from astropy.coordinates.angles import Angle
 from astropy.table import Table
-from astroquery.simbad import Simbad as simbad
+from astroquery.simbad import Simbad
 
 from model.constants import DEFAULT_RADIUS, RADIUS_UNIT
 
@@ -136,7 +136,7 @@ def _set_mirror():
     """ Sets the mirror for SIMBAD to the one defined by the
         SIMBAD_MIRROR constant.
     """
-    simbad.SIMBAD_URL = SIMBAD_MIRROR
+    Simbad.SIMBAD_URL = SIMBAD_MIRROR
 
 
 #####################
@@ -154,7 +154,7 @@ def get_aliases(id: str) -> list[str]:
     Returns:
         list[str]: A list of aliases. 
     """
-    aliases_table = simbad.query_objectids(id)
+    aliases_table = Simbad.query_objectids(id)
     aliases_list = _get_names_from_table(aliases_table)
     return aliases_list
 
@@ -192,7 +192,7 @@ def query_simbad_by_coords(coords: SkyCoord,
     _set_mirror()
 
     try:        
-        table = simbad.query_region(coords, radius_angle)
+        table = Simbad.query_region(coords, radius_angle)
 
         if table is None:
             return None 
@@ -242,7 +242,7 @@ def query_simbad_by_name(object_name: str,
     _set_mirror()
 
     try:
-        table = simbad.query_object(object_name)
+        table = Simbad.query_object(object_name)
 
         if table is None:
             # The object does not exist.
