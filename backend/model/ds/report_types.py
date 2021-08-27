@@ -28,6 +28,11 @@ from astropy.coordinates import SkyCoord
 from controller.helper.type_checking import list_is_type
 from model.constants import valid_keyword
 
+#Constants
+REPORT_TITLE_CHAR_LIM:int = 1024   # Max chars for title field.
+REPORT_AUTHOR_CHAR_LIM:int = 1024  # Max chars for authors field.
+REPORT_BODY_CHAR_LIM:int = 4000    # Max chars for body field.
+
 class ReportResult:
     """
     An object representing a report returned from the local database as a result of a search query. Contains all the information needed for displaying the report as a search result and on both the timeline and network graphs.
@@ -123,7 +128,13 @@ class ReportResult:
         Args:
             title (str): The title of the report.
         """
-        self._title = str(title)
+        title_str = str(title)
+
+        if(len(title_str) <= REPORT_TITLE_CHAR_LIM):
+            self._title = title_str
+        else:
+            raise ValueError(
+                f"Body must be <= {REPORT_TITLE_CHAR_LIM} characters.")
 
     @property
     def authors(self)->str:
@@ -139,7 +150,12 @@ class ReportResult:
         Args:
             authors (str): A string representing the authors of the report.
         """
-        self._authors = str(authors)
+        authors_str = str(authors)
+
+        if(len(authors_str)<=REPORT_AUTHOR_CHAR_LIM):
+            self._authors = authors_str
+        else:
+            raise ValueError(f"Body must be <= {REPORT_AUTHOR_CHAR_LIM} characters.")
 
     @property
     def body(self)->str:
@@ -159,12 +175,12 @@ class ReportResult:
         Raises:
             ValueError: When the given body text exceeds 4000 characters.
         """
-        body = str(body)
+        body_str = str(body)
 
-        if (len(body)<=4000):
-            self._body = body
+        if (len(body_str)<=REPORT_BODY_CHAR_LIM):
+            self._body = body_str
         else:
-            raise ValueError("Body must be <= 4000 characters.")
+            raise ValueError(f"Body must be <= {REPORT_BODY_CHAR_LIM} characters.")
 
     @property
     def submission_date(self)->datetime:

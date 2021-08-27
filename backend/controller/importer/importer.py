@@ -26,14 +26,22 @@ import re
 
 from model.constants import FIXED_KEYWORDS_REGEX
 from model.ds.report_types import ImportedReport
+from model.db_helper import report_exists, add_report
 
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession
+from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
 # Custom exceptions
+class ReportAlreadyExistsError(Exception):
+    pass
+
+class ReportNotFoundError(Exception):
+    pass
+
 class NetworkError(Exception):
     pass
 
@@ -49,10 +57,22 @@ def import_report(atel_num: int):
         atel_num (int): The ATel number of the new report to be added.
 
     Raises:
-        ReportAlreadyExistsException: Thrown when report with the ATel number has been added to the database previously.
-        ReportNotFoundException: Thrown when report with the ATel number is not found on the AT website.
+        ReportAlreadyExistsError: Thrown when report with the ATel number has been added to the database previously.
+        ReportNotFoundError: Thrown when report with the ATel number is not found on the AT website.
     """
-    pass
+
+    # Raises error when ATel report is already imported into the database
+    if(report_exists(atel_num) == True):
+        raise ReportAlreadyExistsError(f'ATel #{atel_num} already exists in the database')
+    
+    html_string = download_report(atel_num)
+
+    # Raises error when ATel report is not found
+    if(html_string == ''):
+        raise ReportNotFoundError(f'ATel #{atel_num} does not exists')
+
+    # Parses HTML and imports ATel report into the database
+    add_report(parse_report(atel_num, html_string))
 
 def import_all_reports():
     """
@@ -99,11 +119,12 @@ def download_report(atel_num: int) -> str:
         # Closes connection
         session.close()
 
-def parse_report(html_string: str) -> ImportedReport:
+def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     """
     Extracts data from ATel report as stated in non-functional requirement 1 in the SRS.
 
     Args:
+        atel_num (int): The ATel number of the report to be parsed.
         html_string (str): String representation of the downloaded HTML of ATel report from which to extract data from.
 
     Returns:
@@ -112,7 +133,34 @@ def parse_report(html_string: str) -> ImportedReport:
     Raises:
         MissingReportElementException: Thrown when important data could not be extracted or are missing from the report.
     """
-    return ImportedReport(1, '', '', '', datetime(2000, 1, 1), [], [], [], [], [], [])
+
+    # Parses HTML into a tree
+    soup = BeautifulSoup(html_string, 'html.parser')
+
+    # Extracts title and authors of ATel report
+    title = soup.find('h1', {'class': 'title'}).get_text(strip=True)
+    authors = soup.find('strong').get_text(strip=True)
+    body = ''
+
+    # Finds all possible paragraphs in the HTML
+    texts = soup.find_all('p', {'class': None, 'align': None})
+
+    # Filters out non body text elements and formats the body text
+    for text in texts:
+        if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
+            if('\n' in text.get_text()):
+                body += text.get_text()
+            else:
+                body += text.get_text() + '\n'
+
+    # Extracts submission date of ATel report
+    elements = soup.find_all('strong')
+    submission_date = elements[1].get_text(strip=True)
+
+    # Formats submission date
+    formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
+
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()))
 
 def extract_coords(body_text: str) -> list[str]:
     """
