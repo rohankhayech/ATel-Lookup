@@ -22,14 +22,13 @@ License Terms and Copyright:
 """
 from model.ds.search_filters import KeywordMode
 from datetime import datetime
-from typing import Tuple
 import unittest
 
 from mysql.connector.cursor import MySQLCursor
 import mysql.connector
 
-from model import db_helper
-from model.ds.report_types import ImportedReport, ReportResult
+from model.db import db_interface
+from model.ds.report_types import ImportedReport
 from model.ds.search_filters import SearchFilters
 
 class TestInitTables(unittest.TestCase):
@@ -40,7 +39,7 @@ class TestInitTables(unittest.TestCase):
         _verifyTable(self,"Metadata")
 
 def _verifyTable(self, table_name):
-    cn = db_helper._connect()
+    cn = db_interface._connect()
     cur:MySQLCursor = cn.cursor()
 
     cur.execute(f"show tables like '{table_name}'")
@@ -55,36 +54,36 @@ def _verifyTable(self, table_name):
 class TestAuth(unittest.TestCase):
     
     def testAddUser(self):
-        db_helper.add_admin_user("test","hash")
-        self.assertTrue(db_helper.user_exists("test"))
+        db_interface.add_admin_user("test","hash")
+        self.assertTrue(db_interface.user_exists("test"))
     
     def testDupeUser(self):
-        db_helper.add_admin_user("test", "hash")
-        with (self.assertRaises(db_helper.ExistingUserError)):
-            db_helper.add_admin_user("test","hash")
+        db_interface.add_admin_user("test", "hash")
+        with (self.assertRaises(db_interface.ExistingUserError)):
+            db_interface.add_admin_user("test","hash")
 
     def testUserNotExists(self):
-        self.assertFalse(db_helper.user_exists("test2"))
+        self.assertFalse(db_interface.user_exists("test2"))
 
     def testGetPassword(self):
-        db_helper.add_admin_user("test", "hash")
-        self.assertEqual(db_helper.get_hashed_password("test"),"hash")
-        with (self.assertRaises(db_helper.UserNotFoundError)):
-            db_helper.get_hashed_password("test2")
+        db_interface.add_admin_user("test", "hash")
+        self.assertEqual(db_interface.get_hashed_password("test"),"hash")
+        with (self.assertRaises(db_interface.UserNotFoundError)):
+            db_interface.get_hashed_password("test2")
 
     def testExceedsMax(self):
         with (self.assertRaises(ValueError)):
-            db_helper.add_admin_user("a"*26,"hash")
+            db_interface.add_admin_user("a"*26,"hash")
         with (self.assertRaises(ValueError)):
-            db_helper.add_admin_user("test","a"*256)
+            db_interface.add_admin_user("test","a"*256)
         with (self.assertRaises(ValueError)):
-            db_helper.add_admin_user("","hash")
+            db_interface.add_admin_user("","hash")
         with (self.assertRaises(ValueError)):
-            db_helper.add_admin_user("test","")
+            db_interface.add_admin_user("test","")
 
     def tearDown(self):
         #remove test user
-        cn = db_helper._connect()
+        cn = db_interface._connect()
         cur:MySQLCursor = cn.cursor()
         cur.execute("delete from AdminUsers where username = 'test'")
         cur.close()
@@ -97,35 +96,35 @@ class TestReports(unittest.TestCase):
 
     def testNextATelNum(self):
         #set up
-        old_num = db_helper.get_next_atel_num()
+        old_num = db_interface.get_next_atel_num()
 
-        db_helper.set_next_atel_num(20000)
-        self.assertEqual(db_helper.get_next_atel_num(),20000)
+        db_interface.set_next_atel_num(20000)
+        self.assertEqual(db_interface.get_next_atel_num(),20000)
 
-        db_helper.set_next_atel_num(old_num)
+        db_interface.set_next_atel_num(old_num)
 
     def testLastUpdatedDate(self):
         #set up
-        old_date = db_helper.get_last_updated_date()
+        old_date = db_interface.get_last_updated_date()
 
         _set_last_updated_date(datetime(2021,8,16))
-        self.assertEqual(db_helper.get_last_updated_date(),datetime(2021, 8, 16))
+        self.assertEqual(db_interface.get_last_updated_date(),datetime(2021, 8, 16))
 
         _set_last_updated_date(old_date)
 
     def testReports(self):
         report = ImportedReport(20000,"db_test_report","A","B",datetime(2021,8,12), keywords=["star","radio"])
 
-        db_helper.add_report(report)
+        db_interface.add_report(report)
         try:
-            results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_report"))
             result = results[0]
 
             self.assertEqual(report,result)
-            self.assertTrue(db_helper.report_exists(20000))
+            self.assertTrue(db_interface.report_exists(20000))
         finally:
             #delete report
-            cn = db_helper._connect()
+            cn = db_interface._connect()
             cur:MySQLCursor = cn.cursor()
             cur.execute("delete from Reports where atelNum = 20000")
             cur.close()
@@ -135,81 +134,81 @@ class TestReports(unittest.TestCase):
     def testBuildQuery(self):
         #Test full query
         sf = SearchFilters("term",["star","planet"],KeywordMode.ANY,datetime(2021,8,16),datetime(2021,8,17))
-        query, data = db_helper._build_report_query(sf)
+        query, data = db_interface._build_report_query(sf)
         self.maxDiff = None
         self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where (title like %s or body like %s) and submissionDate >= %s and submissionDate <= %s and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data,(sf.term,sf.term,sf.start_date,sf.end_date,sf.keywords[0],sf.keywords[1]))
 
         #Test keyword modes / single filter
         sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
-        query2, data2 = db_helper._build_report_query(sf2)
+        query2, data2 = db_interface._build_report_query(sf2)
         self.assertEqual(query2,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data2,(sf.keywords[0],sf.keywords[1]))
 
         sf2.keyword_mode = KeywordMode.NONE
-        query3, data3 = db_helper._build_report_query(sf2)
+        query3, data3 = db_interface._build_report_query(sf2)
         self.assertEqual(query3,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
         self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
 
     def testFindGeneric(self):
         report = ImportedReport(20001,"db_test_report","A","B", datetime(2021,8,12), keywords=["star","radio"])
 
-        db_helper.add_report(report)
+        db_interface.add_report(report)
         try:
             #test search body
-            results = db_helper.find_reports_by_object(SearchFilters(term="B"))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B"))
             result = results[0]
             self.assertEqual(report,result)
 
             #test search title
-            results = db_helper.find_reports_by_object(SearchFilters(term="db_test_report"))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_report"))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test search author (not possible)
-            results = db_helper.find_reports_by_object(SearchFilters(term="A"))
+            results = db_interface.find_reports_by_object(SearchFilters(term="A"))
             self.assertIsNone(results)
 
             #Test start date
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", start_date=datetime(2021,8,11)))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", start_date=datetime(2021,8,11)))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test end date
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", end_date=datetime(2021,8,13)))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", end_date=datetime(2021,8,13)))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test keywords - all
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ALL))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ALL))
             result = results[0]
             self.assertEqual(report,result)
 
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ALL))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ALL))
             self.assertIsNone(results)
 
             #Test keywords - any
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ANY))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ANY))
             result = results[0]
             self.assertEqual(report,result)
 
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ANY))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ANY))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test keywords - none
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star", "radio"], keyword_mode=KeywordMode.NONE))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star", "radio"], keyword_mode=KeywordMode.NONE))
             self.assertIsNone(results)
 
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.NONE))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.NONE))
             self.assertIsNone(results)
 
-            results = db_helper.find_reports_by_object(SearchFilters(term="B", keywords=["nova","planet"],keyword_mode=KeywordMode.NONE))
+            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["nova","planet"],keyword_mode=KeywordMode.NONE))
             result = results[0]
             self.assertEqual(report, result)
 
             #Test composite
-            results = db_helper.find_reports_by_object(
+            results = db_interface.find_reports_by_object(
                 SearchFilters(
                     term="B", 
                     keywords=["star","radio"], 
@@ -223,7 +222,7 @@ class TestReports(unittest.TestCase):
 
         finally:
             #delete report
-            cn = db_helper._connect()
+            cn = db_interface._connect()
             cur:MySQLCursor = cn.cursor()
             cur.execute("delete from Reports where atelNum = 20001")
             cur.close()
@@ -240,7 +239,7 @@ def _set_last_updated_date(date: datetime):
     Args:
         date (datetime): The date that the database was updated with the latest ATel reports.
     """
-    cn = db_helper._connect()
+    cn = db_interface._connect()
     cur:MySQLCursor = cn.cursor()
 
     query = ("update Metadata "
