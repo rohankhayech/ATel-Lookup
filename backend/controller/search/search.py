@@ -33,7 +33,7 @@ from datetime import datetime
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
 from model.ds.search_filters import SearchFilters
-import model.db_helper as db
+import model.db.db_interface as db
 from controller.search import query_simbad as qs
 
 
