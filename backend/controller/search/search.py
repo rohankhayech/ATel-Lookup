@@ -100,6 +100,7 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     if exists:
         # The object exists in the local database, check to see if it needs to be updated. 
         _check_object_updates(name, last_updated)
+        coordinates = db.get_object_coords(name)
     else:
         # The object does not exist, invoke an external (SIMBAD) search. 
         query_result = qs.query_simbad_by_name(name, True)
