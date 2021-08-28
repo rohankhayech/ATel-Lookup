@@ -69,6 +69,11 @@ test_auto_success_no_atel_given = {
     "import_mode": "auto",
 }
 
+test_report_not_found_error = {
+    "import_mode": "manual",
+    "atel_num": 74632
+}
+
 test_search_basic = {
     "search_mode": "name",
     "search_data": "Steph Curry",
@@ -132,6 +137,11 @@ class TestWebInterfaceImports(ut.TestCase):
         response = self.app.post('/import', json = test_manual_success)
         self.assertEqual(response.json.get("flag"), 1)
         #Here and below is where i will test the import_report and import_all_reports function calls + exception handling
+
+    def test_report_not_found_error(self):
+        response = self.app.post('/import', json = test_report_not_found_error)
+        self.assertEqual(response.json.get("flag"), 0)
+        #giving the function a atel number that does not exist, should give back report not found exception, and set flag to 0
 
 
 

@@ -153,16 +153,16 @@ def imports() -> json:
         flag = 0   
 
     if flag == 1:
-        # try:
-        #     if import_mode_in == "manual":
-        #         import_report(atel_num_in)
-        #         print("made it here")
-        #     elif import_mode_in == "auto":
-        #         import_all_reports()
-        # except ReportAlreadyExistsException as e:
-        #     flag = 0
-        # except ReportNotFoundException as e:
-        #     flag = 0
+        try:
+            if import_mode_in == "manual":
+                # import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
+                pass
+            elif import_mode_in == "auto":
+                import_all_reports()
+        except ReportAlreadyExistsError as e:
+            flag = 0
+        except ReportNotFoundError as e:
+            flag = 0
         pass
 
     return jsonify({"flag": flag})
@@ -194,13 +194,13 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
-    print("\n")
-    print(search_mode_in)
-    print(search_data_in)
-    print(keywords_in)
-    print(keyword_mode_in)
-    print(start_date_in)
-    print(end_date_in)
+    # print("\n")
+    # print(search_mode_in)
+    # print(search_data_in)
+    # print(keywords_in)
+    # print(keyword_mode_in)
+    # print(start_date_in)
+    # print(end_date_in)
 
     if search_mode_in == "coords":
         if len(search_data_in) == 3:
