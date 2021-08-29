@@ -147,6 +147,9 @@ def _check_object_updates(name: str, last_updated: datetime):
     Args: 
         name (str): The object's identifier. 
         last_updated (datetime): The last updated date. 
+
+    Raises:
+        QuerySimbadError (from query_simbad.get_aliases()). 
     """
     try:
         diff = datetime.today() - last_updated

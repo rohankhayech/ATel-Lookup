@@ -152,10 +152,23 @@ def get_aliases(id: str) -> list[str]:
         id (str): The object identifier. 
 
     Returns:
-        list[str]: A list of aliases. 
+        list[str]: A list of aliases. List is empty if no aliases exist. 
+
+    Raises:
+        QuerySimbadError: if a network error occurs while contacting the 
+            SIMBAD server using the Astroquery package.  
     """
-    aliases_table = Simbad.query_objectids(id)
-    aliases_list = _get_names_from_table(aliases_table)
+    try:
+        aliases_table = Simbad.query_objectids(id)
+        aliases_list = _get_names_from_table(aliases_table)
+    except ConnectionError as e:
+        raise QuerySimbadError(f"Failed to establish a network connection: {str(e)}")
+    except HTTPError as e:
+        raise QuerySimbadError(str(e))
+    except UserWarning as e:
+        # No aliases found.
+        return [] 
+
     return aliases_list
 
 
