@@ -150,20 +150,10 @@ def _check_object_updates(name: str, last_updated: datetime):
 
     Raises:
         QuerySimbadError (from query_simbad.get_aliases()). 
+        ObjectNotFoundError (from db_interface.add_aliases())
     """
-    try:
-        diff = datetime.today() - last_updated
-        if diff.days >= UPDATE_OBJECT_DAYS:
-            # The object requires updating, check for its aliases. 
-            aliases = qs.get_aliases(name)
-            db.add_aliases(name, aliases)
-    except ObjectNotFoundError:
-        # TODO: Handle ObjectNotFoundError. 
-        # Perhaps this should not be handled as the object should 
-        # exist in the database prior to calling this function. 
-        pass
-
-
-# TODO: Stub, move this to the database module. 
-class ObjectNotFoundError(Exception):
-    pass 
+    diff = datetime.today() - last_updated
+    if diff.days >= UPDATE_OBJECT_DAYS:
+        # The object requires updating, check for its aliases. 
+        aliases = qs.get_aliases(name)
+        db.add_aliases(name, aliases)
