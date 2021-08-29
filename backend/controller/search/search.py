@@ -92,7 +92,11 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
         QuerySimbadError: If there is an issue connecting to the SIMBAD server. 
             It's important this error is handled by the front-end as an error/warning
             message should be displayed to the user. 
+        ValueError: If SearchFilters is none. 
     """
+    if search_filters is None:
+        raise ValueError("SearchFilters cannot be None")
+
     # Check if the object already exists in the local database. 
     exists, last_updated = db.object_exists(name)
 
