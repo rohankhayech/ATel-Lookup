@@ -23,6 +23,7 @@ License Terms and Copyright:
 
 import re
 
+from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
 
 from bs4 import BeautifulSoup
@@ -31,59 +32,59 @@ from astropy.coordinates import SkyCoord
 
 # Regex for extracting keywords
 KEYWORDS_REGEX = ["radio",
-                        "millimeter",
-                        "sub-millimeter",
-                        "far-infra-red",
-                        "infra-red",
-                        "optical",
-                        "ultra-violet",
-                        "x-ray",
-                        "gamma ray",
-                        "> gev",
-                        "tev",
-                        "vhe",
-                        "uhe",
-                        "neutrinos",
-                        "a comment",
-                        "agn",
-                        "asteroid\(binary\)",
-                        "asteroid",
-                        "binary",
-                        "black hole",
-                        "blazar",
-                        "cataclysmic variable",
-                        "comet",
-                        "cosmic rays",
-                        "direct collapse event",
-                        "exoplanet",
-                        "fast radio burst",
-                        "gamma-ray burst",
-                        "globular cluster",
-                        "gravitational lensing",
-                        "gravitational waves",
-                        "magnetar",
-                        "meteor",
-                        "microlensing event",
-                        "near-earth object",
-                        "neutron star",
-                        "nova",
-                        "planet\(minor\)",
-                        "planet",
-                        "potentially hazardous asteroid",
-                        "pre-main-sequence star",
-                        "pulsar",
-                        "quasar",
-                        "request for observations",
-                        "soft gamma-ray repeater",
-                        "solar system object",
-                        "star",
-                        "supernova remnant",
-                        "supernovae",
-                        "the sun",
-                        "tidal disruption event",
-                        "transient",
-                        "variables",
-                        "young stellar object" ]
+                  "millimeter",
+                  "sub-millimeter",
+                  "far-infra-red",
+                  "infra-red",
+                  "optical",
+                  "ultra-violet",
+                  "x-ray",
+                  "gamma ray",
+                  "> gev",
+                  "tev",
+                  "vhe",
+                  "uhe",
+                  "neutrinos",
+                  "a comment",
+                  "agn",
+                  "asteroid\(binary\)",
+                  "asteroid",
+                  "binary",
+                  "black hole",
+                  "blazar",
+                  "cataclysmic variable",
+                  "comet",
+                  "cosmic rays",
+                  "direct collapse event",
+                  "exoplanet",
+                  "fast radio burst",
+                  "gamma-ray burst",
+                  "globular cluster",
+                  "gravitational lensing",
+                  "gravitational waves",
+                  "magnetar",
+                  "meteor",
+                  "microlensing event",
+                  "near-earth object",
+                  "neutron star",
+                  "nova",
+                  "planet\(minor\)",
+                  "planet",
+                  "potentially hazardous asteroid",
+                  "pre-main-sequence star",
+                  "pulsar",
+                  "quasar",
+                  "request for observations",
+                  "soft gamma-ray repeater",
+                  "solar system object",
+                  "star",
+                  "supernova remnant",
+                  "supernovae",
+                  "the sun",
+                  "tidal disruption event",
+                  "transient",
+                  "variables",
+                  "young stellar object" ]
 
 # Parser functions
 def parse_report(atel_num: int, html_string: str) -> ImportedReport:
@@ -200,17 +201,22 @@ def extract_keywords(body_text: str) -> list[str]:
         list[str]: List of keywords found.
     """
 
-    regex = ''
+    i = 0
+    keywords = []
 
-    # Regex to match all keywords
-    for keyword in FIXED_KEYWORDS_REGEX:
-        regex = f'{regex}{keyword}|'
+    # Finds all keywords in the body text of ATel report
+    for keyword in KEYWORDS_REGEX:
+        # Ensures that only full words will be identified as keywords
+        regex = f'[^a-z]{keyword}[^a-z]'
 
-    # Removes the last OR operator from regex
-    regex = regex.rstrip(regex[-1])
+        # Attempts to find keyword in the body text using regex
+        keyword_regex = re.compile(regex)
+        keyword_found = keyword_regex.search(f' {body_text.lower()} ')
 
-    # Finds all keywords in the body text using regex
-    keywords_regex = re.compile(regex)
-    keywords = keywords_regex.findall(body_text.lower())
+        # Adds keyword to list if it is found in the body text
+        if keyword_found is not None:
+            keywords.append(FIXED_KEYWORDS[i])
 
-    return list(dict.fromkeys(keywords))
+        i = i + 1
+
+    return keywords
