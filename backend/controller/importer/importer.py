@@ -25,6 +25,7 @@ from model.db.db_interface import report_exists, add_report
 from controller.importer.parser import parse_report
 
 from requests_html import HTMLSession
+from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
@@ -88,6 +89,8 @@ def download_report(atel_num: int) -> str:
         DownloadFailError: Thrown when the HTML could not be downloaded.
     """
 
+    session = None
+
     try:
         # Generates the URL of ATel page
         url = f'https://www.astronomerstelegram.org/?read={atel_num}'
@@ -99,6 +102,12 @@ def download_report(atel_num: int) -> str:
         # Fully loads the HTML of ATel page
         request.html.render(timeout=20)
         html = request.html.raw_html
+
+        # Determines whether ATel report exists
+        #soup = BeautifulSoup(html, 'html.parser')
+        #texts = soup.find_all('p', {'class': None, 'align': None})
+
+        #if(texts[].get_text(strip==True))
 
         return html
     except ConnectionError as err:
