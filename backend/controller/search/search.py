@@ -125,10 +125,11 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     # Search the coordinate range for additional related reports. 
     by_coord_range = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
 
-    # Append the list with reports with the same coordinates. 
-    for additional_report in by_coord_range:
-        if not additional_report in reports:
-            reports.append(additional_report)
+    if by_coord_range is not None:
+        # Append the list with reports with the same coordinates. 
+        for additional_report in by_coord_range:
+            if not additional_report in reports:
+                reports.append(additional_report)
 
     return reports
 
