@@ -96,6 +96,8 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     """
     if search_filters is None:
         raise ValueError("SearchFilters cannot be None")
+    if name is None:
+        raise ValueError("Object name not specified")
 
     # Check if the object already exists in the local database. 
     exists, last_updated = db.object_exists(name)
