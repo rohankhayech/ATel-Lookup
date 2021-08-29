@@ -23,12 +23,67 @@ License Terms and Copyright:
 
 import re
 
-from model.constants import FIXED_KEYWORDS_REGEX
 from model.ds.report_types import ImportedReport
 
 from bs4 import BeautifulSoup
 from datetime import datetime
 from astropy.coordinates import SkyCoord
+
+# Regex for extracting keywords
+KEYWORDS_REGEX = ["radio",
+                        "millimeter",
+                        "sub-millimeter",
+                        "far-infra-red",
+                        "infra-red",
+                        "optical",
+                        "ultra-violet",
+                        "x-ray",
+                        "gamma ray",
+                        "> gev",
+                        "tev",
+                        "vhe",
+                        "uhe",
+                        "neutrinos",
+                        "a comment",
+                        "agn",
+                        "asteroid\(binary\)",
+                        "asteroid",
+                        "binary",
+                        "black hole",
+                        "blazar",
+                        "cataclysmic variable",
+                        "comet",
+                        "cosmic rays",
+                        "direct collapse event",
+                        "exoplanet",
+                        "fast radio burst",
+                        "gamma-ray burst",
+                        "globular cluster",
+                        "gravitational lensing",
+                        "gravitational waves",
+                        "magnetar",
+                        "meteor",
+                        "microlensing event",
+                        "near-earth object",
+                        "neutron star",
+                        "nova",
+                        "planet\(minor\)",
+                        "planet",
+                        "potentially hazardous asteroid",
+                        "pre-main-sequence star",
+                        "pulsar",
+                        "quasar",
+                        "request for observations",
+                        "soft gamma-ray repeater",
+                        "solar system object",
+                        "star",
+                        "supernova remnant",
+                        "supernovae",
+                        "the sun",
+                        "tidal disruption event",
+                        "transient",
+                        "variables",
+                        "young stellar object" ]
 
 # Parser functions
 def parse_report(atel_num: int, html_string: str) -> ImportedReport:
