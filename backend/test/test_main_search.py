@@ -148,6 +148,9 @@ class TestSearchByName(ut.TestCase):
 
     
     def test_object_not_in_db(self):
+        '''
+        Case 3: An object that exists in the SIMBAD database, with aliases. 
+        '''
         mock = search 
         mock.db.object_exists = MagicMock(return_value=(False, None))
         mock._check_object_updates = MagicMock() 
