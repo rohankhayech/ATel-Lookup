@@ -155,7 +155,7 @@ def imports() -> json:
     if flag == 1:
         try:
             if import_mode_in == "manual":
-                # import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
+                import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
                 pass
             elif import_mode_in == "auto":
                 import_all_reports()
