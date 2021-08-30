@@ -38,54 +38,74 @@ from controller.search import query_simbad as qs
 from controller.search import search
 
 
-def none_return():
-    return None 
-
-
 class TestCheckObjectUpdates(ut.TestCase):
     def setUp(self):
+        # Current date.
         self.dt_now = datetime.now()
+        # Almost 60 days.
         self.dt_almost = datetime.now() - timedelta(days=59)
+        # Exactly 60 days (requires updating)
         self.dt_exact = datetime.now() - timedelta(days=60)
+        # More than 60 days (20 days, requires updating). 
         self.dt_old = datetime.now() - timedelta(days=200)
 
 
     def test_up_to_date(self):
-        search_mock = search
-        search_mock.qs.get_aliases = MagicMock()
+        '''
+        Case 1: Object is up-to-date already (the datetime is either today's date 
+        or almosy 60 days). See the setUp method for details. 
+        '''
+        mock = search
+        mock.qs.get_aliases = MagicMock()
+        mock.db.add_aliases = MagicMock()
 
-        search_mock._check_object_updates("object", self.dt_now) 
-        search_mock.qs.get_aliases.assert_not_called()
-        search_mock._check_object_updates("object", self.dt_almost) 
-        search_mock.qs.get_aliases.assert_not_called()
+        # dt_now and dt_almost are less than 60 days. 
+        mock._check_object_updates("object", self.dt_now) 
+        mock.qs.get_aliases.assert_not_called()
+        mock.db.add_aliases.assert_not_called()
+        mock._check_object_updates("object", self.dt_almost) 
+        mock.qs.get_aliases.assert_not_called()
+        mock.db.add_aliases.assert_not_called()
 
 
     def test_needs_update_no_network(self):
-        search_mock = search 
+        '''
+        Case 2: The date is >= 60 days and needs updating, but there is a network error
+        preventing the SIMBAD query. 
+        '''
+        mock = search 
 
-        search_mock.qs.get_aliases = MagicMock(side_effect=QuerySimbadError("Error")) 
+        mock.qs.get_aliases = MagicMock(side_effect=QuerySimbadError("Error")) 
+        mock.db.add_aliases = MagicMock() 
 
         with self.assertRaises(QuerySimbadError):
-            search_mock._check_object_updates("object", self.dt_old)
-            search_mock._check_object_updates("object", self.dt_exact)
+            mock._check_object_updates("object", self.dt_old)
+            mock._check_object_updates("object", self.dt_exact)
+            mock.qs.get_aliases.assert_called_with("object")
+            mock.db.add_aliases.assert_called_with("object", [])
 
 
     def test_needs_update(self):
-        search_mock = search 
+        '''
+        Case 3: The date is >= 60 days and needs updating. 
+        '''
+        mock = search 
         
         # Case 1: SIMBAD does not find any aliases for the object. 
-        search_mock.db.add_aliases = MagicMock() 
-        search_mock.qs.get_aliases = MagicMock(return_value=[])
+        mock.db.add_aliases = MagicMock() 
+        mock.qs.get_aliases = MagicMock(return_value=[])
 
-        search_mock._check_object_updates("test", self.dt_old)
-        search_mock.db.add_aliases.assert_called_once_with("test", [])
+        mock._check_object_updates("test1", self.dt_old)
+        mock.db.add_aliases.assert_called_once_with("test1", [])
+        mock.qs.get_aliases.assert_called_with("test1")
 
         # Case 2: SIMBAD query returns alias list 
-        search_mock.db.add_aliases = MagicMock() 
-        search_mock.qs.get_aliases = MagicMock(return_value=["alias1", "alias2", "alias3"])
+        mock.db.add_aliases = MagicMock() 
+        mock.qs.get_aliases = MagicMock(return_value=["alias1", "alias2", "alias3"])
 
-        search_mock._check_object_updates("test", self.dt_old)
-        search_mock.db.add_aliases.assert_called_once_with("test", ["alias1", "alias2", "alias3"])
+        mock._check_object_updates("test2", self.dt_old)
+        mock.db.add_aliases.assert_called_once_with("test2", ["alias1", "alias2", "alias3"])
+        mock.qs.get_aliases.assert_called_with("test2")
 
 
 class TestSearchByName(ut.TestCase):
@@ -111,7 +131,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.add_object = MagicMock()
 
         # Call the mocked function. 
-        self.assertIsNone(mock.search_reports_by_name(self.filters, "name"))
+        self.assertEqual(mock.search_reports_by_name(self.filters, "name"), [])
 
         mock._check_object_updates.assert_not_called()
         mock.db.get_object_coords.assert_not_called() 
@@ -135,6 +155,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
 
         result = mock.search_reports_by_name(self.filters, "name")
+
         mock.db.object_exists.assert_called_with("name")
         mock.qs.query_simbad_by_name.assert_not_called()
         mock.db.get_object_coords.assert_called_with("name")
@@ -170,16 +191,13 @@ class TestSearchByName(ut.TestCase):
 
         self.assertEqual(mock.db.object_exists("name"), (True, self.dt_old))
 
-        result = mock.db.object_exists.assert_called_with("name")
+        mock.db.object_exists.assert_called_with("name")
         mock.qs.query_simbad_by_name.assert_not_called()
         mock.db.add_object.assert_not_called()
 
-        diff = datetime.today() - self.dt_old
-        self.assertTrue(diff.days >= UPDATE_OBJECT_DAYS)
-
         mock._check_object_updates.assert_called_with("name", self.dt_old)
 
-    
+
     def test_object_not_in_db(self):
         '''
         Case 4: An object that exists in the SIMBAD database, but not the local database.
@@ -189,12 +207,12 @@ class TestSearchByName(ut.TestCase):
         mock._check_object_updates = MagicMock() 
         mock.qs.query_simbad_by_name = MagicMock(return_value=("mainid", self.sample_coords, ["alias1", "alias2"])) 
         mock.db.add_object = MagicMock()
-        mock.db.add_aliases = MagicMock()
         mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
 
         result = mock.search_reports_by_name(self.filters, "name")
+
         mock.db.object_exists.assert_called_with("name")
         mock._check_object_updates.assert_not_called()
         mock.db.get_object_coords.assert_not_called()
@@ -202,9 +220,9 @@ class TestSearchByName(ut.TestCase):
         mock.db.add_object.assert_called_with("mainid", self.sample_coords, ["alias1", "alias2"])
         mock.db.find_reports_by_object.assert_called_with(self.filters, "name")
         mock.db.find_reports_in_coord_range.assert_called_with(self.filters, self.sample_coords, DEFAULT_RADIUS)
-        mock.db.add_aliases.assert_not_called()
 
         self.assertIsNotNone(result)
+        self.assertNotEqual(result, [])
         self.assertEqual(result, [self.sample_report])
 
 
