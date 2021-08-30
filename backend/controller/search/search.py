@@ -86,7 +86,7 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
 
     Returns:
         list[ReportResult]: The reports found in the local database that match
-            the name, or None if no object is found. 
+            the name.
 
     Raises:
         QuerySimbadError: If there is an issue connecting to the SIMBAD server. 
@@ -121,7 +121,7 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
         else:
             # There were no reports found in the local database
             # and no results found by SIMBAD, therefore there is no result.
-            return None
+            return []
 
     # After update checking and external search, query the local database 
     # for all reports. 
@@ -130,6 +130,9 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
     reports = db.find_reports_by_object(search_filters, name)
     # Search the coordinate range for additional related reports. 
     by_coord_range = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
+
+    if reports is None: 
+        reports = []
 
     if by_coord_range is not None:
         # Append the list with reports with the same coordinates. 
