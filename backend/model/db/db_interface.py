@@ -36,6 +36,7 @@ from mysql.connector.cursor import MySQLCursor
 from model.ds.report_types import ImportedReport, ReportResult
 from model.ds.search_filters import SearchFilters, KeywordMode
 from model.ds.alias_result import AliasResult
+from controller.helper.type_checking import list_is_type
 
 # Public functions
 def get_hashed_password(username: str) -> str:
@@ -189,7 +190,33 @@ def get_all_aliases() -> list[AliasResult]:
     Returns:
         list[AliasResult]: A list of AliasResult objects, containing aliases and their associated object ID, or None if no aliases are stored.
     """
-    return [AliasResult("example", "x")]  # stub
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = "select alias, objectIDFK from Aliases"
+
+    aliases = []
+
+    try:
+        cur.execute(query)
+        for row in cur.fetchall():
+            #extract data
+            atel_num:int = row[0]
+            object_ID:str = row[1]
+            
+            #create result object and add to list
+            alias_result = AliasResult(atel_num,object_ID)
+            aliases.append(aliases)
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cur.close()
+        cn.close()
+
+    if len(aliases) == 0:
+        return None
+    else:
+        return aliases
 
 
 def get_next_atel_num() -> int:
@@ -272,14 +299,53 @@ def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
     Stores a new celestial object with the specified coordinates and it’s known aliases in the database.
 
     Args:
-        object_id (str): The object’s main ID from SIMBAD.
+        object_id (str): The object’s main ID from SIMBAD. (Max 255 chars)
         coords (SkyCoord): The object's coordinates.
         aliases (list[str]): list of strings representing alternative IDs/aliases for the object.
 
     Raises:
         ExistingObjectError: When the specified object ID is already associated with an object stored in the database.
     """
-    pass
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+    
+    # Type conversion/check
+    object_id = str(object_id)
+    if ((type(coords) is not SkyCoord) or (not list_is_type(aliases,str))):
+        raise TypeError("Invalid coords or list of aliases.")
+
+    # Check length is valid
+    if len(object_id) in range(1, 256):
+        # connect to database
+        cn = _connect()
+        cur: MySQLCursor = cn.cursor()
+
+        # setup query
+        query = ("insert into Objects" 
+                " (objectID, ra, declination)" 
+                " values (%s, %s, %s)")
+
+        data = (object, SkyCoord.ra.deg.item(), SkyCoord.dec.deg.item())
+
+        # execute query and handle errors
+        try:
+            cur.execute(query, data)
+        except mysql.connector.Error as e:
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                raise ExistingObjectError()
+            else:
+                raise e
+        finally:
+            cn.commit()
+            cur.close()
+            cn.close()
+    else:
+        raise ValueError(
+            "Specified object_id must be valid lengths and non-empty."
+        )
+
+    # Add aliases
+    add_aliases(object_id,aliases)
 
 
 def add_aliases(object_id: str, aliases: list[str]):
@@ -306,7 +372,21 @@ def object_exists(alias:str)->tuple[bool,datetime]:
         bool: True if an object with the specified alias exists, false otherwise.
         datetime: The date the specified object was last updated via SIMBAD, or None if no object exists.
     """
-    return False, None
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = (f"select lastUpdated from Objects"
+             f" where objectID = %s")
+
+    cur.execute(query, (id,))
+
+    result = cur.fetchone()
+
+    if result[0]:
+        lastUpdated = result[0]
+        return True, lastUpdated
+    else:
+        return False, None
 
 def get_object_coords(alias: str) -> SkyCoord:
     """
@@ -398,7 +478,13 @@ class ExistingUserError(Exception):
 
 class ExistingReportError(Exception):
     """
-    When the ATel number of the specified report is already associated with a report stored in the database.
+    Raised when the ATel number of the specified report is already associated with a report stored in the database.
+    """
+
+
+class ExistingObjectError(Exception):
+    """
+    Raised when the specified object ID is already associated with an object stored in the database.
     """
 
 class UserNotFoundError(Exception):
