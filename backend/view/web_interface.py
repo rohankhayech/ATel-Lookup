@@ -25,7 +25,7 @@ from datetime import datetime
 from astropy.coordinates import SkyCoord
 import json
 from typing import Tuple
-from backend.model.ds.search_filters import KeywordMode
+from model.ds.search_filters import KeywordMode
 from enum import Enum
 import enum
 
@@ -56,7 +56,10 @@ def parse_search_coords(ra: str, dec: str, radius: str) -> SkyCoord:
         SkyCoord: A SkyCoord object representing the parsed coordinates. 
 
     '''
-    return SkyCoord(0,0,0) #stub
+
+    # validation goes here
+
+    return SkyCoord(ra,dec,radius) #stub #this does not work, need to figure out how to create a skycoord object
 
 
 def valid_ra(ra: str) -> bool:
