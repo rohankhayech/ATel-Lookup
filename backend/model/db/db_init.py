@@ -32,7 +32,7 @@ from model.db.db_interface import _connect
 
 # Constants
 
-_LATEST_SCHEMA_VERSION: int = 2
+_LATEST_SCHEMA_VERSION: int = 3
 """ 
 Version number of the latest database schema.
 This must be increased every time the schema is upgraded.
@@ -138,6 +138,7 @@ def _create_db():
     user_table = _read_table("AdminUsers")
     reports_table = _read_table("Reports")
     metadata_table = _read_table("Metadata")
+    objects_table = _read_table("Objects")
 
     # Add keywords to reports schema
     sep = "', '"
@@ -149,6 +150,7 @@ def _create_db():
         cur.execute(user_table)
         cur.execute(reports_table)
         cur.execute(metadata_table)
+        cur.execute(objects_table)
 
         #Add single metadata entry
         cur.execute(
@@ -179,6 +181,7 @@ def _upgrade_db(old_schema_version: int):
     user_table = _read_table_upgrade("AdminUsers")
     reports_table = _read_table_upgrade("Reports")
     metadata_table = _read_table_upgrade("Metadata")
+    objects_table = _read_table_upgrade("Objects")
 
     metadata_query = ("update Metadata "
                       "set schemaVersion = %s;")
@@ -188,6 +191,7 @@ def _upgrade_db(old_schema_version: int):
         cur.execute(user_table)
         cur.execute(reports_table)
         cur.execute(metadata_table)
+        cur.execute(objects_table)
 
         #Update version
         cur.execute(metadata_query, (_LATEST_SCHEMA_VERSION,))
@@ -253,6 +257,7 @@ def _reset_db():
         cur.execute("drop table AdminUsers;")
         cur.execute("drop table Metadata;")
         cur.execute("drop table Reports;")
+        cur.execute("drop table Objects;")
     except mysql.connector.Error as err:
         print(err.msg)
     finally:
