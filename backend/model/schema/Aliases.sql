@@ -1,5 +1,5 @@
 create table Aliases (
     alias varchar(255) primary key,
-    objectIDFK varchar not null,
-    foreign key objectIDFK references Objects(objectID)
+    objectIDFK varchar(255) not null,
+    foreign key (objectIDFK) references Objects(objectID) on update cascade on delete cascade
 )

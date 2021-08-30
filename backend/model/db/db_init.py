@@ -264,10 +264,10 @@ def _reset_db():
     try:
         cur.execute("drop table AdminUsers;")
         cur.execute("drop table Metadata;")
-        cur.execute("drop table Reports;")
-        cur.execute("drop table Objects;")
         cur.execute("drop table ObjectRefs;")
         cur.execute("drop table Aliases;")
+        cur.execute("drop table Reports;")
+        cur.execute("drop table Objects;")
     except mysql.connector.Error as err:
         print(err.msg)
     finally:
