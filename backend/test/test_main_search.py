@@ -24,6 +24,7 @@ License Terms and Copyright:
 """
 
 
+from controller.search.search import UPDATE_OBJECT_DAYS
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
 from astropy.coordinates import SkyCoord
@@ -72,17 +73,17 @@ class TestCheckObjectUpdates(ut.TestCase):
     def test_needs_update(self):
         search_mock = search 
         
-        search_mock.db.add_aliases = MagicMock() 
-
         # Case 1: SIMBAD does not find any aliases for the object. 
+        search_mock.db.add_aliases = MagicMock() 
         search_mock.qs.get_aliases = MagicMock(return_value=[])
+
         search_mock._check_object_updates("test", self.dt_old)
         search_mock.db.add_aliases.assert_called_once_with("test", [])
 
-        search_mock.db.add_aliases = MagicMock() 
-
         # Case 2: SIMBAD query returns alias list 
+        search_mock.db.add_aliases = MagicMock() 
         search_mock.qs.get_aliases = MagicMock(return_value=["alias1", "alias2", "alias3"])
+
         search_mock._check_object_updates("test", self.dt_old)
         search_mock.db.add_aliases.assert_called_once_with("test", ["alias1", "alias2", "alias3"])
 
@@ -125,31 +126,63 @@ class TestSearchByName(ut.TestCase):
         '''
         mock = search 
         mock.db.object_exists = MagicMock(return_value=(True, self.dt_now))
-        mock._check_object_updates = MagicMock() 
         mock.qs.query_simbad_by_name = MagicMock()
         mock.db.add_object = MagicMock()
         mock.db.add_aliases = MagicMock()
+        mock.qs.get_aliases = MagicMock()
         mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
 
         result = mock.search_reports_by_name(self.filters, "name")
         mock.db.object_exists.assert_called_with("name")
-        mock._check_object_updates.assert_called_with("name", self.dt_now)
-        mock.db.add_object.assert_not_called()
         mock.qs.query_simbad_by_name.assert_not_called()
         mock.db.get_object_coords.assert_called_with("name")
         mock.db.find_reports_by_object.assert_called_with(self.filters, "name")
         mock.db.find_reports_in_coord_range.assert_called_with(self.filters, self.sample_coords, DEFAULT_RADIUS)
+        mock.db.add_object.assert_not_called()
         mock.db.add_aliases.assert_not_called()
+        mock.qs.get_aliases.assert_not_called()
+
+        diff = datetime.today() - self.dt_now
+        self.assertFalse(diff.days >= UPDATE_OBJECT_DAYS)
 
         self.assertIsNotNone(result)
         self.assertEqual(result, [self.sample_report])
 
+
+    def test_object_in_db(self):
+        '''
+        Case 3: An object that exists in the local database, and DOES
+        require updating (last_updated=dt_old)
+        '''
+        mock = search 
+        mock.db.object_exists = MagicMock(return_value=(True, self.dt_old))
+        mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
+        mock.qs.query_simbad_by_name = MagicMock()
+        mock.db.add_object = MagicMock()
+        mock.db.add_aliases = MagicMock()
+        mock.qs.get_aliases = MagicMock()
+        mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
+
+        mock.search_reports_by_name(self.filters, "name")
+
+        self.assertEqual(mock.db.object_exists("name"), (True, self.dt_old))
+
+        result = mock.db.object_exists.assert_called_with("name")
+        mock.qs.query_simbad_by_name.assert_not_called()
+        mock.db.add_object.assert_not_called()
+
+        diff = datetime.today() - self.dt_old
+        self.assertTrue(diff.days >= UPDATE_OBJECT_DAYS)
+
+        mock._check_object_updates.assert_called_with("name", self.dt_old)
+
     
     def test_object_not_in_db(self):
         '''
-        Case 3: An object that exists in the SIMBAD database, with aliases. 
+        Case 4: An object that exists in the SIMBAD database, but not the local database.
         '''
         mock = search 
         mock.db.object_exists = MagicMock(return_value=(False, None))
