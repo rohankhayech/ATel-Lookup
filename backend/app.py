@@ -155,7 +155,7 @@ def imports() -> json:
     if flag == 1:
         try:
             if import_mode_in == "manual":
-                import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
+                # import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
                 pass
             elif import_mode_in == "auto":
                 import_all_reports()
@@ -204,8 +204,8 @@ def search() -> json:
 
     if search_mode_in == "coords":
         if len(search_data_in) == 3:
-            ra = search_data_in[1]
             dec = search_data_in[0]
+            ra = search_data_in[1]
             radius = search_data_in[2]
         else:
             flag = 0
@@ -224,9 +224,9 @@ def search() -> json:
 
     if flag == 1:
         # if search_mode_in == "name":
-        #     search_reports_by_id(search_filters, search_data_in)
+        #     reports = search_reports_by_id(search_filters, search_data_in)
         # elif search_mode_in == "coords":
-        #     search_reports_by_coords(search_filters, )
+        #     reports = search_reports_by_coords(search_filters, *SKYCOORD COORDS*, radius)
         pass
 
 
