@@ -140,6 +140,7 @@ def _create_db():
     metadata_table = _read_table("Metadata")
     objects_table = _read_table("Objects")
     object_refs_table = _read_table("ObjectRefs")
+    aliases_table = _read_table("Aliases")
 
     # Add keywords to reports schema
     sep = "', '"
@@ -153,6 +154,7 @@ def _create_db():
         cur.execute(metadata_table)
         cur.execute(objects_table)
         cur.execute(object_refs_table)
+        cur.execute(aliases_table)
 
         #Add single metadata entry
         cur.execute(
@@ -185,6 +187,7 @@ def _upgrade_db(old_schema_version: int):
     metadata_table = _read_table_upgrade("Metadata")
     objects_table = _read_table_upgrade("Objects")
     object_refs_table = _read_table_upgrade("ObjectRefs")
+    aliases_table = _read_table_upgrade("Aliases")
 
     metadata_query = ("update Metadata "
                       "set schemaVersion = %s;")
@@ -196,6 +199,7 @@ def _upgrade_db(old_schema_version: int):
         cur.execute(metadata_table)
         cur.execute(objects_table)
         cur.execute(object_refs_table)
+        cur.execute(aliases_table)
 
         #Update version
         cur.execute(metadata_query, (_LATEST_SCHEMA_VERSION,))
@@ -263,6 +267,7 @@ def _reset_db():
         cur.execute("drop table Reports;")
         cur.execute("drop table Objects;")
         cur.execute("drop table ObjectRefs;")
+        cur.execute("drop table Aliases;")
     except mysql.connector.Error as err:
         print(err.msg)
     finally:
