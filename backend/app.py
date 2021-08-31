@@ -26,6 +26,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
+from model.ds.search_filters import SearchFilters
 from model.constants import FIXED_KEYWORDS
 from typing import Tuple
 
@@ -210,7 +211,7 @@ def search() -> json:
         flag = 0
     elif search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
-    elif keyword_mode_in != "none" and keyword_mode_in != "some" and keyword_mode_in != "all" and keyword_mode_in != None:
+    elif keyword_mode_in != "none" and keyword_mode_in != "some" and keyword_mode_in != "any" and keyword_mode_in != None:
         flag = 0
     elif start_date_obj > end_date_obj or end_date_obj < start_date_obj:
         flag = 0
@@ -224,26 +225,30 @@ def search() -> json:
             radius = search_data_in[2]
         else:
             flag = 0 # if search data is not fit for coords, set flag to failure
+
+    print(keywords_in)
+    print(keywords_in[0])
+
+    # if keyword_mode_in != None:
+    #     for x in keywords_in:
+    #         for y in FIXED_KEYWORDS:
+    #             if keywords_in[x] != FIXED_KEYWORDS[y]:
+    #                 flag = 0
     
 
-    search_filters = { # creating the search filters object
-        "term": search_data_in,
-        "keywords": keywords_in,
-        "keyword_mode": keyword_mode_in,
-        "start_date": start_date_in,
-        "end_date": end_date_in
-    }
+    # search_filters = SearchFilters(search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in) # creating the search filters object 
 
     # SkyCoord = parse_search_coords(ra, dec, radius) # does not work, throws error, need to figure out how to create skycoord object
+    sky_coord = SkyCoord(ra,dec,frame='icrs', unit=('deg', 'deg'))
 
     if flag == 1:
         if search_mode_in == "name":
             # reports = search_reports_by_id(search_filters, search_data_in) # commented out as search.py produces error with DEFAULT_RADIUS
             pass
         elif search_mode_in == "coords":
-            # reports = search_reports_by_coords(search_filters, *SKYCOORD OBJECT*, radius) #SkyCoord object not operating as expected, and search.py produces error with DEFAULT_RADIUS
+            # reports = search_reports_by_coords(search_filters, sky_coord, radius) #SkyCoord object not operating as expected, and search.py produces error with DEFAULT_RADIUS
             pass
-
+        
     if flag == 1:
         # list_result = create_nodes_list(reports) #not implemented yet 30/08
         pass

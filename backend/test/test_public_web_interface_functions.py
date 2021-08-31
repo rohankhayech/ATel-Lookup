@@ -5,7 +5,7 @@ Author:
     Tully Slattery
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech
+    Copyright (C) 2021 Tully Slattery
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -82,8 +82,8 @@ test_report_already_exists_error = {
 test_search_basic = {
     "search_mode": "name",
     "search_data": "Asteroid",
-    "keywords": "Small, Earth-bound",
-    "keyword_mode": "all",
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "any",
     "start_date": "2021-01-22",
     "end_date": "2021-06-22"
 }
@@ -91,7 +91,7 @@ test_search_basic = {
 test_search_basic_coords = {
     "search_mode": "coords",
     "search_data": [263.520, -22.022, 3.4],
-    "keywords": "Shower",
+    "keywords": ["radio"],
     "keyword_mode": "none",
     "start_date": "2005-03-15",
     "end_date": "2010-09-12"
@@ -100,8 +100,8 @@ test_search_basic_coords = {
 test_search_bad_date = {
     "search_mode": "name",
     "search_data": "Asteroid",
-    "keywords": "Small, Earth-bound",
-    "keyword_mode": "all",
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "any",
     "start_date": "2025-09-06",
     "end_date": "2029-06-22"
 }
@@ -109,8 +109,8 @@ test_search_bad_date = {
 test_search_bad_search_mode = {
     "search_mode": "thing",
     "search_data": "Asteroid",
-    "keywords": "Small, Earth-bound",
-    "keyword_mode": "all",
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "any",
     "start_date": "2007-09-06",
     "end_date": "2009-06-22"
 }
@@ -118,7 +118,7 @@ test_search_bad_search_mode = {
 test_search_bad_keyword_mode = {
     "search_mode": "name",
     "search_data": "Asteroid",
-    "keywords": "Small, Earth-bound",
+    "keywords": ["radio", "optical"],
     "keyword_mode": "asdfgh",
     "start_date": "2003-09-06",
     "end_date": "2004-06-22"
@@ -127,8 +127,8 @@ test_search_bad_keyword_mode = {
 test_search_dates_backwards = {
     "search_mode": "name",
     "search_data": "Asteroid",
-    "keywords": "Small, Earth-bound",
-    "keyword_mode": "all",
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "any",
     "start_date": "2007-01-22",
     "end_date": "2003-06-22"
 }
