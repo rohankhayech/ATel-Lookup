@@ -306,9 +306,6 @@ def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
     Raises:
         ExistingObjectError: When the specified object ID is already associated with an object stored in the database.
     """
-    cn = _connect()
-    cur: MySQLCursor = cn.cursor()
-    
     # Type conversion/check
     object_id = str(object_id)
     if ((type(coords) is not SkyCoord) or (not list_is_type(aliases,str))):
@@ -357,9 +354,46 @@ def add_aliases(object_id: str, aliases: list[str]):
         aliases (list[str]): A list of strings representing alternative ID’s/aliases to add for the specified object.
 
     Raises:
-        ObjectNotFoundError: Raised when the specified object ID is not stored in the database.
+        ObjectNotFoundError: Raised when the specified object ID is not stored in the database. 
     """
-    pass
+    # Type conversion/check
+    object_id = str(object_id)
+    
+    # Check length is valid
+    if len(object_id) in range(1, 256):
+        if object_exists(object_id):
+            # connect to database
+            cn = _connect()
+            cur: MySQLCursor = cn.cursor()
+
+            # setup query
+            query = ("insert into Aliases"
+                    " (alias, objectIDFK)"
+                    " values (%s, %s);")
+
+            for alias in aliases:
+                data = (object_id,alias)
+
+                # execute query and handle errors
+                try:
+                    cur.execute(query, data)
+                except mysql.connector.Error as e:
+                    if e.errno == errorcode.ER_DUP_ENTRY:
+                        pass #ignore any duplicate aliases
+                    else:
+                        raise e
+                finally:
+                    cn.commit()
+                    cur.close()
+                    cn.close()
+        else:
+            raise ObjectNotFoundError("The specified object ID is not stored in the database.")
+    else:
+        raise ValueError(
+            "Specified object_id must be valid lengths and non-empty."
+        )
+
+
 
 def object_exists(alias:str)->tuple[bool,datetime]:
     """
@@ -467,9 +501,6 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:f
 
     #TODO: Check in coord range.
 
-
-
-
 # Exceptions
 class ExistingUserError(Exception):
     """
@@ -482,7 +513,12 @@ class ExistingReportError(Exception):
     """
 
 
-class ExistingObjectError(Exception):
+class ExistingReportError(Exception):
+    """
+    Raised when the ATel number of the specified report is already associated with a report stored in the database.
+    """
+
+class ExistingAliasError(Exception):
     """
     Raised when the specified object ID is already associated with an object stored in the database.
     """
@@ -490,6 +526,11 @@ class ExistingObjectError(Exception):
 class UserNotFoundError(Exception):
     """
     Raised when the specified user is not found in the database.
+    """
+
+class ObjectNotFoundError(Exception):
+    """
+    Raised when the specified object ID is not stored in the database.
     """
 
 # Private functions
