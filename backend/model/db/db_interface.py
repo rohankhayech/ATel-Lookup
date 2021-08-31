@@ -560,7 +560,47 @@ def _link_reports(object_id: str, aliases: list[str]):
     Raises:
         ObjectNotFoundError: Raised when the specified object ID is not stored in the database.
     """
-    pass
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
+
+    reports:list[int] = []
+
+    #query to find all reports with alias in body or title
+    find_query = ("select atel_num"
+            " from Reports"
+            " where title like concat('%', %s, '%')"
+            " or body like concat('%', %s, '%');")
+
+    add_query = ("insert into ObjectRefs"
+                " (atelNumFK, objectIDFK)"
+                " values (%s,%s);")
+
+    if (object_exists(object_id)):
+        try:
+            #loop through every alias
+            for alias in aliases:
+                find_data = (alias, alias)
+                
+                cur.execute(find_query, find_data)
+                for row in cur.fetchall():
+                    #extract data
+                    atel_num = row[0]
+                    #add to list of reports to link
+                    reports.append(atel_num)
+
+            #TODO: link by coords? This is in SRS but not specified where implemented in SAS.
+
+            #loop through each report found and add a record relating it to the specified object
+            for atel_num in reports:
+                add_data = (atel_num, object_id)
+                cur.execute(add_query, add_data)
+        except mysql.connector.Error as e:
+            raise e
+        finally:
+            cur.close()
+            cn.close()
+    else:
+        raise ObjectNotFoundError("The specified object ID is not stored in the database.")
 
 
 def _connect() -> MySQLConnection:
@@ -669,3 +709,4 @@ def _build_report_query(filters: SearchFilters):
     query = base_query + where_clause
 
     return query, data
+
