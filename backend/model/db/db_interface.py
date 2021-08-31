@@ -409,14 +409,14 @@ def object_exists(alias:str)->tuple[bool,datetime]:
     cn = _connect()
     cur: MySQLCursor = cn.cursor()
 
-    query = (f"select lastUpdated from Objects"
-             f" where objectID = %s")
+    query = ("select lastUpdated from Objects"
+             " where objectID = %s")
 
     cur.execute(query, (id,))
 
     result = cur.fetchone()
 
-    if result[0]:
+    if result:
         lastUpdated = result[0]
         return True, lastUpdated
     else:
@@ -435,7 +435,22 @@ def get_object_coords(alias: str) -> SkyCoord:
     Raises:
         ObjectNotFoundError: Raised when the specified alias is not stored in the database.
     """
-    return SkyCoord(0.0, 0.0)
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+
+    query = ("select ra, declination from Objects"
+             " where objectID = %s")
+
+    cur.execute(query, (id,))
+
+    result = cur.fetchone()
+
+    if result:
+        ra = result[0]
+        dec = result[1]
+        return SkyCoord(ra, dec, frame='icrs', unit=('hourangle', 'deg'))
+    else:
+        raise ObjectNotFoundError("The specified object ID is not stored in the database.")
 
 
 def find_reports_by_object(filters: SearchFilters = None, object_name: str = None) -> list[ReportResult]:
@@ -513,9 +528,9 @@ class ExistingReportError(Exception):
     """
 
 
-class ExistingReportError(Exception):
+class ExistingObjectError(Exception):
     """
-    Raised when the ATel number of the specified report is already associated with a report stored in the database.
+    Raised when the specified object ID is already associated with an object stored in the database.
     """
 
 class ExistingAliasError(Exception):
