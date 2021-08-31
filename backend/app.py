@@ -161,7 +161,7 @@ def imports() -> json:
                 import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
                 pass
             elif import_mode_in == "auto":
-                import_all_reports()
+                import_all_reports() 
         except ReportAlreadyExistsError as e:
             flag = 0
         except ReportNotFoundError as e:
@@ -188,7 +188,7 @@ def search() -> json:
 
     """
 
-    flag = 1
+    flag = 1 # set initial flag to success
 
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
@@ -197,27 +197,36 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
-    # print("\n")
-    # print(search_mode_in)
-    # print(search_data_in)
-    # print(keywords_in)
-    # print(keyword_mode_in)
-    # print(start_date_in)
-    # print(end_date_in)
+    if start_date_in != None:
+        start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d").date()
+    
+    if end_date_in != None:
+        end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d").date()
+    
+    
+    if search_data_in == None and keywords_in == None and keyword_mode_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
+        flag = 0
+    elif start_date_obj > datetime.now().date() or end_date_obj > datetime.now().date():
+        flag = 0
+    elif search_mode_in != "coords" and search_mode_in != "name":
+        flag = 0
+    elif keyword_mode_in != "none" and keyword_mode_in != "some" and keyword_mode_in != "all" and keyword_mode_in != None:
+        flag = 0
+    elif start_date_obj > end_date_obj or end_date_obj < start_date_obj:
+        flag = 0
+    
 
-    if search_mode_in == "coords":
+
+    if search_mode_in == "coords": # if the search mode is "coords" need to make sure there is three values given
         if len(search_data_in) == 3:
             dec = search_data_in[0]
             ra = search_data_in[1]
             radius = search_data_in[2]
         else:
-            flag = 0
-
-    if search_data_in == None and keywords_in == None and keyword_mode_in == None:
-        flag = 0
+            flag = 0 # if search data is not fit for coords, set flag to failure
     
 
-    search_filters = {
+    search_filters = { # creating the search filters object
         "term": search_data_in,
         "keywords": keywords_in,
         "keyword_mode": keyword_mode_in,
@@ -225,18 +234,18 @@ def search() -> json:
         "end_date": end_date_in
     }
 
-    # SkyCoord = parse_search_coords(ra, dec, radius) #does not work, throws error, need to figure out how to create skycoord object
+    # SkyCoord = parse_search_coords(ra, dec, radius) # does not work, throws error, need to figure out how to create skycoord object
 
     if flag == 1:
         if search_mode_in == "name":
-            # reports = search_reports_by_id(search_filters, search_data_in)
+            # reports = search_reports_by_id(search_filters, search_data_in) # commented out as search.py produces error with DEFAULT_RADIUS
             pass
         elif search_mode_in == "coords":
-            # reports = search_reports_by_coords(search_filters, *SKYCOORD OBJECT*, radius) #SkyCoord object not operating as expected
+            # reports = search_reports_by_coords(search_filters, *SKYCOORD OBJECT*, radius) #SkyCoord object not operating as expected, and search.py produces error with DEFAULT_RADIUS
             pass
 
     if flag == 1:
-        # list_result = create_nodes_list(reports) #not working yet 30/08
+        # list_result = create_nodes_list(reports) #not implemented yet 30/08
         pass
 
 
