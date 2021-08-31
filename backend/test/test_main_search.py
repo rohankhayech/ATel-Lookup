@@ -129,6 +129,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.get_object_coords = MagicMock()
         mock.qs.query_simbad_by_name = MagicMock(return_value=None)
         mock.db.add_object = MagicMock()
+        mock.db.find_reports_by_object = MagicMock(return_value=None)
 
         # Call the mocked function. 
         self.assertEqual(mock.search_reports_by_name(self.filters, "name"), [])
@@ -226,14 +227,35 @@ class TestSearchByName(ut.TestCase):
         self.assertEqual(result, [self.sample_report])
 
 
-    def test_invalid_filters(self):
-        with self.assertRaises(ValueError):
-            search.search_reports_by_name(None, "name")
+    def test_only_searchfilters(self):
+        mock = search 
 
+        # Within the if-statement (should not be called)
+        mock.db.object_exists = MagicMock()
+        mock._check_object_updates = MagicMock() 
+        mock.db.get_object_coords = MagicMock()
+        mock.db.add_object = MagicMock() 
 
-    def test_invalid_name(self):
+        # Outside the if-statement:
+        mock.db.find_reports_by_object = MagicMock(return_value=None)
+        mock.db.find_reports_in_coord_range = MagicMock()
+
+        mock.search_reports_by_name(self.filters, None)
+
+        for func in [mock.db.object_exists, 
+            mock._check_object_updates, 
+            mock.db.get_object_coords, 
+            mock.db.add_object,
+            mock.db.find_reports_in_coord_range
+        ]:
+            func.assert_not_called()
+        
+        mock.db.find_reports_by_object.assert_called_with(self.filters, None)
+
+        
+    def test_invalid_imports(self):
         with self.assertRaises(ValueError):
-            search.search_reports_by_name(self.filters, None)
+            search.search_reports_by_name(None, None)
 
 
 if __name__ == '__main__':

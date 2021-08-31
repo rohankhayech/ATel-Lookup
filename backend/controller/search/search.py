@@ -76,7 +76,10 @@ def search_reports_by_coords(search_filters: SearchFilters,
     return [] # Stub
 
 
-def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[ReportResult]:
+def search_reports_by_name(
+    search_filters: SearchFilters = None, 
+    name: str = None
+) -> list[ReportResult]:
     """ Query the local database and the SIMBAD database by an object identifier
         and return the reports that match. 
 
@@ -92,53 +95,51 @@ def search_reports_by_name(search_filters: SearchFilters, name: str) -> list[Rep
         QuerySimbadError: If there is an issue connecting to the SIMBAD server. 
             It's important this error is handled by the front-end as an error/warning
             message should be displayed to the user. 
-        ValueError: If SearchFilters is none. 
+        ValueError: If SearchFilters and name is None. 
     """
-    if search_filters is None:
-        raise ValueError("SearchFilters cannot be None")
-    if name is None:
-        raise ValueError("Object name not specified")
+    if search_filters is None and name is None:
+        raise ValueError("SearchFilters and name cannot both be None.")
 
-    # Check if the object already exists in the local database. 
-    exists, last_updated = db.object_exists(name)
+    coordinates = None
+    by_coord_range = None
 
-    # Check if the object exists in the database. 
-    if exists:
-        # The object exists in the local database, check to see if it needs to be updated. 
-        _check_object_updates(name, last_updated)
-        coordinates = db.get_object_coords(name)
-    else:
-        # The object does not exist, invoke an external (SIMBAD) search. 
-        query_result = qs.query_simbad_by_name(name, True)
+    if name is not None:
+        # Check if the object already exists in the local database. 
+        exists, last_updated = db.object_exists(name)
 
-        if query_result is not None:
-            # There is a result from the SIMBAD search. 
-            # Add the object to the local database.
-            main_id = query_result[0]
-            coordinates = query_result[1]
-            aliases = query_result[2]
-            db.add_object(main_id, coordinates, aliases)
+        # Check if the object exists in the database. 
+        if exists:
+            # The object exists in the local database, check to see if it needs to be updated. 
+            _check_object_updates(name, last_updated)
+            coordinates = db.get_object_coords(name)
         else:
-            # There were no reports found in the local database
-            # and no results found by SIMBAD, therefore there is no result.
-            return []
+            # The object does not exist, invoke an external (SIMBAD) search. 
+            query_result = qs.query_simbad_by_name(name, True)
+
+            if query_result is not None:
+                # There is a result from the SIMBAD search. 
+                # Add the object to the local database.
+                main_id = query_result[0]
+                coordinates = query_result[1]
+                aliases = query_result[2]
+                db.add_object(main_id, coordinates, aliases)
 
     # After update checking and external search, query the local database 
     # for all reports. 
 
-    # Reports in the database by name. 
+    # Get the base reports from the database. 
     reports = db.find_reports_by_object(search_filters, name)
-    # Search the coordinate range for additional related reports. 
-    by_coord_range = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
 
     if reports is None: 
         reports = []
 
-    if by_coord_range is not None:
-        # Append the list with reports with the same coordinates. 
-        for additional_report in by_coord_range:
-            if not additional_report in reports:
-                reports.append(additional_report)
+    if coordinates is not None:
+        by_coord_range = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
+        if by_coord_range is not None:
+            # Append the list with reports with the same coordinates. 
+            for additional_report in by_coord_range:
+                if not additional_report in reports:
+                    reports.append(additional_report)
 
     return reports
 
