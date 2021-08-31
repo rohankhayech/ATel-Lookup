@@ -62,7 +62,7 @@ def import_report(atel_num: int):
     html_string = download_report(atel_num)
 
     # Raises error when ATel report is not found
-    if(html_string == ''):
+    if(html_string is None):
         raise ReportNotFoundError(f'ATel #{atel_num} does not exists')
 
     # Parses HTML and imports ATel report into the database
@@ -104,10 +104,11 @@ def download_report(atel_num: int) -> str:
         html = request.html.raw_html
 
         # Determines whether ATel report exists
-        #soup = BeautifulSoup(html, 'html.parser')
-        #texts = soup.find_all('p', {'class': None, 'align': None})
+        soup = BeautifulSoup(html, 'html.parser')
+        texts = soup.find_all('p', {'class': None, 'align': None})
 
-        #if(texts[].get_text(strip==True))
+        if(texts[1].get_text(strip=True) == 'This ATel does not appear to exist.'):
+            html = None
 
         return html
     except ConnectionError as err:
