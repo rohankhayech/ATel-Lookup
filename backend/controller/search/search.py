@@ -110,7 +110,7 @@ def search_reports_by_name(
         # Check if the object exists in the database. 
         if exists:
             # The object exists in the local database, check to see if it needs to be updated. 
-            _check_object_updates(name, last_updated)
+            check_object_updates(name, last_updated)
             coordinates = db.get_object_coords(name)
         else:
             # The object does not exist, invoke an external (SIMBAD) search. 
@@ -144,12 +144,7 @@ def search_reports_by_name(
     return reports
 
 
-#####################
-# Private functions #
-#####################
-
-
-def _check_object_updates(name: str, last_updated: datetime):
+def check_object_updates(name: str, last_updated: datetime):
     """ Check if an object, specified by its identifier, requires an update. 
         (i.e., more than 60 days have elapsed since its last update). If so, 
         update the object. 
