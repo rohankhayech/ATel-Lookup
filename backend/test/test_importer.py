@@ -150,7 +150,9 @@ class TestCustomExceptions(unittest.TestCase):
 
     # Tests that ReportNotFoundError is being raised
     @mock.patch('controller.importer.importer.download_report')
-    def test_report_not_found_error(self, mock_download_report):
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_report_not_found_error(self, mock_report_exists, mock_download_report):
+        mock_report_exists.return_value = False
         mock_download_report.return_value = ''
         with self.assertRaises(ReportNotFoundError):
             import_report(1)
