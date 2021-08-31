@@ -39,7 +39,7 @@ from flask_cors import CORS
 import os
 
 from controller.importer.importer import *
-# from controller.search.search import *
+# from controller.search.search import * #ImportError: cannot import name 'DEFAULT_RADIUS' from 'model.constants' (/app/model/constants.py)
 from astropy.coordinates import SkyCoord
 from view.web_interface import *
 # from view.vis import * #not working yet 30/08
@@ -158,7 +158,7 @@ def imports() -> json:
     if flag == 1:
         try:
             if import_mode_in == "manual":
-                # import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
+                import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
                 pass
             elif import_mode_in == "auto":
                 import_all_reports()
@@ -228,11 +228,12 @@ def search() -> json:
     # SkyCoord = parse_search_coords(ra, dec, radius) #does not work, throws error, need to figure out how to create skycoord object
 
     if flag == 1:
-        # if search_mode_in == "name":
-        #     reports = search_reports_by_id(search_filters, search_data_in)
-        # elif search_mode_in == "coords":
-        #     reports = search_reports_by_coords(search_filters, *SKYCOORD COORDS*, radius)
-        pass
+        if search_mode_in == "name":
+            # reports = search_reports_by_id(search_filters, search_data_in)
+            pass
+        elif search_mode_in == "coords":
+            # reports = search_reports_by_coords(search_filters, *SKYCOORD OBJECT*, radius) #SkyCoord object not operating as expected
+            pass
 
     if flag == 1:
         # list_result = create_nodes_list(reports) #not working yet 30/08

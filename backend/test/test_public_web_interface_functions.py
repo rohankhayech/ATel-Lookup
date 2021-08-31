@@ -144,12 +144,12 @@ class TestWebInterfaceImports(ut.TestCase):
 
     def test_report_not_found_error(self):
         response = self.app.post('/import', json = test_report_not_found_error)
-        # self.assertEqual(response.json.get("flag"), 0) #commented out while import function not working
+        self.assertEqual(response.json.get("flag"), 0) #commented out while import function not working
         #giving the function a atel number that does not exist, should give back report not found exception, and set flag to 0
 
     def test_report_already_exists_error(self):
         response = self.app.post('/import', json = test_report_already_exists_error)
-        # self.assertEqual(response.json.get("flag"), 0) #commented out while import function not working
+        self.assertEqual(response.json.get("flag"), 0) #commented out while import function not working
         #testing the exception that the report already exists in the database
 
 
