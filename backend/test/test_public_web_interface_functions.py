@@ -35,6 +35,7 @@ from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
 from unittest.mock import MagicMock, patch
 from controller.search import search
+from model.db import db_interface as db
 from app import app
 
 from flask import Flask, jsonify, request
@@ -49,7 +50,7 @@ from unittest import mock
 
 test_manual_success = {
     "import_mode": "manual",
-    "atel_num": 14126
+    "atel_num": 1234
 }
 
 test_manual_fail = {
@@ -82,7 +83,7 @@ test_report_not_found_error = {
 
 test_report_already_exists_error = {
     "import_mode": "manual",
-    "atel_num": 1
+    "atel_num": 9999
 }
 
 test_search_basic = {
@@ -172,8 +173,15 @@ class TestWebInterfaceImports(ut.TestCase):
 
     def test_imports_manual_success(self): 
         response = self.app.post('/import', json = test_manual_success)
-        # self.assertEqual(response.json.get("flag"), 1) # Will fail if browser closed unexpectedly error occurs
+        self.assertEqual(response.json.get("flag"), 1) 
         # should show a successful manual import (both import mode and atel num given correctly)
+
+    cn = db._connect()
+    cur = cn.cursor()
+    cur.execute("delete from Reports where atelNum = 1234")
+    cur.close()
+    cn.commit()
+    cn.close()
 
     def test_imports_manual_fail(self): 
         response = self.app.post('/import', json = test_manual_fail)
@@ -202,13 +210,20 @@ class TestWebInterfaceImports(ut.TestCase):
 
     def test_report_not_found_error(self):
         response = self.app.post('/import', json = test_report_not_found_error)
-        # self.assertEqual(response.json.get("flag"), 0) # Will fail if browser closed unexpectedly error occurs
+        self.assertEqual(response.json.get("flag"), 0) 
         #giving the function a atel number that does not exist, should give back report not found exception, and set flag to 0
 
     def test_report_already_exists_error(self):
         response = self.app.post('/import', json = test_report_already_exists_error)
-        # self.assertEqual(response.json.get("flag"), 0) # Will fail if browser closed unexpectedly error occurs
-        #testing the exception that the report already exists in the database
+        response = self.app.post('/import', json = test_report_already_exists_error)
+        self.assertEqual(response.json.get("flag"), 0) 
+
+    cn = db._connect()
+    cur = cn.cursor()
+    cur.execute("delete from Reports where atelNum = 9999")
+    cur.close()
+    cn.commit()
+    cn.close()
 
 
 

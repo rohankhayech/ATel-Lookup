@@ -46,6 +46,7 @@ from astropy.coordinates import SkyCoord
 from view.web_interface import *
 from view.vis import * 
 
+
 from flask import Flask, jsonify, request
 from flask_jwt_extended import (
     JWTManager,
@@ -159,8 +160,7 @@ def imports() -> json:
     if flag == 1:
         try:
             if import_mode_in == "manual":
-                # import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
-                pass
+                import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
             elif import_mode_in == "auto":
                 import_all_reports() 
         except ReportAlreadyExistsError as e:
