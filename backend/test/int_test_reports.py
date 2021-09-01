@@ -26,7 +26,7 @@ License Terms and Copyright:
 """
 
 import os
-from backend.model.ds.report_types import ReportResult
+from backend.model.ds.report_types import ImportedReport, ReportResult
 from datetime import datetime
 from backend.model.ds.search_filters import SearchFilters
 import unittest
@@ -94,13 +94,105 @@ class TestFR2(unittest.TestCase):
         self.assertFalse(db.report_exists(99999))
 
 class TestFR3:
-    pass
+    pass #NYI
 
 class TestFR4:
-    pass
+    pass #NYI
 
-class TestFR5:
-    pass 
+all_keyword_search_request = {
+    "search_mode": "name",
+    "keywords": ["transient", "supernovae"],
+    "keyword_mode": "all",
+}
+
+any_keyword_search_request = {
+    "search_mode": "name",
+    "keywords": ["transient", "supernovae"],
+    "keyword_mode": "any",
+}
+
+none_keyword_search_request = {
+    "search_mode": "name",
+    "keywords": ["transient", "supernovae"],
+    "keyword_mode": "none",
+}
+
+class TestFR5(unittest.TestCase):
+    def test_search_by_keyword(self):
+        all_report = db.add_report(ImportedReport(20000,"T","A","B",datetime(2021,1,1),keywords=['transient','supernovae']))
+        any_report1 = db.add_report(ImportedReport(20001, "T", "A", "B", datetime(2021, 1, 1), keywords=['supernovae']))
+        any_report2 = db.add_report(ImportedReport(20002, "T", "A", "B", datetime(2021, 1, 1), keywords=['transient']))
+        none_report = db.add_report(ImportedReport(20003,"T","A","B",datetime(2021,1,1),keywords=[]))
+
+        try:
+            #send all search request
+            response = self.app.post('/import', json=all_keyword_search_request)
+
+            reports = response.json.get("report_list")
+            self.assertIn({
+                "atel_num": 20000,
+                "authors": "A",
+                "body": "B",
+                "referenced_reports": [],
+                "submission_date": "2021-01-01 00: 00: 00",
+                "title": "T"
+            }, reports)
+
+            #send any search request
+            response = self.app.post(
+                '/import', json=any_keyword_search_request)
+
+            reports = response.json.get("report_list")
+            self.assertIn({
+                "atel_num": 20000,
+                "authors": "A",
+                "body": "B",
+                "referenced_reports": [],
+                "submission_date": "2021-01-01 00: 00: 00",
+                "title": "T"
+            }, reports)
+            self.assertIn({
+                "atel_num": 20001,
+                "authors": "A",
+                "body": "B",
+                "referenced_reports": [],
+                "submission_date": "2021-01-01 00: 00: 00",
+                "title": "T"
+            }, reports)
+            self.assertIn({
+                "atel_num": 20002,
+                "authors": "A",
+                "body": "B",
+                "referenced_reports": [],
+                "submission_date": "2021-01-01 00: 00: 00",
+                "title": "T"
+            }, reports)
+
+            #send none request
+            response = self.app.post(
+                '/import', json=none_keyword_search_request)
+
+            reports = response.json.get("report_list")
+            self.assertIn({
+                "atel_num": 20003,
+                "authors": "A",
+                "body": "B",
+                "referenced_reports": [],
+                "submission_date": "2021-01-01 00: 00: 00",
+                "title": "T"
+            }, reports)
+            
+        finally:
+            #delete reports
+            cn = db._connect()
+            cur = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20000")
+            cur.execute("delete from Reports where atelNum = 20001")
+            cur.execute("delete from Reports where atelNum = 20002")
+            cur.execute("delete from Reports where atelNum = 20003")
+            cur.close()
+            cn.commit()
+            cn.close()    
 
 class TestFR6:
     pass #NYI
@@ -111,17 +203,52 @@ class TestFR7:
 class TestFR8:
     pass #NYI
 
-class TestFR9: 
-    pass
+
+term_search_request = {
+    "term": "term",
+    "search_mode": "name",
+}
+
+class TestFR9(unittest.TestCase): 
+    def test_search_by_term(self):
+        title_report = db.add_report(ImportedReport(20000,"term","A","B",datetime(2021,1,1)))
+        body_report1 = db.add_report(ImportedReport(20001, "T", "A", "term", datetime(2021, 1, 1)))
+
+        try:
+            #send all search request
+            response = self.app.post(
+                '/import', json=all_keyword_search_request)
+
+            reports = response.json.get("report_list")
+            self.assertIn({
+                "atel_num": 20000,
+                "authors": "A",
+                "body": "B",
+                "referenced_reports": [],
+                "submission_date": "2021-01-01 00: 00: 00",
+                "title": "term"
+            }, reports)
+            self.assertIn({
+                "atel_num": 20001,
+                "authors": "A",
+                "body": "term",
+                "referenced_reports": [],
+                "submission_date": "2021-01-01 00: 00: 00",
+                "title": "T"
+            }, reports)
+
+        finally:
+            #delete reports
+            cn = db._connect()
+            cur = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20000")
+            cur.execute("delete from Reports where atelNum = 20001")
+            cur.close()
+            cn.commit()
+            cn.close()
 
 class TestFR10:
-    pass
+    pass #NYI
 
 class TestFR14:
-    pass
-
-class TestNFR5:
-    pass
-
-class TestNFR11:
-    pass
+    pass #NYI
