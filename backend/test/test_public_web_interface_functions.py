@@ -33,7 +33,8 @@ from flask import Flask, jsonify
 from requests.models import requote_uri
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+from controller.search import search
 from app import app
 
 from flask import Flask, jsonify, request
@@ -250,8 +251,45 @@ class TestWebInterfaceSearch(ut.TestCase):
         
 
     #Mocking Tests
+    return_value=({
+            "atel_num": 11876,
+            "title": "title",
+            "authors": "a",
+            "body": "b",
+            "submission_date": "2021-01-01 00: 00: 00",
+            "referenced_reports": [1400, 1650]
+        })
+
+    @patch('app.search.search_reports_by_name', side_effect = return_value)
     def first_test(self):
-        mock.check_object_updates = MagicMock()
+        mock = app.search
+        mock.search_reports_by_name = MagicMock(return_value=({
+            "atel_num": 11876,
+            "title": "title",
+            "authors": "a",
+            "body": "b",
+            "submission_date": "2021-01-01 00: 00: 00",
+            "referenced_reports": [1400, 1650]
+        }))
+        response = self.app.post('/search', json = test_search_basic)
+       
+        # mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
+        # mock.qs.query_simbad_by_name = MagicMock()
+        # mock.db.add_object = MagicMock()
+        # mock.db.add_aliases = MagicMock()
+        # mock.qs.get_aliases = MagicMock()
+        # mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
+        # mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
+
+        # mock.search_reports_by_name(self.filters, "name")
+
+        # self.assertEqual(mock.db.object_exists("name"), (True, self.dt_old))
+
+        # mock.db.object_exists.assert_called_with("name")
+        # mock.qs.query_simbad_by_name.assert_not_called()
+        # mock.db.add_object.assert_not_called()
+
+        # mock.check_object_updates.assert_called_with("name", self.dt_old)
 
 # Run suite. 
 if __name__ == '__main__':

@@ -253,6 +253,7 @@ def search() -> json:
         if search_mode_in == "name":
             try:
                 reports = search_reports_by_name(search_filters, search_data_in)
+                print(reports)
             except ValueError as e:
                 flag = 0 
         elif search_mode_in == "coords":
