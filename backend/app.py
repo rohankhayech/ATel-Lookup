@@ -211,7 +211,7 @@ def search() -> json:
         flag = 0
     elif search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
-    elif keyword_mode_in != "none" and keyword_mode_in != "some" and keyword_mode_in != "any" and keyword_mode_in != None:
+    elif keyword_mode_in != "none" and keyword_mode_in != "all" and keyword_mode_in != "any" and keyword_mode_in != None:
         flag = 0
     elif start_date_obj > end_date_obj or end_date_obj < start_date_obj:
         flag = 0
