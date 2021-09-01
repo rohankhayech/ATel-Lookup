@@ -165,6 +165,16 @@ test_search_term_only = {
     "end_date": "2021-06-22"
 }
 
+test_object_coords_only_name = {
+    "search_mode": "name",
+    "search_data": "Basinski"
+}
+
+test_object_coords_only_coords = {
+    "search_mode": "coords",
+    "search_data": [88.51, 300.022, 3.4]
+}
+
 
      
 class TestWebInterfaceImports(ut.TestCase):
@@ -283,6 +293,10 @@ class TestWebInterfaceSearch(ut.TestCase):
         response = self.app.post('/search', json = test_search_bad_keyword)
         self.assertEqual(response.json.get("flag"), 0)
         # keyword given is not in the FIXED_KEYWORD list, should fail
+
+    def test_search_testbench(self):
+        response = self.app.post('/search', json = test_object_coords_only_name)
+        self.assertEqual(response.json.get("flag"), 1)
         
 
     #Testing Mocking Tests 
