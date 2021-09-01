@@ -21,31 +21,9 @@ export class HomePageComponent {
     console.log(parameters);
 
     this.searchService.search(parameters).subscribe((telegrams) => {
-      this.telegrams = [
-        {
-          id: 1,
-          title: 'Apple',
-          date: new Date(),
-          authors: ['A', 'B', 'C'],
-          keywords: ['A', 'B', 'C'],
-        },
-        {
-          id: 2,
-          title: 'Banana',
-          date: new Date(),
-          authors: ['A', 'B', 'C'],
-          keywords: ['A', 'B', 'C'],
-        },
-        {
-          id: 3,
-          title: 'Citrus',
-          date: new Date(),
-          authors: ['A', 'B', 'C'],
-          keywords: ['A', 'B', 'C'],
-        },
-      ];
-    });
+      this.telegrams = telegrams;
 
-    this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+      this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    });
   }
 }

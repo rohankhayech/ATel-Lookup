@@ -2,6 +2,7 @@ export interface Telegram {
   id: number;
   title: string;
   date: Date;
-  authors: string[];
-  keywords: string[];
+  authors: string;
+  body: string;
+  referenced: number[];
 }

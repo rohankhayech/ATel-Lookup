@@ -1,14 +1,21 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { ImportService } from '../import.service';
 
 @Component({
   selector: 'app-admin-page',
   templateUrl: './admin-page.component.html',
   styleUrls: ['./admin-page.component.scss'],
 })
-export class AdminPageComponent implements OnInit {
+export class AdminPageComponent {
   public id = 0;
 
-  constructor() {}
+  constructor(private importService: ImportService) {}
 
-  ngOnInit(): void {}
+  importAll() {
+    this.importService.importAll().subscribe();
+  }
+
+  import() {
+    this.importService.import(this.id).subscribe();
+  }
 }

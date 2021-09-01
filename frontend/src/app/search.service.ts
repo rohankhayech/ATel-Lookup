@@ -2,7 +2,13 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Parameters } from './parameters.interface';
+import { SearchMode } from './search-mode.enum';
+import { ApiParameters } from './api-parameters.interface';
 import { Telegram } from './telegram.interface';
+import { ApiTelegram } from './api-telegram.interface';
+import { switchMap } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { SearchResponse } from './search-response';
 
 @Injectable({
   providedIn: 'root',
@@ -12,12 +18,55 @@ export class SearchService {
 
   search(parameters: Parameters) {
     const params = this.serializeParameters(parameters);
-    return this.http.get<Telegram[]>(`${environment.apiUrl}/search`, {
-      params,
-    });
+    return this.http
+      .post<SearchResponse>(`${environment.apiUrl}/search`, {
+        ...params,
+      })
+      .pipe(
+        switchMap((response) =>
+          of(response.report_list.map(this.deserializeTelegram))
+        )
+      );
   }
 
-  serializeParameters(parameters: Parameters) {
-    return parameters as any;
+  serializeParameters(parameters: Parameters): ApiParameters {
+    return {
+      search_mode: parameters.mode === SearchMode.Name ? 'name' : 'coords',
+      search_data:
+        parameters.mode === SearchMode.Name
+          ? parameters.name
+          : [
+              parameters.coordinates.declination,
+              parameters.coordinates.ra,
+              parameters.coordinates.radius,
+            ],
+      keyword_mode: parameters.match,
+      keywords: parameters.keywords,
+      start_date: this.serializeDate(parameters.start),
+      end_date: this.serializeDate(parameters.end),
+    };
+  }
+
+  serializeDate(date?: Date) {
+    return date
+      ? `${date.getFullYear()}-${this.pad(date.getMonth() + 1)}-${this.pad(
+          date.getDate()
+        )}`
+      : undefined;
+  }
+
+  deserializeTelegram(telegram: ApiTelegram): Telegram {
+    return {
+      id: telegram.atel_num,
+      title: telegram.title,
+      date: telegram.submission_date,
+      authors: telegram.authors,
+      body: telegram.body,
+      referenced: telegram.referenced_reports,
+    };
+  }
+
+  pad(n: number) {
+    return n.toString().padStart(2, '0');
   }
 }
