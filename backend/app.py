@@ -214,18 +214,19 @@ def search() -> json:
 
     if start_date_in != None:
         start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d")
-    
     if end_date_in != None:
         end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d")
     
-    print(search_mode_in)
+
     if search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
         if start_date_obj > datetime.now() and end_date_obj > datetime.now():
             flag = 0
-    elif search_mode_in != "coords" and search_mode_in != "name":
+
+    if search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
+        print(search_mode_in)
     elif keyword_mode_in != "none" and keyword_mode_in != "all" and keyword_mode_in != "any" and keyword_mode_in != None:
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
