@@ -230,13 +230,11 @@ def search() -> json:
         else:
             flag = 0 # if search data is not fit for coords, set flag to failure
 
-    # if keyword_mode_in != None:
-    #     for x in keywords_in:
-    #         for y in FIXED_KEYWORDS:
-    #             if keywords_in[x] != FIXED_KEYWORDS[y]:
-    #                 flag = 0
+    if keyword_mode_in != None:
+        for x in keywords_in:
+            if x not in FIXED_KEYWORDS:
+                flag = 0
 
-    
     if keyword_mode_in != None:
         if keyword_mode_in == "all":
             keyword_mode_enum = KeywordMode.ALL

@@ -134,6 +134,15 @@ test_search_bad_ra_value = {
     "end_date": "2003-06-22"
 }
 
+test_search_bad_keyword = {
+    "search_mode": "coords",
+    "search_data": [65.51, -22.022, 3.4],
+    "keywords": ["radio", "big rock"],
+    "keyword_mode": "any",
+    "start_date": "2001-01-22",
+    "end_date": "2003-06-22"
+}
+
 # success_flag = {
 #     "flag": 0
 # }
@@ -218,6 +227,11 @@ class TestWebInterfaceSearch(ut.TestCase):
         response = self.app.post('/search', json = test_search_bad_ra_value)
         self.assertEqual(response.json.get("flag"), 0)
         # Latitude angle(s) must be within -90 deg <= angle <= 90 deg
+
+    def test_search_bad_keyword(self):
+        response = self.app.post('/search', json = test_search_bad_keyword)
+        self.assertEqual(response.json.get("flag"), 0)
+        # keyword given is not in the FIXED_KEYWORD list, should fail
         
 
 # Run suite. 
