@@ -201,11 +201,15 @@ class TestWebInterfaceSearch(ut.TestCase):
     def test_search_basic(self): 
         response = self.app.post('/search', json = test_search_basic)
         self.assertEqual(response.json.get("flag"), 1)
+        self.assertEqual(response.json.get("report_list"), [])
+        self.assertEqual(response.json.get("nodes_list"), [[], []])
         # Should succeed doing a name search
 
     def test_search_basic_coords(self):
         response = self.app.post('/search', json = test_search_basic_coords)
         self.assertEqual(response.json.get("flag"), 1)
+        self.assertEqual(response.json.get("report_list"), [])
+        self.assertEqual(response.json.get("nodes_list"), [[], []])
         # Should succeed doing a coords search
 
     def test_search_bad_date(self):
