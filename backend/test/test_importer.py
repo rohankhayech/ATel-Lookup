@@ -28,6 +28,7 @@ from controller.importer.importer import *
 from controller.importer.parser import *
 
 from unittest import mock
+from bs4 import BeautifulSoup
 from datetime import datetime
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
@@ -62,7 +63,7 @@ class TestImporterFunctions(unittest.TestCase):
         mock_add_report.assert_called_with(parse_report(10000, html_string))
 
     # Tests download_report function
-    '''def test_html_download(self):
+    def test_html_download(self):
         # ATel report titles for comparison
         titles = ['QPOs in 4U 1626-67', 'GB971227', 'Improved Coordinates for GB971227']
 
@@ -70,7 +71,11 @@ class TestImporterFunctions(unittest.TestCase):
         for i in range(3):
             html = download_report(i + 1)
             soup = BeautifulSoup(html, 'html.parser')
-            self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])'''
+            self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])
+        
+        # Tests HTML downloader for non-existing ATel
+        html_string = download_report(9999999999)
+        self.assertIsNone(html_string, 'Detecting non-existing ATel has failed')
 
 # Parser functions
 class TestParserFunctions(unittest.TestCase):
@@ -149,8 +154,10 @@ class TestCustomExceptions(unittest.TestCase):
 
     # Tests that ReportNotFoundError is being raised
     @mock.patch('controller.importer.importer.download_report')
-    def test_report_not_found_error(self, mock_download_report):
-        mock_download_report.return_value = ''
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_report_not_found_error(self, mock_report_exists, mock_download_report):
+        mock_report_exists.return_value = False
+        mock_download_report.return_value = None
         with self.assertRaises(ReportNotFoundError):
             import_report(1)
 
