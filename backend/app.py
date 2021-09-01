@@ -193,6 +193,7 @@ def search() -> json:
     flag = 1 # set initial flag to success
     reports = []
     list_result = [], []
+    report_dicts = []
 
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
@@ -256,7 +257,6 @@ def search() -> json:
         
     if flag == 1:
         list_result = create_nodes_list(reports) 
-        report_dicts = []
         for report in reports:
             report_dicts.append({
                 "atel_num": report.atel_num,
