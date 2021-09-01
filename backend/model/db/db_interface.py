@@ -335,6 +335,9 @@ def find_reports_by_object(filters: SearchFilters = None, object_name: str = Non
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
     """
+    if (filters is None):
+        return None #stubbed until object search is implemented
+
     if (filters or object_name):
         cn = _connect()
         cur:MySQLCursor = cn.cursor()
@@ -480,44 +483,45 @@ def _build_report_query(filters: SearchFilters):
     # Start with empty lists of terms and data
     data = ()
     clauses = []
-    
-    # Append term clause and data
-    if filters.term:
-        clauses.append("(title like %s or body like %s) ")
-        data = data + (filters.term,filters.term)
-    
-    # Append date clauses and data
-    if filters.start_date:
-        clauses.append("submissionDate >= %s ")
-        data = data + (filters.start_date,)
-    
-    if filters.end_date:
-        clauses.append("submissionDate <= %s ")
-        data = data + (filters.end_date,)
-    
-    # Append keyword clauses and data
-    if filters.keywords:
-        kw_clauses = []
-        if filters.keyword_mode == KeywordMode.NONE:
-            # Add a clause for each keyword in filters to not be in set
-            for kw in filters.keywords:
-                kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
-                data = data + (kw,)
-            kw_sep = " and "  
-        else:
-            # Append a clause for each keyword to be in set
-            for kw in filters.keywords:
-                kw_clauses.append("FIND_IN_SET(%s, keywords) > 0") # If kw in set.
-                data = data + (kw,)
 
-            # Set or/and condition
-            if filters.keyword_mode == KeywordMode.ALL:
-                kw_sep = " and "
-            elif filters.keyword_mode == KeywordMode.ANY:
-                kw_sep = " or "
-        # Join keyword clauses into one clause
-        kw_clause = "(" + kw_sep.join(kw_clauses)+") "
-        clauses.append(kw_clause)
+    if filters:
+        # Append term clause and data
+        if filters.term:
+            clauses.append("(title like %s or body like %s) ")
+            data = data + (filters.term,filters.term)
+        
+        # Append date clauses and data
+        if filters.start_date:
+            clauses.append("submissionDate >= %s ")
+            data = data + (filters.start_date,)
+        
+        if filters.end_date:
+            clauses.append("submissionDate <= %s ")
+            data = data + (filters.end_date,)
+        
+        # Append keyword clauses and data
+        if filters.keywords:
+            kw_clauses = []
+            if filters.keyword_mode == KeywordMode.NONE:
+                # Add a clause for each keyword in filters to not be in set
+                for kw in filters.keywords:
+                    kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
+                    data = data + (kw,)
+                kw_sep = " and "  
+            else:
+                # Append a clause for each keyword to be in set
+                for kw in filters.keywords:
+                    kw_clauses.append("FIND_IN_SET(%s, keywords) > 0") # If kw in set.
+                    data = data + (kw,)
+
+                # Set or/and condition
+                if filters.keyword_mode == KeywordMode.ALL:
+                    kw_sep = " and "
+                elif filters.keyword_mode == KeywordMode.ANY:
+                    kw_sep = " or "
+            # Join keyword clauses into one clause
+            kw_clause = "(" + kw_sep.join(kw_clauses)+") "
+            clauses.append(kw_clause)
     
     # Join where clauses together
     sep = "and "
