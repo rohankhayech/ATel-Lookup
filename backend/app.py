@@ -199,6 +199,16 @@ def search() -> json:
     list_result = [], []
     report_dicts = []
 
+    term_in = None
+    search_mode_in = None
+    search_data_in = None
+    keywords_in = None
+    keyword_mode_in = None
+    start_date_in = None
+    end_date_in = None
+    start_date_obj = None
+    end_date_obj = None
+
     term_in = request.json.get("term", None)
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
@@ -208,27 +218,25 @@ def search() -> json:
     end_date_in = request.json.get("end_date", None)
 
     if start_date_in != None:
-        start_date_obj = datetime.strptime(start_date_in, "%Y-%m-%d")
-
+        start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d")
     if end_date_in != None:
         end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d")
     
-    
+
     if search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
-    elif start_date_obj > datetime.now() or end_date_obj > datetime.now():
+    elif start_date_obj != None and end_date_obj != None:
+        if start_date_obj > datetime.now() and end_date_obj > datetime.now():
+            flag = 0
+
+    if search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
-    elif search_mode_in != "coords" and search_mode_in != "name":
+        print(search_mode_in)
+    elif keyword_mode_in != "none" and keyword_mode_in != "all" and keyword_mode_in != "any" and keyword_mode_in != None:
         flag = 0
-    elif (
-        keyword_mode_in != "none"
-        and keyword_mode_in != "all"
-        and keyword_mode_in != "any"
-        and keyword_mode_in != None
-    ):
-        flag = 0
-    elif start_date_obj > end_date_obj or end_date_obj < start_date_obj:
-        flag = 0
+    elif start_date_obj != None and end_date_obj != None:
+        if start_date_obj > end_date_obj or end_date_obj < start_date_obj:
+            flag = 0
     
 
     if search_mode_in == "coords": # if the search mode is "coords" need to make sure there is three values given
@@ -247,7 +255,7 @@ def search() -> json:
         for x in keywords_in:
             if x not in FIXED_KEYWORDS:
                 flag = 0
-
+    keyword_mode_enum = None
     if keyword_mode_in != None:
         if keyword_mode_in == "all":
             keyword_mode_enum = KeywordMode.ALL
@@ -256,7 +264,10 @@ def search() -> json:
         elif keyword_mode_in == "none":
             keyword_mode_enum = KeywordMode.NONE
 
-    search_filters = SearchFilters(term_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj) # creating the search filters object 
+    if term_in == None and keywords_in == None:
+        search_filters = None
+    else:
+        search_filters = SearchFilters(term_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj) # creating the search filters object 
 
     if flag == 1:
         if search_mode_in == "name":
