@@ -31,6 +31,7 @@ export class SearchService {
 
   serializeParameters(parameters: Parameters): ApiParameters {
     return {
+      term: parameters.query,
       search_mode: parameters.mode === SearchMode.Name ? 'name' : 'coords',
       search_data:
         parameters.mode === SearchMode.Name

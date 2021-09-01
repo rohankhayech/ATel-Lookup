@@ -1,6 +1,7 @@
 import { Match } from './match.enum';
 
 export interface ApiParameters {
+  term: string;
   search_mode: string;
   search_data: string | number[];
   keyword_mode: Match;
