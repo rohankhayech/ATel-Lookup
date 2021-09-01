@@ -33,7 +33,8 @@ from flask import Flask, jsonify
 from requests.models import requote_uri
 from datetime import datetime, timedelta
 from astropy.coordinates import SkyCoord
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
+from controller.search import search
 from app import app
 
 from flask import Flask, jsonify, request
@@ -85,6 +86,7 @@ test_report_already_exists_error = {
 }
 
 test_search_basic = {
+    "term": "supermassive",
     "search_mode": "name",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -94,6 +96,7 @@ test_search_basic = {
 }
 
 test_search_basic_coords = {
+    "term": "supermassive",
     "search_mode": "coords",
     "search_data": [88.51, 300.022, 3.4],
     "keywords": ["radio"],
@@ -103,6 +106,7 @@ test_search_basic_coords = {
 }
 
 test_search_bad_date = {
+    "term": "supermassive",
     "search_mode": "name",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -112,6 +116,7 @@ test_search_bad_date = {
 }
 
 test_search_bad_search_mode = {
+    "term": "supermassive",
     "search_mode": "thing",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -121,6 +126,7 @@ test_search_bad_search_mode = {
 }
 
 test_search_dates_backwards = {
+    "term": "supermassive",
     "search_mode": "name",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -130,6 +136,7 @@ test_search_dates_backwards = {
 }
 
 test_search_bad_ra_value = {
+    "term": "supermassive",
     "search_mode": "coords",
     "search_data": [124.51, -22.022, 3.4],
     "keywords": ["radio", "optical"],
@@ -139,6 +146,7 @@ test_search_bad_ra_value = {
 }
 
 test_search_bad_keyword = {
+    "term": "supermassive",
     "search_mode": "coords",
     "search_data": [65.51, -22.022, 3.4],
     "keywords": ["radio", "big rock"],
@@ -147,9 +155,16 @@ test_search_bad_keyword = {
     "end_date": "2003-06-22"
 }
 
-# success_flag = {
-#     "flag": 0
-# }
+test_search_term_only = {
+    "term": "supermassive",
+    "search_mode": "name",
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "all",
+    "start_date": "2021-01-22",
+    "end_date": "2021-06-22"
+}
+
+
      
 class TestWebInterfaceImports(ut.TestCase):
     def setUp(self):
@@ -223,6 +238,12 @@ class TestWebInterfaceSearch(ut.TestCase):
         self.assertEqual(response.json.get("nodes_list"), [[], []])
         # Should succeed doing a coords search
 
+    def test_search_term_only(self):
+        response = self.app.post('/search', json = test_search_term_only)
+        self.assertEqual(response.json.get("flag"), 1)
+        self.assertEqual(response.json.get("report_list"), [])
+        self.assertEqual(response.json.get("nodes_list"), [[], []])
+
     def test_search_bad_date(self):
         response = self.app.post('/search', json = test_search_bad_date)
         self.assertEqual(response.json.get("flag"), 0)
@@ -249,9 +270,29 @@ class TestWebInterfaceSearch(ut.TestCase):
         # keyword given is not in the FIXED_KEYWORD list, should fail
         
 
-    #Mocking Tests
+    #Testing Mocking Tests 
+    return_value=({
+            "atel_num": 11876,
+            "title": "title",
+            "authors": "a",
+            "body": "b",
+            "submission_date": "2021-01-01 00: 00: 00",
+            "referenced_reports": [1400, 1650]
+        })
+
+    @patch('app.search.search_reports_by_name', side_effect = return_value)
     def first_test(self):
-        mock.check_object_updates = MagicMock()
+        mock = app.search
+        mock.search_reports_by_name = MagicMock(return_value=({
+            "atel_num": 11876,
+            "title": "title",
+            "authors": "a",
+            "body": "b",
+            "submission_date": "2021-01-01 00: 00: 00",
+            "referenced_reports": [1400, 1650]
+        }))
+        response = self.app.post('/search', json = test_search_basic)
+       
 
 # Run suite. 
 if __name__ == '__main__':
