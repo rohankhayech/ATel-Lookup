@@ -23,7 +23,6 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-
 from datetime import datetime
 import os
 
@@ -31,9 +30,9 @@ from astropy.coordinates import SkyCoord
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.connection import MySQLConnection
-from mysql.connector.cursor import CursorBase, MySQLCursor
+from mysql.connector.cursor import MySQLCursor
 
-from model.constants import FIXED_KEYWORDS
+
 from model.ds.report_types import ImportedReport, ReportResult
 from model.ds.search_filters import SearchFilters, KeywordMode
 from model.ds.alias_result import AliasResult
@@ -135,7 +134,7 @@ def add_report(report: ImportedReport):
     """
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
-
+    
     # Format keywords
     sep = ','
     keywords = sep.join(report.keywords)  
@@ -389,39 +388,6 @@ def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:f
     #TODO: Check in coord range.
 
 
-def init_db():
-    """
-    Connects to the database and creates the schema if not already created.
-    """
-    # Connect to mysql server
-    cn = _connect()
-    cur:MySQLCursor = cn.cursor()
-
-    # Load table schema from file
-    user_table = _read_table("AdminUsers")
-    reports_table = _read_table("Reports")
-    metadata_table = _read_table("Metadata")
-
-    # Add keywords to reports schema
-    sep = "', '"
-    kw_set = sep.join(FIXED_KEYWORDS)
-    reports_table = reports_table.format(kw_set)
-   
-    try:
-        # Add tables
-        cur.execute(user_table)
-        cur.execute(reports_table)
-        cur.execute(metadata_table)
-
-        #Add single metadata entry
-        cur.execute("insert into Metadata (metadata) values ('metadata');")
-    except mysql.connector.Error as err:
-        print(err.msg)
-    finally:
-        # Close connection
-        cn.commit()
-        cur.close()
-        cn.close()
 
 
 # Exceptions
@@ -469,17 +435,6 @@ def _connect() -> MySQLConnection:
         database=os.getenv("MYSQL_DB"),
     )
 
-def _read_table(table_name:str)->str:
-    """Reads schema for the given table from it's SQL file.
-
-    Args:
-        table_name (str): The name of the table to import.
-
-    Returns:
-        str: The SQL schema for the given table.
-    """
-    schema_path = os.path.join("model", "schema", f"{table_name}.sql")
-    return open(schema_path).read()
 
 def _record_exists(table_name:str,primary_key:str,id:str)->bool:
     """
