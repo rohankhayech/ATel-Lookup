@@ -65,8 +65,7 @@ app = Flask(__name__)
 jwt = JWTManager(app)
 CORS(app)
 
-# app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
-app.config["JWT_SCRET_KEY"] = os.environ["JWT_SECRET_KEY"]
+app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 
 # Initialise the database
 init_db()
