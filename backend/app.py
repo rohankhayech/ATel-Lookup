@@ -255,7 +255,8 @@ def search() -> json:
         for x in keywords_in:
             if x not in FIXED_KEYWORDS:
                 flag = 0
-    keyword_mode_enum = None
+
+    keyword_mode_enum = KeywordMode.ANY
     if keyword_mode_in != None:
         if keyword_mode_in == "all":
             keyword_mode_enum = KeywordMode.ALL
