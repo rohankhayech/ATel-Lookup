@@ -256,9 +256,19 @@ def search() -> json:
         
     if flag == 1:
         list_result = create_nodes_list(reports) 
+        report_dicts = []
+        for report in reports:
+            report_dicts.append({
+                "atel_num": report.atel_num,
+                "title": report.title,
+                "authors": report.authors,
+                "body": report.body,
+                "submission_date": str(report.submission_date),
+                "referenced_reports": report.referenced_reports
+            })
 
 
-    return jsonify({"flag": flag, "report_list": reports, "nodes_list": list_result})
+    return jsonify({"flag": flag, "report_list": report_dicts, "nodes_list": list_result})
 
 
 @app.route("/metadata", methods=["GET"])
