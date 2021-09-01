@@ -44,7 +44,7 @@ def parse_date_input(date_string: str) -> datetime:
     return datetime() #stub
 
 
-def parse_search_coords(ra: str, dec: str, radius: str) -> SkyCoord:
+def parse_search_coords(ra: str, dec: str) -> SkyCoord:
     '''Parse coordinates into a SkyCoord object.
 
     Args:
@@ -59,7 +59,7 @@ def parse_search_coords(ra: str, dec: str, radius: str) -> SkyCoord:
 
     # validation goes here
 
-    return SkyCoord(ra,dec,radius) #stub #this does not work, need to figure out how to create a skycoord object
+    return SkyCoord(0,0) #stub 
 
 
 def valid_ra(ra: str) -> bool:

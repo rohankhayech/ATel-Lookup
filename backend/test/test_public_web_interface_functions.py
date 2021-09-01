@@ -20,6 +20,8 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+from model.ds.search_filters import SearchFilters
+from model.ds.report_types import ReportResult
 from model.ds.search_filters import KeywordMode
 import json
 import unittest as ut
@@ -29,7 +31,9 @@ import jwt
 from datetime import datetime
 from flask import Flask, jsonify
 from requests.models import requote_uri
-
+from datetime import datetime, timedelta
+from astropy.coordinates import SkyCoord
+from unittest.mock import MagicMock
 from app import app
 
 from flask import Flask, jsonify, request
@@ -197,6 +201,13 @@ class TestWebInterfaceImports(ut.TestCase):
 class TestWebInterfaceSearch(ut.TestCase):
     def setUp(self):
         self.app = app.test_client()
+        self.filters = SearchFilters(term="term")
+        self.sample_coords = SkyCoord("20 54 05.689", "+37 01 17.38", unit=('hourangle','deg'))
+        self.dt_now = datetime.now()
+        self.dt_almost = datetime.now() - timedelta(days=59)
+        self.dt_exact = datetime.now() - timedelta(days=60)
+        self.dt_old = datetime.now() - timedelta(days=200)
+        self.sample_report = ReportResult(1000, "Title", "Authors", "Body", self.dt_old, [])
 
     def test_search_basic(self): 
         response = self.app.post('/search', json = test_search_basic)
@@ -237,6 +248,10 @@ class TestWebInterfaceSearch(ut.TestCase):
         self.assertEqual(response.json.get("flag"), 0)
         # keyword given is not in the FIXED_KEYWORD list, should fail
         
+
+    #Mocking Tests
+    def first_test(self):
+        mock.check_object_updates = MagicMock()
 
 # Run suite. 
 if __name__ == '__main__':
