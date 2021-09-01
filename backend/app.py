@@ -159,7 +159,7 @@ def imports() -> json:
     if flag == 1:
         try:
             if import_mode_in == "manual":
-                import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
+                # import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
                 pass
             elif import_mode_in == "auto":
                 import_all_reports() 
@@ -199,15 +199,15 @@ def search() -> json:
     end_date_in = request.json.get("end_date", None)
 
     if start_date_in != None:
-        start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d").date()
+        start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d")
     
     if end_date_in != None:
-        end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d").date()
+        end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d")
     
     
     if search_data_in == None and keywords_in == None and keyword_mode_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
-    elif start_date_obj > datetime.now().date() or end_date_obj > datetime.now().date():
+    elif start_date_obj > datetime.now() or end_date_obj > datetime.now():
         flag = 0
     elif search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
@@ -223,30 +223,36 @@ def search() -> json:
             dec = search_data_in[0]
             ra = search_data_in[1]
             radius = search_data_in[2]
+            try:
+                sky_coord = SkyCoord(ra,dec,frame='icrs', unit=('deg', 'deg'))
+            except ValueError as e:
+                flag = 0
         else:
             flag = 0 # if search data is not fit for coords, set flag to failure
-
-    print(keywords_in)
-    print(keywords_in[0])
 
     # if keyword_mode_in != None:
     #     for x in keywords_in:
     #         for y in FIXED_KEYWORDS:
     #             if keywords_in[x] != FIXED_KEYWORDS[y]:
     #                 flag = 0
+
     
+    if keyword_mode_in != None:
+        if keyword_mode_in == "all":
+            keyword_mode_enum = KeywordMode.ALL
+        elif keyword_mode_in == "any":
+            keyword_mode_enum = KeywordMode.ANY
+        elif keyword_mode_in == "none":
+            keyword_mode_enum = KeywordMode.NONE
 
-    # search_filters = SearchFilters(search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in) # creating the search filters object 
-
-    # SkyCoord = parse_search_coords(ra, dec, radius) # does not work, throws error, need to figure out how to create skycoord object
-    sky_coord = SkyCoord(ra,dec,frame='icrs', unit=('deg', 'deg'))
+    search_filters = SearchFilters(search_data_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj) # creating the search filters object 
 
     if flag == 1:
         if search_mode_in == "name":
             # reports = search_reports_by_id(search_filters, search_data_in) # commented out as search.py produces error with DEFAULT_RADIUS
             pass
         elif search_mode_in == "coords":
-            # reports = search_reports_by_coords(search_filters, sky_coord, radius) #SkyCoord object not operating as expected, and search.py produces error with DEFAULT_RADIUS
+            # reports = search_reports_by_coords(search_filters, sky_coord, radius) # commented out as search.py produces error with DEFAULT_RADIUS
             pass
         
     if flag == 1:
