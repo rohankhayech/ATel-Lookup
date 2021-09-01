@@ -41,10 +41,10 @@ from flask_cors import CORS
 import os
 
 from controller.importer.importer import *
-from controller.search.search import * #ImportError: cannot import name 'DEFAULT_RADIUS' from 'model.constants' (/app/model/constants.py)
+from controller.search.search import * 
 from astropy.coordinates import SkyCoord
 from view.web_interface import *
-# from view.vis import * #not working yet 30/08
+from view.vis import * 
 
 from flask import Flask, jsonify, request
 from flask_jwt_extended import (
@@ -251,16 +251,13 @@ def search() -> json:
     if flag == 1:
         if search_mode_in == "name":
             reports = search_reports_by_name(search_filters, search_data_in) # commented out as search.py produces error with DEFAULT_RADIUS
-            pass
         elif search_mode_in == "coords":
             reports = search_reports_by_coords(search_filters, sky_coord, radius) # commented out as search.py produces error with DEFAULT_RADIUS
-            pass
         
     if flag == 1:
-        # list_result = create_nodes_list(reports) #not implemented yet 30/08
+        list_result = create_nodes_list(reports) #not implemented yet 30/08
         pass
 
-        # {"flag": flag, "report_list": reports, "nodes_list": list_result}
 
 
     return jsonify({"flag": flag, "report_list": reports, "nodes_list": list_result})
