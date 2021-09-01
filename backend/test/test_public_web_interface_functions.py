@@ -86,6 +86,7 @@ test_report_already_exists_error = {
 }
 
 test_search_basic = {
+    "term": "supermassive",
     "search_mode": "name",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -95,6 +96,7 @@ test_search_basic = {
 }
 
 test_search_basic_coords = {
+    "term": "supermassive",
     "search_mode": "coords",
     "search_data": [88.51, 300.022, 3.4],
     "keywords": ["radio"],
@@ -104,6 +106,7 @@ test_search_basic_coords = {
 }
 
 test_search_bad_date = {
+    "term": "supermassive",
     "search_mode": "name",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -113,6 +116,7 @@ test_search_bad_date = {
 }
 
 test_search_bad_search_mode = {
+    "term": "supermassive",
     "search_mode": "thing",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -122,6 +126,7 @@ test_search_bad_search_mode = {
 }
 
 test_search_dates_backwards = {
+    "term": "supermassive",
     "search_mode": "name",
     "search_data": "Basinski",
     "keywords": ["radio", "optical"],
@@ -131,6 +136,7 @@ test_search_dates_backwards = {
 }
 
 test_search_bad_ra_value = {
+    "term": "supermassive",
     "search_mode": "coords",
     "search_data": [124.51, -22.022, 3.4],
     "keywords": ["radio", "optical"],
@@ -140,6 +146,7 @@ test_search_bad_ra_value = {
 }
 
 test_search_bad_keyword = {
+    "term": "supermassive",
     "search_mode": "coords",
     "search_data": [65.51, -22.022, 3.4],
     "keywords": ["radio", "big rock"],
@@ -148,9 +155,16 @@ test_search_bad_keyword = {
     "end_date": "2003-06-22"
 }
 
-# success_flag = {
-#     "flag": 0
-# }
+test_search_term_only = {
+    "term": "supermassive",
+    "search_mode": "name",
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "all",
+    "start_date": "2021-01-22",
+    "end_date": "2021-06-22"
+}
+
+
      
 class TestWebInterfaceImports(ut.TestCase):
     def setUp(self):
@@ -224,6 +238,12 @@ class TestWebInterfaceSearch(ut.TestCase):
         self.assertEqual(response.json.get("nodes_list"), [[], []])
         # Should succeed doing a coords search
 
+    def test_search_term_only(self):
+        response = self.app.post('/search', json = test_search_term_only)
+        self.assertEqual(response.json.get("flag"), 1)
+        self.assertEqual(response.json.get("report_list"), [])
+        self.assertEqual(response.json.get("nodes_list"), [[], []])
+
     def test_search_bad_date(self):
         response = self.app.post('/search', json = test_search_bad_date)
         self.assertEqual(response.json.get("flag"), 0)
@@ -250,7 +270,7 @@ class TestWebInterfaceSearch(ut.TestCase):
         # keyword given is not in the FIXED_KEYWORD list, should fail
         
 
-    #Mocking Tests
+    #Testing Mocking Tests 
     return_value=({
             "atel_num": 11876,
             "title": "title",
@@ -273,23 +293,6 @@ class TestWebInterfaceSearch(ut.TestCase):
         }))
         response = self.app.post('/search', json = test_search_basic)
        
-        # mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
-        # mock.qs.query_simbad_by_name = MagicMock()
-        # mock.db.add_object = MagicMock()
-        # mock.db.add_aliases = MagicMock()
-        # mock.qs.get_aliases = MagicMock()
-        # mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
-        # mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
-
-        # mock.search_reports_by_name(self.filters, "name")
-
-        # self.assertEqual(mock.db.object_exists("name"), (True, self.dt_old))
-
-        # mock.db.object_exists.assert_called_with("name")
-        # mock.qs.query_simbad_by_name.assert_not_called()
-        # mock.db.add_object.assert_not_called()
-
-        # mock.check_object_updates.assert_called_with("name", self.dt_old)
 
 # Run suite. 
 if __name__ == '__main__':

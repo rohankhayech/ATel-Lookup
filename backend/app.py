@@ -195,6 +195,7 @@ def search() -> json:
     list_result = [], []
     report_dicts = []
 
+    term_in = request.json.get("term", None)
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
     keywords_in = request.json.get("keywords", None)
@@ -209,7 +210,7 @@ def search() -> json:
         end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d")
     
     
-    if search_data_in == None and keywords_in == None and keyword_mode_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
+    if search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
     elif start_date_obj > datetime.now() or end_date_obj > datetime.now():
         flag = 0
@@ -220,7 +221,6 @@ def search() -> json:
     elif start_date_obj > end_date_obj or end_date_obj < start_date_obj:
         flag = 0
     
-
 
     if search_mode_in == "coords": # if the search mode is "coords" need to make sure there is three values given
         if len(search_data_in) == 3:
@@ -247,13 +247,12 @@ def search() -> json:
         elif keyword_mode_in == "none":
             keyword_mode_enum = KeywordMode.NONE
 
-    search_filters = SearchFilters(search_data_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj) # creating the search filters object 
+    search_filters = SearchFilters(term_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj) # creating the search filters object 
 
     if flag == 1:
         if search_mode_in == "name":
             try:
                 reports = search_reports_by_name(search_filters, search_data_in)
-                print(reports)
             except ValueError as e:
                 flag = 0 
         elif search_mode_in == "coords":
