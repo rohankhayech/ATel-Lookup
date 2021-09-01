@@ -24,6 +24,7 @@ License Terms and Copyright:
 
 
 from datetime import datetime 
+from model.ds.report_types import ReportResult
 
 
 # Type aliasing for the list data structures. 
