@@ -150,6 +150,13 @@ class TestReports(unittest.TestCase):
         self.assertEqual(query3,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
         self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
 
+        #Test empty query
+        sf = None
+        query, data = db_interface._build_report_query(sf)
+        self.maxDiff = None
+        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where ")
+        self.assertTupleEqual(data,())
+
     def testFindGeneric(self):
         report = ImportedReport(20001,"db_test_report","A","B", datetime(2021,8,12), keywords=["star","radio"])
 
@@ -219,6 +226,12 @@ class TestReports(unittest.TestCase):
             )
             result = results[0]
             self.assertEqual(report, result)
+
+            #Test no filters
+            result = db_interface.find_reports_by_object(
+                object_name=""
+            )
+            self.assertIsNone(result)
 
         finally:
             #delete report
