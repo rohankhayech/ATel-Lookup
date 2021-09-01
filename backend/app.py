@@ -27,6 +27,7 @@ License Terms and Copyright:
 """
 
 from model.ds.search_filters import SearchFilters
+from model.ds.report_types import ReportResult
 from model.constants import FIXED_KEYWORDS
 from typing import Tuple
 
@@ -40,7 +41,7 @@ from flask_cors import CORS
 import os
 
 from controller.importer.importer import *
-# from controller.search.search import * #ImportError: cannot import name 'DEFAULT_RADIUS' from 'model.constants' (/app/model/constants.py)
+from controller.search.search import search_reports_by_id, search_reports_by_coords #ImportError: cannot import name 'DEFAULT_RADIUS' from 'model.constants' (/app/model/constants.py)
 from astropy.coordinates import SkyCoord
 from view.web_interface import *
 # from view.vis import * #not working yet 30/08
@@ -257,6 +258,7 @@ def search() -> json:
         # list_result = create_nodes_list(reports) #not implemented yet 30/08
         pass
 
+        # {"flag": flag, "report_list": reports, "nodes_list": list_result}
 
     return jsonify({"flag": flag})
 
