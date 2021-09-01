@@ -5,10 +5,10 @@ Author:
     Rohan Khayech
 
 Contributors:
-    Nathan Sutardi, Ryan Martin
+    Ryan Martin
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech, Nathan Sutardi, Ryan Martin
+    Copyright (C) 2021 Rohan Khayech, Ryan Martin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -92,3 +92,12 @@ FIXED_KEYWORDS = ["radio",
                    "transient",
                    "variables",
                    "young stellar object" ]
+
+
+# The default radius for a coordinate search. 
+# The unit is defined in the constant RADIUS_UNIT.
+DEFAULT_RADIUS: float = 10.0
+
+
+# The unit used for the radius of a coordinate search. 
+RADIUS_UNIT: str = 'arcsecond'
