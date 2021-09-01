@@ -487,7 +487,7 @@ def _build_report_query(filters: SearchFilters):
     if filters:
         # Append term clause and data
         if filters.term:
-            clauses.append("(title like %s or body like %s) ")
+            clauses.append("(title like concat('%', %s, '%') or body like concat('%', %s, '%')) ")
             data = data + (filters.term,filters.term)
         
         # Append date clauses and data
