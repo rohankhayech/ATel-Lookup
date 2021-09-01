@@ -191,6 +191,7 @@ def search() -> json:
     """
 
     flag = 1 # set initial flag to success
+    reports = []
 
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
@@ -260,7 +261,11 @@ def search() -> json:
 
         # {"flag": flag, "report_list": reports, "nodes_list": list_result}
 
-    return jsonify({"flag": flag})
+    if flag == 1:    
+        print(reports)
+
+
+    return jsonify({"flag": flag, "report_list": reports})
 
 
 @app.route("/metadata", methods=["GET"])

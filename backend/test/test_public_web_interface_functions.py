@@ -82,7 +82,7 @@ test_report_already_exists_error = {
 
 test_search_basic = {
     "search_mode": "name",
-    "search_data": "Asteroid",
+    "search_data": "Basinski",
     "keywords": ["radio", "optical"],
     "keyword_mode": "all",
     "start_date": "2021-01-22",
@@ -100,7 +100,7 @@ test_search_basic_coords = {
 
 test_search_bad_date = {
     "search_mode": "name",
-    "search_data": "Asteroid",
+    "search_data": "Basinski",
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2025-09-06",
@@ -109,7 +109,7 @@ test_search_bad_date = {
 
 test_search_bad_search_mode = {
     "search_mode": "thing",
-    "search_data": "Asteroid",
+    "search_data": "Basinski",
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2007-09-06",
@@ -118,7 +118,7 @@ test_search_bad_search_mode = {
 
 test_search_dates_backwards = {
     "search_mode": "name",
-    "search_data": "Asteroid",
+    "search_data": "Basinski",
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2007-01-22",
