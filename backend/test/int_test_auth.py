@@ -20,14 +20,14 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-from backend.model.db.db_interface import get_hashed_password, user_exists
+from model.db.db_interface import get_hashed_password, user_exists
 from model.db import db_init, db_interface
-from backend.controller.authentication import InvalidCredentialsError, add_admin_user
+from controller.authentication import InvalidCredentialsError, add_admin_user
 import unittest
 
 import mysql.connector
 
-import app
+from app import app
 
 class TestFR1(unittest.TestCase):
     """
