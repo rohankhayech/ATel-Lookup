@@ -19,7 +19,7 @@ export class ErrorInterceptor implements HttpInterceptor {
   ): Observable<HttpEvent<unknown>> {
     return next.handle(request).pipe(
       catchError((error) => {
-        this.snackBar.open(error.message, 'Close');
+        this.snackBar.open(error.message, 'Close', { duration: 8000 });
         return throwError(error);
       })
     );

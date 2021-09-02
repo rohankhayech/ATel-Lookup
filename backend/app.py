@@ -41,10 +41,10 @@ from flask_cors import CORS
 import os
 
 from controller.importer.importer import *
-from controller.search.search import * 
+from controller.search.search import *
 from astropy.coordinates import SkyCoord
 from view.web_interface import *
-from view.vis import * 
+from view.vis import *
 
 
 from flask import Flask, jsonify, request
@@ -130,11 +130,12 @@ if __name__ == "__main__":
 # Web Interface Functions - Tully Slattery
 
 
-#Tully's Pulbic Web Interface Functions
+# Tully's Pulbic Web Interface Functions
+
 
 @app.route("/import", methods=["POST"])
 def imports() -> json:
-    '''Called by the web interface with the flag auto or manual (determining 
+    """Called by the web interface with the flag auto or manual (determining
     whether a specific report is to be added, or to just import any new reports since last import)
 
     Args:
@@ -143,26 +144,30 @@ def imports() -> json:
     Returns:
         json: JSON flag – Flag that states whether the import was successful or unsuccessful.
 
-    '''
+    """
     # print("REQUEST.JSON PRINTOUT -> ", request.json)
     flag = 1
 
     import_mode_in = request.json.get("import_mode", None)
     atel_num_in = request.json.get("atel_num", None)
 
-    if import_mode_in != "manual" and import_mode_in != "auto": # import mode not named correctly
+    if (
+        import_mode_in != "manual" and import_mode_in != "auto"
+    ):  # import mode not named correctly
         flag = 0
-    elif import_mode_in == "manual" and atel_num_in is None: # import mode set to manual but atel number was not provided
+    elif (
+        import_mode_in == "manual" and atel_num_in is None
+    ):  # import mode set to manual but atel number was not provided
         flag = 0
-    elif import_mode_in == "manual" and atel_num_in <= 0: # atel number not valid
-        flag = 0   
+    elif import_mode_in == "manual" and atel_num_in <= 0:  # atel number not valid
+        flag = 0
 
     if flag == 1:
         try:
             if import_mode_in == "manual":
                 import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
             elif import_mode_in == "auto":
-                import_all_reports() 
+                import_all_reports()
         except ReportAlreadyExistsError as e:
             flag = 0
         except ReportNotFoundError as e:
@@ -189,7 +194,7 @@ def search() -> json:
 
     """
 
-    flag = 1 # set initial flag to success
+    flag = 1  # set initial flag to success
     reports = []
     list_result = [], []
     report_dicts = []
@@ -243,11 +248,11 @@ def search() -> json:
             ra = search_data_in[1]
             radius = search_data_in[2]
             try:
-                sky_coord = SkyCoord(ra,dec,frame='icrs', unit=('deg', 'deg'))
+                sky_coord = SkyCoord(ra, dec, frame="icrs", unit=("deg", "deg"))
             except ValueError as e:
                 flag = 0
         else:
-            flag = 0 # if search data is not fit for coords, set flag to failure
+            flag = 0  # if search data is not fit for coords, set flag to failure
 
     if keyword_mode_in != None:
         for x in keywords_in:
@@ -273,24 +278,27 @@ def search() -> json:
             try:
                 reports = search_reports_by_name(search_filters, search_data_in)
             except ValueError as e:
-                flag = 0 
+                flag = 0
         elif search_mode_in == "coords":
-            reports = search_reports_by_coords(search_filters, sky_coord, radius) 
-        
+            reports = search_reports_by_coords(search_filters, sky_coord, radius)
+
     if flag == 1:
-        list_result = create_nodes_list(reports) 
+        list_result = create_nodes_list(reports)
         for report in reports:
-            report_dicts.append({
-                "atel_num": report.atel_num,
-                "title": report.title,
-                "authors": report.authors,
-                "body": report.body,
-                "submission_date": str(report.submission_date),
-                "referenced_reports": report.referenced_reports
-            })
+            report_dicts.append(
+                {
+                    "atel_num": report.atel_num,
+                    "title": report.title,
+                    "authors": report.authors,
+                    "body": report.body,
+                    "submission_date": str(report.submission_date),
+                    "referenced_reports": report.referenced_reports,
+                }
+            )
 
-
-    return jsonify({"flag": flag, "report_list": report_dicts, "nodes_list": list_result})
+    return jsonify(
+        {"flag": flag, "report_list": report_dicts, "nodes_list": list_result}
+    )
 
 
 @app.route("/metadata", methods=["GET"])

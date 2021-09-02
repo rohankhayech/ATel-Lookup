@@ -23,7 +23,15 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
+import {
+  MatNativeDateModule,
+  MAT_DATE_FORMATS,
+  MAT_DATE_LOCALE,
+} from '@angular/material/core';
+import { SearchResultsComponent } from './search-results/search-results.component';
+import { SearchFormComponent } from './search-form/search-form.component';
+import { TelegramCardComponent } from './telegram-card/telegram-card.component';
+import { MatMomentDateModule } from '@angular/material-moment-adapter';
 
 @NgModule({
   declarations: [
@@ -32,6 +40,9 @@ import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
     AdminPageComponent,
     HomePageComponent,
     HeaderComponent,
+    SearchResultsComponent,
+    SearchFormComponent,
+    TelegramCardComponent,
   ],
   imports: [
     BrowserModule,
@@ -51,6 +62,7 @@ import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
     MatDatepickerModule,
     MatNativeDateModule,
     MatTooltipModule,
+    MatMomentDateModule,
   ],
   providers: [
     {
@@ -64,6 +76,20 @@ import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
       multi: true,
     },
     { provide: MAT_DATE_LOCALE, useValue: 'en-AU' },
+    {
+      provide: MAT_DATE_FORMATS,
+      useValue: {
+        parse: {
+          dateInput: ['l', 'LL'],
+        },
+        display: {
+          dateInput: 'L',
+          monthYearLabel: 'MMM YYYY',
+          dateA11yLabel: 'LL',
+          monthYearA11yLabel: 'MMMM YYYY',
+        },
+      },
+    },
   ],
   bootstrap: [AppComponent],
 })

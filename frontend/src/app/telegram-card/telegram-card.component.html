@@ -1,0 +1,23 @@
+<mat-card>
+  <mat-card-header>
+    <mat-card-subtitle>ATel #{{ telegram?.id }}</mat-card-subtitle>
+    <mat-card-title>{{ telegram?.title }}</mat-card-title>
+  </mat-card-header>
+
+  <mat-card-content>
+    <p>Submission Date: {{ telegram?.date | date }}</p>
+    <p>Authors: {{ telegram?.authors }}</p>
+    <p>{{ telegram?.body }}</p>
+  </mat-card-content>
+
+  <mat-card-actions>
+    <button
+      mat-raised-button
+      color="primary"
+      class="wide uppercase"
+      (click)="visit()"
+    >
+      View on Astronomer's Telegram
+    </button>
+  </mat-card-actions>
+</mat-card>
