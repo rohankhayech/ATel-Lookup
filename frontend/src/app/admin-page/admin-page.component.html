@@ -14,7 +14,12 @@
         >This will import all new reports from ATel #0 to the latest
         posted</strong
       >
-      <button mat-raised-button color="primary" class="wide uppercase">
+      <button
+        mat-raised-button
+        color="primary"
+        (click)="importAll()"
+        class="wide uppercase"
+      >
         Import All
       </button>
     </mat-card-content>
@@ -35,7 +40,12 @@
         <input matInput [(ngModel)]="id" type="number" />
       </mat-form-field>
 
-      <button mat-raised-button color="primary" class="wide uppercase">
+      <button
+        mat-raised-button
+        (click)="import()"
+        color="primary"
+        class="wide uppercase"
+      >
         Import
       </button>
     </mat-card-content>
