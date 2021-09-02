@@ -53,7 +53,7 @@ class TestFR2(unittest.TestCase):
         #delete report if already exists
         cn = db._connect()
         cur = cn.cursor()
-        cur.execute("delete from Reports where atelNum = 20000")
+        cur.execute("delete from Reports where atelNum = 10000")
         cur.close()
         cn.commit()
         cn.close()
@@ -140,7 +140,7 @@ class TestFR5(unittest.TestCase):
             #send all search request
             response = self.app.post('/search', json=all_keyword_search_request)
 
-            raise ValueError(str(response.json))
+            #raise ValueError(str(response.json))
 
             reports = response.json.get("report_list")
             self.assertIn({
@@ -148,7 +148,7 @@ class TestFR5(unittest.TestCase):
                 "authors": "A",
                 "body": "B",
                 "referenced_reports": [],
-                "submission_date": "2021-01-01 00: 00: 00",
+                "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
 
@@ -162,7 +162,7 @@ class TestFR5(unittest.TestCase):
                 "authors": "A",
                 "body": "B",
                 "referenced_reports": [],
-                "submission_date": "2021-01-01 00: 00: 00",
+                "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
             self.assertIn({
@@ -170,7 +170,7 @@ class TestFR5(unittest.TestCase):
                 "authors": "A",
                 "body": "B",
                 "referenced_reports": [],
-                "submission_date": "2021-01-01 00: 00: 00",
+                "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
             self.assertIn({
@@ -178,7 +178,7 @@ class TestFR5(unittest.TestCase):
                 "authors": "A",
                 "body": "B",
                 "referenced_reports": [],
-                "submission_date": "2021-01-01 00: 00: 00",
+                "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
 
@@ -192,7 +192,7 @@ class TestFR5(unittest.TestCase):
                 "authors": "A",
                 "body": "B",
                 "referenced_reports": [],
-                "submission_date": "2021-01-01 00: 00: 00",
+                "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
             
@@ -219,7 +219,7 @@ class TestFR8:
 
 
 term_search_request = {
-    "term": "term",
+    "term": "db_test_term",
     "search_mode": "name",
 }
 
@@ -228,13 +228,13 @@ class TestFR9(unittest.TestCase):
         self.app = app.test_client()
 
     def test_search_by_term(self):
-        title_report = db.add_report(ImportedReport(20000,"term","A","B",datetime(2021,1,1)))
-        body_report1 = db.add_report(ImportedReport(20001, "T", "A", "term", datetime(2021, 1, 1)))
+        title_report = db.add_report(ImportedReport(20000,"db_test_term_title","A","B",datetime(2021,1,1)))
+        body_report1 = db.add_report(ImportedReport(20001, "T", "A", "db_test_term_body", datetime(2021, 1, 1)))
 
         try:
             #send all search request
             response = self.app.post(
-                '/search', json=all_keyword_search_request)
+                '/search', json=term_search_request)
 
             reports = response.json.get("report_list")
             self.assertIn({
@@ -242,15 +242,15 @@ class TestFR9(unittest.TestCase):
                 "authors": "A",
                 "body": "B",
                 "referenced_reports": [],
-                "submission_date": "2021-01-01 00: 00: 00",
-                "title": "term"
+                "submission_date": "2021-01-01 00:00:00",
+                "title": "db_test_term_title"
             }, reports)
             self.assertIn({
                 "atel_num": 20001,
                 "authors": "A",
-                "body": "term",
+                "body": "db_test_term_body",
                 "referenced_reports": [],
-                "submission_date": "2021-01-01 00: 00: 00",
+                "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
 
@@ -265,7 +265,7 @@ class TestFR9(unittest.TestCase):
             cn.close()
 
 class TestFR10:
-    pass #NYI
+    pass #Partially implemented.
 
 class TestFR14:
     pass #NYI
