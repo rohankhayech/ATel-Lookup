@@ -40,23 +40,43 @@
             class="wide"
           >
             <mat-label>Name</mat-label>
-            <input matInput [(ngModel)]="name" name="name" />
+            <input
+              matInput
+              [(ngModel)]="name"
+              name="name"
+              placeholder="Enter object name or alias"
+            />
           </mat-form-field>
 
           <ng-container *ngSwitchCase="SearchMode.Coordinate">
             <mat-form-field appearance="fill" class="wide">
               <mat-label>RA</mat-label>
-              <input matInput [(ngModel)]="ra" name="ra" />
+              <input
+                matInput
+                [(ngModel)]="ra"
+                name="ra"
+                placeholder="hh:mm:ss.ssss"
+              />
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="wide">
               <mat-label>Declination</mat-label>
-              <input matInput [(ngModel)]="declination" name="declination" />
+              <input
+                matInput
+                [(ngModel)]="declination"
+                name="declination"
+                placeholder="hh:mm:ss.ssss"
+              />
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="wide">
               <mat-label>Radius</mat-label>
-              <input matInput [(ngModel)]="radius" name="radius" />
+              <input
+                matInput
+                [(ngModel)]="radius"
+                name="radius"
+                placeholder="def 10.0000"
+              />
             </mat-form-field>
           </ng-container>
         </ng-container>
