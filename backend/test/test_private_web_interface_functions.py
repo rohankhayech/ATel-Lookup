@@ -25,7 +25,7 @@ from datetime import datetime
 from astropy.coordinates import SkyCoord
 import json
 from typing import Tuple
-from backend.model.ds.search_filters import KeywordMode
+from model.ds.search_filters import KeywordMode
 from enum import Enum
 import enum
 
