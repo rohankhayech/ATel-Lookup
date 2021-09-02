@@ -20,6 +20,7 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+from flask_jwt_extended.utils import create_access_token
 from model.db.db_interface import get_hashed_password, user_exists
 from model.db import db_init, db_interface
 from controller.authentication import InvalidCredentialsError, add_admin_user
@@ -38,14 +39,15 @@ class TestFR1(unittest.TestCase):
         add_admin_user("test_user", "password")
     
     def test_admin_not_authenticated(self):
-        """Stub: Need help on this test."""
+        """Currently manually tested on frontend."""
 
     def test_admin_authenticated(self):
-        """Stub: Need help on this test."""
+        """Currently manually tested on frontend."""
 
     def test_login(self):
-        response = self.client.post("/authenticate",json=login_json)
-        self.assertIsNotNone(response.json)
+        with self.client:
+            response = self.client.post("/authenticate",json=login_json)
+            self.assertTrue(str(response.json).startswith("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYzMDU3N")) #check access token
 
     def invalid_login(self):
         response = self.client.post("/authenticate", json=incorrect_login_json)
