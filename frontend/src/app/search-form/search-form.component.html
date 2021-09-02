@@ -10,7 +10,12 @@
       <section class="section">
         <mat-form-field appearance="fill" class="wide">
           <mat-label>Free-text Search</mat-label>
-          <input matInput [(ngModel)]="query" name="query" />
+          <input
+            matInput
+            [(ngModel)]="query"
+            name="query"
+            placeholder="Enter terms to search report title and body content"
+          />
         </mat-form-field>
       </section>
 
