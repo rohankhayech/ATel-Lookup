@@ -45,9 +45,8 @@ class TestFR1(unittest.TestCase):
         """Currently manually tested on frontend."""
 
     def test_login(self):
-        with self.client:
-            response = self.client.post("/authenticate",json=login_json)
-            self.assertTrue(str(response.json).startswith("eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJmcmVzaCI6ZmFsc2UsImlhdCI6MTYzMDU3N")) #check access token
+        response = self.client.post("/authenticate",json=login_json)
+        self.assertNotEqual(response.json, "Invalid credentials")
 
     def invalid_login(self):
         response = self.client.post("/authenticate", json=incorrect_login_json)
