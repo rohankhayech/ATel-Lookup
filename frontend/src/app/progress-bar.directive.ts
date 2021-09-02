@@ -44,6 +44,7 @@ export class ProgressBarDirective {
       this.componentFactory
     );
     this.component.instance.mode = this.appProgressBarMode ?? 'indeterminate';
+    this.component.instance.color = 'accent';
   }
 
   destroyProgressBar() {
