@@ -212,6 +212,9 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
+    if keywords_in == []:
+        keywords_in = None
+
     if start_date_in != None:
         start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d")
     if end_date_in != None:
