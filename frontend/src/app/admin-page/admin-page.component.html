@@ -14,6 +14,12 @@
         >This will import all new reports from ATel #0 to the latest
         posted</strong
       >
+
+      <mat-progress-bar
+        *ngIf="loadingAuto"
+        mode="indeterminate"
+      ></mat-progress-bar>
+
       <button
         mat-raised-button
         color="primary"
@@ -39,6 +45,11 @@
         <mat-label>ATel Number</mat-label>
         <input matInput [(ngModel)]="id" type="number" />
       </mat-form-field>
+
+      <mat-progress-bar
+        *ngIf="loadingManual"
+        mode="indeterminate"
+      ></mat-progress-bar>
 
       <button
         mat-raised-button

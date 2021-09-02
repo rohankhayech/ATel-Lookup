@@ -32,6 +32,7 @@ import { SearchResultsComponent } from './search-results/search-results.componen
 import { SearchFormComponent } from './search-form/search-form.component';
 import { TelegramCardComponent } from './telegram-card/telegram-card.component';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 
 @NgModule({
   declarations: [
@@ -63,6 +64,7 @@ import { MatMomentDateModule } from '@angular/material-moment-adapter';
     MatNativeDateModule,
     MatTooltipModule,
     MatMomentDateModule,
+    MatProgressBarModule,
   ],
   providers: [
     {
