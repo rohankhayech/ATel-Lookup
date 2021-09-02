@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { finalize } from 'rxjs/operators';
+import { tap } from 'rxjs/operators';
 import { ImportService } from '../import.service';
 
 @Component({
@@ -20,28 +20,22 @@ export class AdminPageComponent {
   ) {}
 
   importAll() {
-    this.loadingAuto = true;
-
-    this.importService
-      .importAll()
-      .pipe(finalize(() => (this.loadingAuto = false)))
-      .subscribe(() =>
+    return this.importService.importAll().pipe(
+      tap(() =>
         this.snackBar.open('ATels successfully imported', 'Close', {
           duration: 8000,
         })
-      );
+      )
+    );
   }
 
   import() {
-    this.loadingManual = true;
-
-    this.importService
-      .import(this.id)
-      .pipe(finalize(() => (this.loadingManual = false)))
-      .subscribe(() =>
+    return this.importService.import(this.id).pipe(
+      tap(() =>
         this.snackBar.open('ATel successfully imported', 'Close', {
           duration: 8000,
         })
-      );
+      )
+    );
   }
 }

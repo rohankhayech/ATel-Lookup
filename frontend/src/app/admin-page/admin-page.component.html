@@ -15,15 +15,10 @@
         posted</strong
       >
 
-      <mat-progress-bar
-        *ngIf="loadingAuto"
-        mode="indeterminate"
-      ></mat-progress-bar>
-
       <button
         mat-raised-button
         color="primary"
-        (click)="importAll()"
+        [appProgressBar]="importAll.bind(this)"
         class="wide uppercase"
       >
         Import All
@@ -46,14 +41,9 @@
         <input matInput [(ngModel)]="id" type="number" />
       </mat-form-field>
 
-      <mat-progress-bar
-        *ngIf="loadingManual"
-        mode="indeterminate"
-      ></mat-progress-bar>
-
       <button
         mat-raised-button
-        (click)="import()"
+        [appProgressBar]="import.bind(this)"
         color="primary"
         class="wide uppercase"
       >
