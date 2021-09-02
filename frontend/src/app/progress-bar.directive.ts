@@ -7,7 +7,10 @@ import {
   Input,
   ViewContainerRef,
 } from '@angular/core';
-import { MatProgressBar } from '@angular/material/progress-bar';
+import {
+  MatProgressBar,
+  ProgressBarMode,
+} from '@angular/material/progress-bar';
 import { Observable } from 'rxjs';
 import { finalize } from 'rxjs/operators';
 
@@ -16,6 +19,7 @@ import { finalize } from 'rxjs/operators';
 })
 export class ProgressBarDirective {
   @Input() public appProgressBar!: () => Observable<unknown>;
+  @Input() public appProgressBarMode?: ProgressBarMode;
 
   private componentFactory: ComponentFactory<MatProgressBar>;
   private component?: ComponentRef<MatProgressBar>;
@@ -39,7 +43,7 @@ export class ProgressBarDirective {
     this.component = this.viewContainerRef.createComponent<MatProgressBar>(
       this.componentFactory
     );
-    this.component.instance.mode = 'indeterminate';
+    this.component.instance.mode = this.appProgressBarMode ?? 'indeterminate';
   }
 
   destroyProgressBar() {

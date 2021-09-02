@@ -120,7 +120,8 @@
       <button
         mat-raised-button
         color="primary"
-        (click)="submit()"
+        [appProgressBar]="submit.bind(this)"
+        appProgressBarMode="query"
         class="wide uppercase"
       >
         Search

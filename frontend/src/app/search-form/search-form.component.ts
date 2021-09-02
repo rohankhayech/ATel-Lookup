@@ -1,12 +1,15 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { Moment } from 'moment';
+import { tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Coordinates } from '../coordinates.interface';
 import { Match } from '../match.enum';
 import { Metadata } from '../metadata.interface';
 import { Parameters } from '../parameters.interface';
 import { SearchMode } from '../search-mode.enum';
+import { SearchService } from '../search.service';
+import { Telegram } from '../telegram.interface';
 
 interface Keywords {
   [key: string]: boolean;
@@ -18,7 +21,7 @@ interface Keywords {
   styleUrls: ['./search-form.component.scss'],
 })
 export class SearchFormComponent implements OnInit {
-  @Output() public search = new EventEmitter<Parameters>();
+  @Output() public search = new EventEmitter<Telegram[]>();
 
   public SearchMode = SearchMode;
   public Match = Match;
@@ -36,7 +39,7 @@ export class SearchFormComponent implements OnInit {
   public start?: Moment;
   public end?: Moment;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private searchService: SearchService) {}
 
   ngOnInit() {
     this.fetchMetadata();
@@ -76,6 +79,8 @@ export class SearchFormComponent implements OnInit {
       end: this.end,
     };
 
-    this.search.emit(parameters);
+    return this.searchService
+      .search(parameters)
+      .pipe(tap((telegrams) => this.search.emit(telegrams)));
   }
 }
