@@ -9,6 +9,7 @@ import { ApiTelegram } from './api-telegram.interface';
 import { switchMap } from 'rxjs/operators';
 import { of } from 'rxjs';
 import { SearchResponse } from './search-response';
+import { Moment } from 'moment';
 
 @Injectable({
   providedIn: 'root',
@@ -48,12 +49,8 @@ export class SearchService {
     };
   }
 
-  serializeDate(date?: Date) {
-    return date
-      ? `${date.getFullYear()}-${this.pad(date.getMonth() + 1)}-${this.pad(
-          date.getDate()
-        )}`
-      : undefined;
+  serializeDate(date?: Moment) {
+    return date?.format('DD/MM/YYYY');
   }
 
   deserializeTelegram(telegram: ApiTelegram): Telegram {

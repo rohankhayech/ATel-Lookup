@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { Moment } from 'moment';
 import { environment } from 'src/environments/environment';
 import { Coordinates } from '../coordinates.interface';
 import { Match } from '../match.enum';
@@ -32,8 +33,8 @@ export class SearchFormComponent implements OnInit {
   public radius = '';
   public match = Match.Any;
   public keywords: Keywords = {};
-  public start?: Date;
-  public end?: Date;
+  public start?: Moment;
+  public end?: Moment;
 
   constructor(private http: HttpClient) {}
 
