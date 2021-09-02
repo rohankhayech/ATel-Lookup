@@ -49,6 +49,15 @@ class TestFR2(unittest.TestCase):
         self.app = app.test_client()
 
     def test_manual_import(self):
+
+        #delete report if already exists
+        cn = db._connect()
+        cur = cn.cursor()
+        cur.execute("delete from Reports where atelNum = 20000")
+        cur.close()
+        cn.commit()
+        cn.close()
+
         #send import request
         response = self.app.post('/import', json=manual_import_request)
         
