@@ -63,24 +63,27 @@
       </section>
 
       <section class="section">
-        <mat-form-field appearance="fill" class="wide">
-          <mat-label>Match</mat-label>
-          <mat-select [(value)]="match" class="uppercase">
-            <mat-option [value]="Match.Any" class="uppercase">Any</mat-option>
-            <mat-option [value]="Match.All" class="uppercase">All</mat-option>
-            <mat-option [value]="Match.None" class="uppercase">None</mat-option>
+        <mat-form-field appearance="standard">
+          <mat-select [(value)]="match" class="bold">
+            <mat-option [value]="Match.Any" class="bold">Including</mat-option>
+            <mat-option [value]="Match.All" class="bold"
+              >Including all of</mat-option
+            >
+            <mat-option [value]="Match.None" class="bold">Excluding</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <p>of the following keywords:</p>
+        <span class="bold"> the following keywords:</span>
 
-        <mat-checkbox
-          *ngFor="let keyword of metadata?.keywords"
-          [(ngModel)]="keywords[keyword]"
-          [name]="keyword"
-          class="checkbox"
-          >{{ keyword }}</mat-checkbox
-        >
+        <div>
+          <mat-checkbox
+            *ngFor="let keyword of metadata?.keywords"
+            [(ngModel)]="keywords[keyword]"
+            [name]="keyword"
+            class="checkbox"
+            >{{ keyword }}</mat-checkbox
+          >
+        </div>
       </section>
 
       <section class="section">
