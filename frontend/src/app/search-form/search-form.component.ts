@@ -1,6 +1,8 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Moment } from 'moment';
+import { EMPTY } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Coordinates } from '../coordinates.interface';
@@ -39,7 +41,11 @@ export class SearchFormComponent implements OnInit {
   public start?: Moment;
   public end?: Moment;
 
-  constructor(private http: HttpClient, private searchService: SearchService) {}
+  constructor(
+    private http: HttpClient,
+    private searchService: SearchService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit() {
     this.fetchMetadata();
@@ -58,6 +64,15 @@ export class SearchFormComponent implements OnInit {
   }
 
   submit() {
+    if (!this.valid) {
+      this.snackBar.open(
+        'You must input either a free-text search query, object name, coordinates or keywords',
+        'Close',
+        { duration: 8000 }
+      );
+      return EMPTY;
+    }
+
     const keywords = this.metadata?.keywords.filter(
       (keyword) => this.keywords[keyword]
     );
@@ -82,5 +97,15 @@ export class SearchFormComponent implements OnInit {
     return this.searchService
       .search(parameters)
       .pipe(tap((telegrams) => this.search.emit(telegrams)));
+  }
+
+  get valid() {
+    return (
+      this.query ||
+      this.keywords.length ||
+      (this.mode === SearchMode.Coordinate
+        ? this.ra && this.declination && this.radius
+        : this.name)
+    );
   }
 }
