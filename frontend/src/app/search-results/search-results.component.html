@@ -1,14 +1,18 @@
 <!-- Timeline -->
 <app-timeline></app-timeline>
 
+<!-- Network Graph -->
+<app-network-graph
+  *ngIf="result"
+  [nodes]="result.nodes"
+  [links]="result.links"
+></app-network-graph>
+
 <!-- Reports -->
 <app-telegram-card
-  *ngFor="let telegram of telegrams"
+  *ngFor="let telegram of result?.telegrams"
   [telegram]="telegram"
 ></app-telegram-card>
-
-<!-- Network Graph -->
-<app-network-graph></app-network-graph>
 
 <!-- Floating Button -->
 <button mat-raised-button class="floating" (click)="top()">Back to Top</button>

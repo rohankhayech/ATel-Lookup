@@ -1,5 +1,5 @@
 import { Component, Input } from '@angular/core';
-import { Telegram } from '../telegram.interface';
+import { SearchResult } from '../search-result';
 
 @Component({
   selector: 'app-search-results',
@@ -7,7 +7,7 @@ import { Telegram } from '../telegram.interface';
   styleUrls: ['./search-results.component.scss'],
 })
 export class SearchResultsComponent {
-  @Input() public telegrams?: Telegram[];
+  @Input() public result?: SearchResult;
 
   top() {
     window.scrollTo({ top: 0 });

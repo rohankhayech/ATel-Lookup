@@ -10,8 +10,8 @@ import { Match } from '../match.enum';
 import { Metadata } from '../metadata.interface';
 import { Parameters } from '../parameters.interface';
 import { SearchMode } from '../search-mode.enum';
+import { SearchResult } from '../search-result';
 import { SearchService } from '../search.service';
-import { Telegram } from '../telegram.interface';
 
 interface Keywords {
   [key: string]: boolean;
@@ -23,7 +23,7 @@ interface Keywords {
   styleUrls: ['./search-form.component.scss'],
 })
 export class SearchFormComponent implements OnInit {
-  @Output() public search = new EventEmitter<Telegram[]>();
+  @Output() public search = new EventEmitter<SearchResult>();
 
   public SearchMode = SearchMode;
   public Match = Match;
@@ -96,13 +96,13 @@ export class SearchFormComponent implements OnInit {
 
     return this.searchService
       .search(parameters)
-      .pipe(tap((telegrams) => this.search.emit(telegrams)));
+      .pipe(tap((result) => this.search.emit(result)));
   }
 
   get valid() {
     return (
       this.query ||
-      this.keywords.length ||
+      Object.keys(this.keywords).length ||
       (this.mode === SearchMode.Coordinate
         ? this.ra && this.declination && this.radius
         : this.name)

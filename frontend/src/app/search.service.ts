@@ -7,9 +7,11 @@ import { ApiParameters } from './api-parameters.interface';
 import { Telegram } from './telegram.interface';
 import { ApiTelegram } from './api-telegram.interface';
 import { switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { SearchResponse } from './search-response';
 import { Moment } from 'moment';
+import { SearchResult } from './search-result';
+import { Link, Node } from './network-graph/network-graph.component';
 
 @Injectable({
   providedIn: 'root',
@@ -24,10 +26,29 @@ export class SearchService {
         ...params,
       })
       .pipe(
-        switchMap((response) =>
-          of(response.report_list.map(this.deserializeTelegram))
-        )
+        switchMap((response): Observable<SearchResult> => {
+          const telegrams = response.report_list.map(this.deserializeTelegram);
+          const nodes = response.node_list ?? telegrams; // TODO: remove mock logic
+          const links = response.edge_list ?? this.createLinks(nodes); // TODO: remove mock logic
+          return of({ telegrams, nodes, links });
+        })
       );
+  }
+
+  // TODO: remove mock method
+  createLinks(nodes: Node[]) {
+    const links: Link[] = [];
+
+    for (const source of nodes) {
+      for (const target of nodes) {
+        if (Math.random() > 0.4) {
+          const link = { source: source.id, target: target.id };
+          links.push(link);
+        }
+      }
+    }
+
+    return links;
   }
 
   serializeParameters(parameters: Parameters): ApiParameters {
