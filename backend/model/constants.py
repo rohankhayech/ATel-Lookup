@@ -5,10 +5,10 @@ Author:
     Rohan Khayech
 
 Contributors:
-    Nathan Sutardi, Ryan Martin
+    Ryan Martin
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech, Nathan Sutardi, Ryan Martin
+    Copyright (C) 2021 Rohan Khayech, Ryan Martin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -54,8 +54,8 @@ FIXED_KEYWORDS = ["radio",
                    "neutrinos",
                    "a comment",
                    "agn",
-                   "asteroid",
                    "asteroid(binary)",
+                   "asteroid",
                    "binary",
                    "black hole",
                    "blazar",
@@ -75,8 +75,8 @@ FIXED_KEYWORDS = ["radio",
                    "near-earth object",
                    "neutron star",
                    "nova",
-                   "planet",
                    "planet(minor)",
+                   "planet",
                    "potentially hazardous asteroid",
                    "pre-main-sequence star",
                    "pulsar",
@@ -93,61 +93,11 @@ FIXED_KEYWORDS = ["radio",
                    "variables",
                    "young stellar object" ]
 
-# Optimised for regex
-FIXED_KEYWORDS_REGEX = ["radio",
-                        "millimeter",
-                        "sub-millimeter",
-                        "far-infra-red",
-                        "infra-red",
-                        "optical",
-                        "ultra-violet",
-                        "x-ray",
-                        "gamma ray",
-                        "> gev",
-                        "tev",
-                        "vhe",
-                        "uhe",
-                        "neutrinos",
-                        "a comment",
-                        "agn",
-                        "asteroid\(binary\)",
-                        "asteroid",
-                        "binary",
-                        "black hole",
-                        "blazar",
-                        "cataclysmic variable",
-                        "comet",
-                        "cosmic rays",
-                        "direct collapse event",
-                        "exoplanet",
-                        "fast radio burst",
-                        "gamma-ray burst",
-                        "globular cluster",
-                        "gravitational lensing",
-                        "gravitational waves",
-                        "magnetar",
-                        "meteor",
-                        "microlensing event",
-                        "near-earth object",
-                        "neutron star",
-                        "nova",
-                        "planet\(minor\)",
-                        "planet",
-                        "potentially hazardous asteroid",
-                        "pre-main-sequence star",
-                        "pulsar",
-                        "quasar",
-                        "request for observations",
-                        "soft gamma-ray repeater",
-                        "solar system object",
-                        "star",
-                        "supernova remnant",
-                        "supernovae",
-                        "the sun",
-                        "tidal disruption event",
-                        "transient",
-                        "variables",
-                        "young stellar object" ]
 
-# The default radius for a coordinate search, in arcseconds.
-DEFAULT_RADIUS = 10.0
+# The default radius for a coordinate search. 
+# The unit is defined in the constant RADIUS_UNIT.
+DEFAULT_RADIUS: float = 10.0
+
+
+# The unit used for the radius of a coordinate search. 
+RADIUS_UNIT: str = 'arcsecond'

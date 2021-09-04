@@ -28,6 +28,11 @@ from astropy.coordinates import SkyCoord
 from controller.helper.type_checking import list_is_type
 from model.constants import valid_keyword
 
+#Constants
+REPORT_TITLE_CHAR_LIM:int = 1024   # Max chars for title field.
+REPORT_AUTHOR_CHAR_LIM:int = 1024  # Max chars for authors field.
+REPORT_BODY_CHAR_LIM:int = 4000    # Max chars for body field.
+
 class ReportResult:
     """
     An object representing a report returned from the local database as a result of a search query. Contains all the information needed for displaying the report as a search result and on both the timeline and network graphs.
@@ -58,6 +63,27 @@ class ReportResult:
             str: A description of the report.
         """
         return f"ATel #{self.atel_num}: {self.title} ({self.authors}). Body length: {len(self.body)} chars. Submitted: {self.submission_date}. Referenced Reports: {self.referenced_reports}"
+
+    def __eq__(self, other)->bool:
+        """
+        Checks if the given object is equal to this ReportResult. If the object is an ImportedReport it will be considered equal if the common fields are equal. 
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal.
+        """
+        if (isinstance(other,ReportResult)):
+            return (self.atel_num == other.atel_num
+            and self.title == other.title
+            and self.authors == other.authors
+            and self.body == other.body
+            and sorted(self.referenced_reports) == sorted(other.referenced_reports)
+            and self.submission_date == self.submission_date)
+        else:
+            return False
+
 
     @property
     def atel_num(self)->int:
@@ -102,7 +128,13 @@ class ReportResult:
         Args:
             title (str): The title of the report.
         """
-        self._title = str(title)
+        title_str = str(title)
+
+        if(len(title_str) <= REPORT_TITLE_CHAR_LIM):
+            self._title = title_str
+        else:
+            raise ValueError(
+                f"Body must be <= {REPORT_TITLE_CHAR_LIM} characters.")
 
     @property
     def authors(self)->str:
@@ -118,7 +150,12 @@ class ReportResult:
         Args:
             authors (str): A string representing the authors of the report.
         """
-        self._authors = str(authors)
+        authors_str = str(authors)
+
+        if(len(authors_str)<=REPORT_AUTHOR_CHAR_LIM):
+            self._authors = authors_str
+        else:
+            raise ValueError(f"Body must be <= {REPORT_AUTHOR_CHAR_LIM} characters.")
 
     @property
     def body(self)->str:
@@ -138,12 +175,12 @@ class ReportResult:
         Raises:
             ValueError: When the given body text exceeds 4000 characters.
         """
-        body = str(body)
+        body_str = str(body)
 
-        if (len(body)<=4000):
-            self._body = body
+        if (len(body_str)<=REPORT_BODY_CHAR_LIM):
+            self._body = body_str
         else:
-            raise ValueError("Body must be <= 4000 characters.")
+            raise ValueError(f"Body must be <= {REPORT_BODY_CHAR_LIM} characters.")
 
     @property
     def submission_date(self)->datetime:
@@ -235,7 +272,6 @@ class ImportedReport(ReportResult):
         self.keywords = keywords
         self.referenced_by = referenced_by
         self.observation_dates = observation_dates
-        self.keywords = keywords
         self.objects = objects
         self.coordinates = coordinates
 
@@ -245,6 +281,26 @@ class ImportedReport(ReportResult):
             str: A description of the report.
         """
         return f"{super().__str__()} Observation Date/s: {self.observation_dates}. Keywords: {self.keywords}. Objects: {self.objects}. Coords: {self.coordinates}. Referenced by: {self.referenced_by}"
+
+    def __eq__(self, other) -> bool:
+        """
+        Checks if the given object is equal to this ImportedReport. If the object is a base ReportResult it will be considered equal if the common fields are equal. 
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal.
+        """
+        if (isinstance(other, ImportedReport)):
+            return (super().__eq__(other) 
+            and sorted(self.keywords) == sorted(other.keywords)
+            and sorted(self.referenced_by) == sorted(other.referenced_by)
+            and sorted(self.observation_dates) == sorted(other.observation_dates)
+            and sorted(self.objects) == sorted(other.objects)
+            and sorted(self.coordinates) == sorted(other.coordinates))
+        else:
+            return super().__eq__(other)
 
     @property
     def referenced_by(self)->list[int]:

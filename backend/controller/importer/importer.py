@@ -1,6 +1,5 @@
 """
-Contains functions that handles the import of ATel reports as well as the
-parsing and extraction of ATel data.
+Contains functions that handles the import and download of ATel reports.
 
 Author:
     Nathan Sutardi
@@ -22,25 +21,28 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-import re
+from model.db.db_interface import report_exists, add_report
+from controller.importer.parser import parse_report
 
-from model.constants import FIXED_KEYWORDS_REGEX
-from model.ds.report_types import ImportedReport
-
-from datetime import datetime
-from astropy.coordinates import SkyCoord
 from requests_html import HTMLSession
+from bs4 import BeautifulSoup
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
 # Custom exceptions
+class ReportAlreadyExistsError(Exception):
+    pass
+
+class ReportNotFoundError(Exception):
+    pass
+
 class NetworkError(Exception):
     pass
 
 class DownloadFailError(Exception):
     pass
 
-# Public functions
+# Importer functions
 def import_report(atel_num: int):
     """
     Adds new ATel report to the database if it is valid.
@@ -49,10 +51,22 @@ def import_report(atel_num: int):
         atel_num (int): The ATel number of the new report to be added.
 
     Raises:
-        ReportAlreadyExistsException: Thrown when report with the ATel number has been added to the database previously.
-        ReportNotFoundException: Thrown when report with the ATel number is not found on the AT website.
+        ReportAlreadyExistsError: Thrown when report with the ATel number has been added to the database previously.
+        ReportNotFoundError: Thrown when report with the ATel number is not found on the AT website.
     """
-    pass
+
+    # Raises error when ATel report is already imported into the database
+    if(report_exists(atel_num) == True):
+        raise ReportAlreadyExistsError(f'ATel #{atel_num} already exists in the database')
+    
+    html_string = download_report(atel_num)
+
+    # Raises error when ATel report is not found
+    if(html_string is None):
+        raise ReportNotFoundError(f'ATel #{atel_num} does not exists')
+
+    # Parses HTML and imports ATel report into the database
+    add_report(parse_report(atel_num, html_string))
 
 def import_all_reports():
     """
@@ -60,7 +74,6 @@ def import_all_reports():
     """
     pass
 
-# Private functions
 def download_report(atel_num: int) -> str:
     """
     Downloads the HTML of ATel report.
@@ -76,6 +89,8 @@ def download_report(atel_num: int) -> str:
         DownloadFailError: Thrown when the HTML could not be downloaded.
     """
 
+    session = None
+
     try:
         # Generates the URL of ATel page
         url = f'https://www.astronomerstelegram.org/?read={atel_num}'
@@ -88,6 +103,13 @@ def download_report(atel_num: int) -> str:
         request.html.render(timeout=20)
         html = request.html.raw_html
 
+        # Determines whether ATel report exists
+        soup = BeautifulSoup(html, 'html.parser')
+        texts = soup.find_all('p', {'class': None, 'align': None})
+
+        if(texts[1].get_text(strip=True) == 'This ATel does not appear to exist.'):
+            html = None
+
         return html
     except ConnectionError as err:
         raise NetworkError(f'Network failure encountered: {str(err)}')
@@ -98,104 +120,3 @@ def download_report(atel_num: int) -> str:
     finally:
         # Closes connection
         session.close()
-
-def parse_report(html_string: str) -> ImportedReport:
-    """
-    Extracts data from ATel report as stated in non-functional requirement 1 in the SRS.
-
-    Args:
-        html_string (str): String representation of the downloaded HTML of ATel report from which to extract data from.
-
-    Returns:
-        ImportedReport: Object containing all extracted data from the ATel report.
-
-    Raises:
-        MissingReportElementException: Thrown when important data could not be extracted or are missing from the report.
-    """
-    return ImportedReport(1, '', '', '', datetime(2000, 1, 1), [], [], [], [], [], [])
-
-def extract_coords(body_text: str) -> list[str]:
-    """
-    Finds all coordinates in the body text of ATel report.
-
-    Args:
-        body_text (str): Body text of ATel report.
-
-    Returns:
-        list[str]: List of coordinates found.
-    """
-    return []
-
-def parse_coords(coords: list[str]) -> list[SkyCoord]:
-    """
-    Parse coordinates that were found into appropriate format so that they can be used to query SIMBAD.
-
-    Args:
-        coords (list[str]): List of coordinates found in the body text of ATel report.
-
-    Returns:
-        list[SkyCoord]: List of formatted coordinates.
-    """
-    return []
-
-def extract_dates(body_text: str) -> list[str]:
-    """
-    Finds all dates in the body text of ATel report.
-
-    Args:
-        body_text (str): Body text of ATel report.
-
-    Returns:
-        list[str]: List of dates found.
-    """
-    return []
-
-def parse_dates(dates: list[str]) -> list[datetime]:
-    """
-    Parse dates that were found into datetime objects so that they can be inserted easily to the database.
-
-    Args:
-        dates (list[str]): List of dates found in the body text of ATel report.
-
-    Returns:
-        list[datetime]: List of datetime objects representing dates.
-    """
-    return []
-
-def extract_known_aliases(body_text: str) -> list[str]:
-    """
-    Finds all known aliases in the body text of ATel report.
-
-    Args:
-        body_text (str): Body text of ATel report.
-
-    Returns:
-        list[str]: List of known aliases found.
-    """
-    return []
-
-def extract_keywords(body_text: str) -> list[str]:
-    """
-    Finds all keywords in the body text of ATel report.
-
-    Args:
-        body_text (str): Body text of ATel report.
-
-    Returns:
-        list[str]: List of keywords found.
-    """
-
-    regex = ''
-
-    # Regex to match all keywords
-    for keyword in FIXED_KEYWORDS_REGEX:
-        regex = f'{regex}{keyword}|'
-
-    # Removes the last OR operator from regex
-    regex = regex.rstrip(regex[-1])
-
-    # Finds all keywords in the body text using regex
-    keywords_regex = re.compile(regex)
-    keywords = keywords_regex.findall(body_text.lower())
-
-    return list(dict.fromkeys(keywords))

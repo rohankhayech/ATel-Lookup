@@ -1,0 +1,6 @@
+<app-search-form (search)="search($event)"></app-search-form>
+
+<app-search-results
+  *ngIf="telegrams"
+  [telegrams]="telegrams"
+></app-search-results>
