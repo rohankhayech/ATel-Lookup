@@ -77,6 +77,13 @@ def index():
     return jsonify("")
 
 
+"""
+Authentication Endpoints
+
+Author:
+    Greg Lahaye
+"""
+
 @jwt.user_identity_loader
 def user_identity_lookup(user):
     return user
@@ -127,11 +134,12 @@ if __name__ == "__main__":
     app.run()
 
 
-# Web Interface Functions - Tully Slattery
+"""
+Web Interface Endpoints
 
-
-# Tully's Pulbic Web Interface Functions
-
+Author:
+    Tully Slattery
+"""
 
 @app.route("/import", methods=["POST"])
 def imports() -> json:
