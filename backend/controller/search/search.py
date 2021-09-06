@@ -90,11 +90,15 @@ def search_reports_by_coords(search_filters: SearchFilters,
                     name, coords = name_query_result
                     db.add_object(name, coords, value)
 
-    for report in db.find_reports_by_object(search_filters, key):
-        reports.append(report)
+    db_name_query = db.find_reports_by_object(search_filters, key)
+    if db_name_query is not None:
+        for report in db_name_query:
+            reports.append(report)
 
-    for report in db.find_reports_in_coord_range(search_filters, coords, radius):
-        reports.append(report)
+    db_coord_query = db.find_reports_in_coord_range(search_filters, coords, radius)
+    if db_coord_query is not None:
+        for report in db_coord_query:
+            reports.append(report)
 
     return reports 
 
