@@ -74,7 +74,29 @@ def search_reports_by_coords(search_filters: SearchFilters,
             search. 
         ValueError: (from query_simbad.py) if the radius is invalid. 
     """
-    return [] # Stub
+    reports = [] 
+    query_result = qs.query_simbad_by_coords(coords, radius) 
+
+    if query_result is not None:
+        # The 'key' is the MAIN_ID
+        for key, value in query_result:
+            exists, last_updated = db.object_exists(key) 
+            if exists:
+                check_object_updates(key, last_updated)
+            else:
+                # Query by name without aliases. 
+                name_query_result = qs.query_simbad_by_name(key, False)
+                if name_query_result is not None:
+                    name, coords = name_query_result
+                    db.add_object(name, coords, value)
+
+    for report in db.find_reports_by_object(search_filters, key):
+        reports.append(report)
+
+    for report in db.find_reports_in_coord_range(search_filters, coords, radius):
+        reports.append(report)
+
+    return reports 
 
 
 def search_reports_by_name(
