@@ -72,6 +72,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
         QuerySimbadError: When the SIMBAD server is unavailable. The error is
             raised as a connection to the server is required to perform a coordinate
             search. 
+        ValueError: (from query_simbad.py) if the radius is invalid. 
     """
     return [] # Stub
 
