@@ -79,7 +79,6 @@ def search_reports_by_coords(
     if search_filters is None and coords is None:
         raise ValueError("SearchFilters and coordinates cannot both be None.")
 
-    reports = [] 
     # Always query SIMBAD first. 
     query_result = qs.query_simbad_by_coords(coords, radius) 
 
@@ -99,10 +98,9 @@ def search_reports_by_coords(
                     db.add_object(name, coords, value)
 
     # Local queries from database. 
-    db_name_query = db.find_reports_by_object(search_filters, key)
-    if db_name_query is not None:
-        for report in db_name_query:
-            reports.append(report)
+    reports = db.find_reports_by_object(search_filters, key)
+    if reports is None:
+        reports = [] 
 
     db_coord_query = db.find_reports_in_coord_range(search_filters, coords, radius)
     if db_coord_query is not None:
