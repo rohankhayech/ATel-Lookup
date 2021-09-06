@@ -75,6 +75,9 @@ def search_reports_by_coords(
             search. 
         ValueError: (from query_simbad.py) if the radius is invalid. 
     """
+    if search_filters is None and coords is None:
+        raise ValueError("SearchFilters and coordinates cannot both be None.")
+
     reports = [] 
     # Always query SIMBAD first. 
     query_result = qs.query_simbad_by_coords(coords, radius) 
