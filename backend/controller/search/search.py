@@ -73,7 +73,8 @@ def search_reports_by_coords(
         QuerySimbadError: When the SIMBAD server is unavailable. The error is
             raised as a connection to the server is required to perform a coordinate
             search. 
-        ValueError: (from query_simbad.py) if the radius is invalid. 
+        ValueError: (from query_simbad.py) if the radius is invalid, or the
+            SearchFilters and coordinates are both None. 
     """
     if search_filters is None and coords is None:
         raise ValueError("SearchFilters and coordinates cannot both be None.")
@@ -154,9 +155,7 @@ def search_reports_by_name(
             if query_result is not None:
                 # There is a result from the SIMBAD search. 
                 # Add the object to the local database.
-                main_id = query_result[0]
-                coordinates = query_result[1]
-                aliases = query_result[2]
+                main_id, coordinates, aliases = query_result
                 db.add_object(main_id, coordinates, aliases)
 
     # After update checking and external search, query the local database 
