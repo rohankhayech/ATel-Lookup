@@ -105,7 +105,8 @@ def search_reports_by_coords(
     db_coord_query = db.find_reports_in_coord_range(search_filters, coords, radius)
     if db_coord_query is not None:
         for report in db_coord_query:
-            reports.append(report)
+            if report not in reports: 
+                reports.append(report)
 
     return reports 
 
