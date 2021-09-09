@@ -21,7 +21,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from model.db.db_interface import report_exists, add_report
+from model.db.db_interface import report_exists, add_report, get_next_atel_num, set_next_atel_num
 from controller.importer.parser import parse_report
 
 from requests_html import HTMLSession
@@ -72,7 +72,18 @@ def import_all_reports():
     """
     Adds all new ATel reports to the database starting after the last ATel report imported.
     """
-    pass
+    
+    atel_num = get_next_atel_num()
+
+    try:
+        while True:
+            try:
+                import_report(atel_num)
+                atel_num = atel_num + 1
+            except ReportAlreadyExistsError:
+                atel_num = atel_num + 1
+    except ReportNotFoundError:
+        set_next_atel_num(atel_num)
 
 def download_report(atel_num: int) -> str:
     """
