@@ -28,6 +28,7 @@ from controller.importer.importer import *
 from controller.importer.parser import *
 
 from unittest import mock
+from unittest.mock import call
 from bs4 import BeautifulSoup
 from datetime import datetime
 from requests.exceptions import ConnectionError, HTTPError
@@ -61,6 +62,20 @@ class TestImporterFunctions(unittest.TestCase):
         # Checks that add_report is called with expected ImportedReport object
         import_report(10000)
         mock_add_report.assert_called_with(parse_report(10000, html_string))
+
+    # Tests import_all_reports function
+    @mock.patch('controller.importer.importer.set_next_atel_num')
+    @mock.patch('controller.importer.importer.import_report')
+    @mock.patch('controller.importer.importer.get_next_atel_num')
+    def test_auto_import(self, mock_get_next_atel_num, mock_import_report, mock_set_next_atel_num):
+        expected_calls = [call(1), call(2), call(3), call(4), call(5)]
+
+        mock_get_next_atel_num.return_value = 1
+        mock_import_report.side_effect = import_report_side_effect
+
+        import_all_reports()
+        mock_import_report.assert_has_calls(expected_calls)
+        mock_set_next_atel_num.assert_called_with(5)
 
     # Tests download_report function
     def test_html_download(self):
@@ -178,6 +193,13 @@ class TestCustomExceptions(unittest.TestCase):
         mock_render.side_effect = TimeoutError
         with self.assertRaises(DownloadFailError):
             download_report(1)
-    
+
+# Side effect for import_report function calls in auto import testing
+def import_report_side_effect(*args, **kwargs):
+    if(args[0] == 3):
+        raise ReportAlreadyExistsError
+    elif(args[0] == 5):
+        raise ReportNotFoundError
+
 if __name__ == "__main__":
     unittest.main()
