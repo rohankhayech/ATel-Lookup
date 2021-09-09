@@ -44,7 +44,7 @@ class TestImporterFunctions(unittest.TestCase):
         mock_report_exists.return_value = False
 
         # Reads HTML string of ATel #1000
-        f = open(os.path.join('test','res','atel1000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
         html_string = f.read()
         f.close()
         mock_download_report.return_value = html_string
@@ -54,7 +54,7 @@ class TestImporterFunctions(unittest.TestCase):
         mock_add_report.assert_called_with(parse_report(1000, html_string))
 
         # Reads HTML string of ATel #10000
-        f = open(os.path.join('test','res','atel10000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel10000.html'), 'r')
         html_string = f.read()
         f.close()
         mock_download_report.return_value = html_string
@@ -102,7 +102,7 @@ class TestParserFunctions(unittest.TestCase):
         mock_extract_keywords.return_value = []
 
         # Parses HTML of ATel #1000
-        f = open(os.path.join('test','res','atel1000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
         imported_report = parse_report(1000, f.read())
         f.close()
 
@@ -125,12 +125,12 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.referenced_by, [])
 
         # Parses HTML of ATel #10000
-        f = open(os.path.join('test','res','atel10000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel10000.html'), 'r')
         imported_report = parse_report(10000, f.read())
         f.close()
 
         # Retrieves ATel #10000 body text
-        f = open(os.path.join('test','res','atel10000_body.txt'), 'r')
+        f = open(os.path.join('test', 'res', 'atel10000_body.txt'), 'r')
         body = f.read()
         f.close()
 
