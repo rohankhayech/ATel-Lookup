@@ -68,11 +68,13 @@ class TestImporterFunctions(unittest.TestCase):
     @mock.patch('controller.importer.importer.import_report')
     @mock.patch('controller.importer.importer.get_next_atel_num')
     def test_auto_import(self, mock_get_next_atel_num, mock_import_report, mock_set_next_atel_num):
+        # Expected import_report function calls
         expected_calls = [call(1), call(2), call(3), call(4), call(5)]
 
         mock_get_next_atel_num.return_value = 1
         mock_import_report.side_effect = import_report_side_effect
 
+        # Checks for expected import_report function calls and that set_next_atel_num is called with expected integer
         import_all_reports()
         mock_import_report.assert_has_calls(expected_calls)
         mock_set_next_atel_num.assert_called_with(5)
@@ -196,8 +198,10 @@ class TestCustomExceptions(unittest.TestCase):
 
 # Side effect for import_report function calls in auto import testing
 def import_report_side_effect(*args, **kwargs):
+    # Mimics ATel report already imported into the database
     if(args[0] == 3):
         raise ReportAlreadyExistsError
+    # Mimics non-existing ATel report
     elif(args[0] == 5):
         raise ReportNotFoundError
 

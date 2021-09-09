@@ -59,6 +59,7 @@ def import_report(atel_num: int):
     if(report_exists(atel_num) == True):
         raise ReportAlreadyExistsError(f'ATel #{atel_num} already exists in the database')
     
+    # Downloads the HTML of ATel report
     html_string = download_report(atel_num)
 
     # Raises error when ATel report is not found
@@ -73,8 +74,10 @@ def import_all_reports():
     Adds all new ATel reports to the database starting after the last ATel report imported.
     """
     
+    # Retrieves the number of ATel report to import next
     atel_num = get_next_atel_num()
 
+    # Imports every new ATel report into the database
     try:
         while True:
             try:
@@ -82,6 +85,7 @@ def import_all_reports():
                 atel_num = atel_num + 1
             except ReportAlreadyExistsError:
                 atel_num = atel_num + 1
+    # Saves the number that detects non-existing ATel report
     except ReportNotFoundError:
         set_next_atel_num(atel_num)
 
