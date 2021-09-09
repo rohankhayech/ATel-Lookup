@@ -25,6 +25,7 @@ import re
 
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
+from model.db.db_interface import get_all_aliases
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -188,7 +189,24 @@ def extract_known_aliases(body_text: str) -> list[str]:
     Returns:
         list[str]: List of known aliases found.
     """
-    return []
+
+    i = 0
+    aliases = []
+    known_aliases = get_all_aliases()
+
+    if(known_aliases is not None):
+        for alias in known_aliases:
+            regex = f'[^a-z]{alias.alias}[^a-z]'
+
+            alias_regex = re.compile(regex)
+            alias_found = alias_regex.search(f' {body_text.lower()} ')
+
+            if(alias_found is not None):
+                aliases.append(known_aliases[i])
+
+            i = i + 1
+
+    return aliases
 
 def extract_keywords(body_text: str) -> list[str]:
     """
@@ -214,7 +232,7 @@ def extract_keywords(body_text: str) -> list[str]:
         keyword_found = keyword_regex.search(f' {body_text.lower()} ')
 
         # Adds keyword to list if it is found in the body text
-        if keyword_found is not None:
+        if(keyword_found is not None):
             keywords.append(FIXED_KEYWORDS[i])
 
         i = i + 1
