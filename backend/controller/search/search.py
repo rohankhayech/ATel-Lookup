@@ -54,14 +54,14 @@ UPDATE_OBJECT_DAYS: int = 60
 def search_reports_by_coords(
     search_filters: SearchFilters = None, 
     coords: SkyCoord = None, 
-    radius: float=DEFAULT_RADIUS
+    radius: float = DEFAULT_RADIUS
 ) -> list[ReportResult]:
     """ Performs an immediate query of the SIMBAD database by the coordinate
         range and retrieves matching reports from the local database. 
 
     Args: 
-        search_filters (SearchFilters): Filters for the frontend search. 
-        coords (SkyCoord): The coordinates that define the region search criteria. 
+        search_filters (SearchFilters, optional): Filters for the frontend search. 
+        coords (SkyCoord, optional): The coordinates that define the region search criteria. 
         radius (float): The radius, in arcseconds, that defines the size of the
             region. 10.0 arcsecs by default. Should be validated beforehand. 
 
