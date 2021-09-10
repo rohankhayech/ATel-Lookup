@@ -285,7 +285,7 @@ class TestSearchByCoords(TestSearch):
 
     def test_only_searchfilters(self):
         '''
-        Case 2: Searching using only SearchFilters 
+        Case 2: Searching using only SearchFilters.
         '''
         mock = search 
 

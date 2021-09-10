@@ -122,8 +122,8 @@ def search_reports_by_name(
         and return the reports that match. 
 
     Args:
-        search_filters (SearchFilters): Filters for the front-end search. 
-        name (str): The object identifier. 
+        search_filters (SearchFilters, optional): Filters for the front-end search. 
+        name (str, optional): The object identifier. 
 
     Returns:
         list[ReportResult]: The reports found in the local database that match
