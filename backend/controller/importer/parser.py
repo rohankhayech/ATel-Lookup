@@ -84,7 +84,8 @@ KEYWORDS_REGEX = ["radio",
                   "tidal disruption event",
                   "transient",
                   "variables",
-                  "young stellar object" ]
+                  "young stellar object"
+]
 
 # Parser functions
 def parse_report(atel_num: int, html_string: str) -> ImportedReport:
@@ -166,54 +167,26 @@ def extract_dates(body_text: str) -> list[str]:
     """
 
     dates = []
-    body = f' {body_text.lower()} '
 
-    # Date Formats: Could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
-    # =========================================================================================
-    # dd-mmm-yy (01-Feb-99) and dd-mmm-yyyy (01-Feb-1999)
-    date_regex = re.compile('[^\d](?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
-    dates_found = date_regex.findall(body)
+    # Date formats could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
+    date_regexes = ['(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mmm-yy (01-Feb-99) and dd-mmm-yyyy (01-Feb-1999)
+                    '(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # mm/dd/yy (02/01/99) and mm/dd/yyyy (02/01/1999)
+                    '(?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd.mm.yy (01.02.99) and dd.mm.yyyy (01.02.1999)
+                    '(?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # yy/mm/dd (99/02/01) and yyyy/mm/dd (1999/02/01)
+                    '(?:[1-2]\d\d\d|\d\d)-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?' # yy-mm-dd (99-02-01) and yyyy-mm-dd (1999-02-01)
+    ]
 
-    for date in dates_found:
-        date_regex = re.compile('(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
-        extracted_date = date_regex.search(date)
-        dates.append(extracted_date.group())
+    # Finds all dates that are in the above date formats in the body text of ATel report
+    for regex in date_regexes:
+        # Attempts to find all dates that are in a certain date format in the body text using regex
+        date_regex = re.compile(f'[^\d]{regex}[^\d]')
+        dates_found = date_regex.findall(f' {body_text.lower()} ')
 
-    # mm/dd/yy (02/01/99) and mm/dd/yyyy (02/01/1999)
-    date_regex = re.compile('[^\d](?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
-    dates_found = date_regex.findall(body)
-
-    for date in dates_found:
-        date_regex = re.compile('(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
-        extracted_date = date_regex.search(date)
-        dates.append(extracted_date.group())
-
-    # dd.mm.yy (01.02.99) and dd.mm.yyyy (01.02.1999)
-    date_regex = re.compile('[^\d](?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
-    dates_found = date_regex.findall(body)
-
-    for date in dates_found:
-        date_regex = re.compile('(?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
-        extracted_date = date_regex.search(date)
-        dates.append(extracted_date.group())
-
-    # yy/mm/dd (99/02/01) and yyyy/mm/dd (1999/02/01)
-    date_regex = re.compile('[^\d](?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
-    dates_found = date_regex.findall(body)
-
-    for date in dates_found:
-        date_regex = re.compile('(?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
-        extracted_date = date_regex.search(date)
-        dates.append(extracted_date.group())
-
-    # yy-mm-dd (99-02-01) and yyyy-mm-dd (1999-02-01)
-    date_regex = re.compile('[^\d](?:[1-2]\d\d\d|\d\d)-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
-    dates_found = date_regex.findall(body)
-
-    for date in dates_found:
-        date_regex = re.compile('(?:[1-2]\d\d\d|\d\d)-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
-        extracted_date = date_regex.search(date)
-        dates.append(extracted_date.group())
+        # Removes any leading and/or trailing characters that are not part of the date format
+        for date in dates_found:
+            date_regex = re.compile(regex)
+            extracted_date = date_regex.search(date)
+            dates.append(extracted_date.group())
 
     return list(dict.fromkeys(dates))
 
