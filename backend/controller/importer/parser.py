@@ -164,7 +164,58 @@ def extract_dates(body_text: str) -> list[str]:
     Returns:
         list[str]: List of dates found.
     """
-    return []
+
+    dates = []
+    body = f' {body_text.lower()} '
+
+    # Date Formats: Could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
+    # =========================================================================================
+    # dd-mmm-yy (01-Feb-99) and dd-mmm-yyyy (01-Feb-1999)
+    date_regex = re.compile('[^\d](?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
+    dates_found = date_regex.findall(body)
+
+    for date in dates_found:
+        date_regex = re.compile('(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
+        extracted_date = date_regex.search(date)
+        dates.append(extracted_date.group())
+
+    # mm/dd/yy (02/01/99) and mm/dd/yyyy (02/01/1999)
+    date_regex = re.compile('[^\d](?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
+    dates_found = date_regex.findall(body)
+
+    for date in dates_found:
+        date_regex = re.compile('(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
+        extracted_date = date_regex.search(date)
+        dates.append(extracted_date.group())
+
+    # dd.mm.yy (01.02.99) and dd.mm.yyyy (01.02.1999)
+    date_regex = re.compile('[^\d](?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
+    dates_found = date_regex.findall(body)
+
+    for date in dates_found:
+        date_regex = re.compile('(?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
+        extracted_date = date_regex.search(date)
+        dates.append(extracted_date.group())
+
+    # yy/mm/dd (99/02/01) and yyyy/mm/dd (1999/02/01)
+    date_regex = re.compile('[^\d](?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
+    dates_found = date_regex.findall(body)
+
+    for date in dates_found:
+        date_regex = re.compile('(?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
+        extracted_date = date_regex.search(date)
+        dates.append(extracted_date.group())
+
+    # yy-mm-dd (99-02-01) and yyyy-mm-dd (1999-02-01)
+    date_regex = re.compile('[^\d](?:[1-2]\d\d\d|\d\d)-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?[^\d]')
+    dates_found = date_regex.findall(body)
+
+    for date in dates_found:
+        date_regex = re.compile('(?:[1-2]\d\d\d|\d\d)-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?')
+        extracted_date = date_regex.search(date)
+        dates.append(extracted_date.group())
+
+    return list(dict.fromkeys(dates))
 
 def parse_dates(dates: list[str]) -> list[datetime]:
     """
