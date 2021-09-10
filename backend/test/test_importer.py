@@ -24,6 +24,7 @@ License Terms and Copyright:
 import os
 import unittest
 
+from model.ds.alias_result import AliasResult
 from controller.importer.importer import *
 from controller.importer.parser import *
 
@@ -129,6 +130,27 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.objects, [])
         self.assertCountEqual(imported_report.coordinates, [])
         self.assertCountEqual(imported_report.referenced_by, [])
+
+    # Tests extract_known_aliases function
+    @mock.patch('controller.importer.parser.get_all_aliases')
+    def test_aliases_extractor(self, mock_get_all_aliases):
+        mock_get_all_aliases.return_value = None
+
+        self.assertCountEqual(extract_known_aliases('This is a test'), [])
+        self.assertCountEqual(extract_known_aliases('Double check that an empty list is returned'), [])
+
+        mock_get_all_aliases.return_value = [AliasResult('Test', 'x'), AliasResult('alias-for-object', 'object'), AliasResult('another alias', 'object'), AliasResult('test', 'y')]
+
+        self.assertCountEqual(extract_known_aliases('No alias to be found here'), [])
+        self.assertCountEqual(extract_known_aliases('This is a test'), ['test'])
+        self.assertCountEqual(extract_known_aliases('Test for extracting alias-for-object'), ['test', 'alias-for-object'])
+        self.assertCountEqual(extract_known_aliases('teST for x and tESt for y'), ['test'])
+        self.assertCountEqual(extract_known_aliases('testing should return no aliases'), [])
+        self.assertCountEqual(extract_known_aliases('There is another alias for object which is ALIAS-FOR-OBJECT'), ['another alias', 'alias-for-object'])
+        self.assertCountEqual(extract_known_aliases('alias-For-OBject is being tested'), ['alias-for-object'])
+        self.assertCountEqual(extract_known_aliases('No such thing as another weird alias for x (test)'), ['test'])
+        self.assertCountEqual(extract_known_aliases('   AnOtheR ALIas'), ['another alias'])
+        self.assertCountEqual(extract_known_aliases('another alias   '), ['another alias'])
 
     # Tests extract_keywords function
     def test_keywords_extractor(self):
