@@ -88,7 +88,7 @@ def search_reports_by_coords(
 
     if query_result is not None:
         # The 'key' is the MAIN_ID
-        for key, value in query_result:
+        for key, value in query_result.items():
             exists, last_updated = db.object_exists(key) 
             if exists:
                 check_object_updates(key, last_updated)
