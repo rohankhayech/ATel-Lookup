@@ -52,8 +52,8 @@ UPDATE_OBJECT_DAYS: int = 60
 
 
 def search_reports_by_coords(
-    search_filters: SearchFilters, 
-    coords: SkyCoord, 
+    search_filters: SearchFilters = None, 
+    coords: SkyCoord = None, 
     radius: float=DEFAULT_RADIUS
 ) -> list[ReportResult]:
     """ Performs an immediate query of the SIMBAD database by the coordinate
@@ -80,7 +80,11 @@ def search_reports_by_coords(
         raise ValueError("SearchFilters and coordinates cannot both be None.")
 
     # Always query SIMBAD first. 
-    query_result = qs.query_simbad_by_coords(coords, radius) 
+    query_result = None 
+    if coords is not None:
+        query_result = qs.query_simbad_by_coords(coords, radius) 
+
+    reports: list[ReportResult] = [] 
 
     if query_result is not None:
         # The 'key' is the MAIN_ID
@@ -96,11 +100,10 @@ def search_reports_by_coords(
                     # local database. 
                     name, coords = name_query_result
                     db.add_object(name, coords, value)
-
-    # Local queries from database. 
-    reports = db.find_reports_by_object(search_filters, key)
-    if reports is None:
-        reports = [] 
+            db_name_query = db.find_reports_by_object(search_filters, key)
+            if db_name_query is not None:
+                for r in db_name_query:
+                    if r not in reports: reports.append(r) 
 
     db_coord_query = db.find_reports_in_coord_range(search_filters, coords, radius)
     if db_coord_query is not None:
