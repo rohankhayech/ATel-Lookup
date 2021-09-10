@@ -190,7 +190,6 @@ def extract_known_aliases(body_text: str) -> list[str]:
         list[str]: List of known aliases found.
     """
 
-    i = 0
     aliases = []
     # Retrieves known aliases
     known_aliases = get_all_aliases()
@@ -199,7 +198,7 @@ def extract_known_aliases(body_text: str) -> list[str]:
     if(known_aliases is not None):
         for alias in known_aliases:
             # Ensures that only full words will be identified as keywords
-            regex = f'[^a-z]{alias.alias}[^a-z]'
+            regex = f'[^a-z]{alias.alias.lower()}[^a-z]'
 
             # Attempts to find alias in the body text using regex
             alias_regex = re.compile(regex)
@@ -207,11 +206,9 @@ def extract_known_aliases(body_text: str) -> list[str]:
 
             # Adds alias to list if it is found in the body text
             if(alias_found is not None):
-                aliases.append(known_aliases[i])
+                aliases.append(alias.alias.lower())
 
-            i = i + 1
-
-    return aliases
+    return list(dict.fromkeys(aliases))
 
 def extract_keywords(body_text: str) -> list[str]:
     """
