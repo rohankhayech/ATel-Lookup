@@ -21,7 +21,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from model.db.db_interface import report_exists, add_report, get_next_atel_num, set_next_atel_num
+from model.db.db_interface import ExistingReportError, report_exists, add_report, get_next_atel_num, set_next_atel_num
 from controller.importer.parser import parse_report
 
 from requests_html import HTMLSession
@@ -73,10 +73,14 @@ def import_report(atel_num: int):
 
         # Parses HTML and imports ATel report into the database
         add_report(parse_report(atel_num, html_string))
+    # Raises error when ATel report import fails due to download issues
     except NetworkError as err:
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
     except DownloadFailError as err:
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
+    # Raises error when ATel report is already imported into the database
+    except ExistingReportError:
+        raise ReportAlreadyExistsError(f'ATel #{str(atel_num)} already exists in the database')
 
 def import_all_reports():
     """

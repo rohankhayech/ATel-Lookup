@@ -24,6 +24,8 @@ License Terms and Copyright:
 import os
 import unittest
 
+from model.ds.report_types import ImportedReport
+from model.db.db_interface import ExistingReportError
 from controller.importer.importer import *
 from controller.importer.parser import *
 
@@ -83,6 +85,26 @@ class TestImporterFunctions(unittest.TestCase):
         try:
             mock_import_report.assert_has_calls([call(6)], any_order=True)
             raise Exception('\'import_report\' was called with the argument \'6\'')
+        except AssertionError:
+            pass
+        except Exception as err:
+            raise AssertionError(f'{str(err)}')
+
+        # Expected import_report function calls
+        expected_calls = [call(6), call(7), call(8)]
+
+        mock_get_next_atel_num.return_value = 6
+        mock_import_report.side_effect = [None, None, ImportFailError]
+
+        # Checks for expected import_report function calls and that set_next_atel_num is called with expected integer
+        import_all_reports()
+        mock_import_report.assert_has_calls(expected_calls)
+        mock_set_next_atel_num.assert_called_with(8)
+
+        # Checks that import_report was not called with the argument 9
+        try:
+            mock_import_report.assert_has_calls([call(9)], any_order=True)
+            raise Exception('\'import_report\' was called with the argument \'9\'')
         except AssertionError:
             pass
         except Exception as err:
@@ -172,9 +194,19 @@ class TestParserFunctions(unittest.TestCase):
 # Custom exceptions
 class TestCustomExceptions(unittest.TestCase):
     # Tests that ReportAlreadyExistsError is being raised
+    @mock.patch('controller.importer.importer.add_report')
+    @mock.patch('controller.importer.importer.parse_report')
+    @mock.patch('controller.importer.importer.download_report')
     @mock.patch('controller.importer.importer.report_exists')
-    def test_report_already_exists_error(self, mock_report_exists):
+    def test_report_already_exists_error(self, mock_report_exists, mock_download_report, mock_parse_report, mock_add_report):
         mock_report_exists.return_value = True
+        with self.assertRaises(ReportAlreadyExistsError):
+            import_report(1)
+
+        mock_report_exists.return_value = False
+        mock_download_report.return_value = 'Test'
+        mock_parse_report.return_value = ImportedReport(1, 'Title', 'Authors', 'Body', datetime(1999, 1, 1))
+        mock_add_report.side_effect = ExistingReportError
         with self.assertRaises(ReportAlreadyExistsError):
             import_report(1)
 
@@ -185,6 +217,20 @@ class TestCustomExceptions(unittest.TestCase):
         mock_report_exists.return_value = False
         mock_download_report.return_value = None
         with self.assertRaises(ReportNotFoundError):
+            import_report(1)
+
+    # Tests that ImportFailError is being raised
+    @mock.patch('controller.importer.importer.download_report')
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_import_fail_error(self, mock_report_exists, mock_download_report):
+        mock_report_exists.return_value = False
+
+        mock_download_report.side_effect = NetworkError
+        with self.assertRaises(ImportFailError):
+            import_report(1)
+
+        mock_download_report.side_effect = DownloadFailError
+        with self.assertRaises(ImportFailError):
             import_report(1)
 
     # Tests that NetworkError is being raised
