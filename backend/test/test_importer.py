@@ -72,12 +72,21 @@ class TestImporterFunctions(unittest.TestCase):
         expected_calls = [call(1), call(2), call(3), call(4), call(5)]
 
         mock_get_next_atel_num.return_value = 1
-        mock_import_report.side_effect = import_report_side_effect
+        mock_import_report.side_effect = [None, None, ReportAlreadyExistsError, None, ReportNotFoundError]
 
         # Checks for expected import_report function calls and that set_next_atel_num is called with expected integer
         import_all_reports()
         mock_import_report.assert_has_calls(expected_calls)
         mock_set_next_atel_num.assert_called_with(5)
+
+        # Checks that import_report was not called with the argument 6
+        try:
+            mock_import_report.assert_has_calls([call(6)], any_order=True)
+            raise Exception('\'import_report\' was called with the argument \'6\'')
+        except AssertionError:
+            pass
+        except Exception as err:
+            raise AssertionError(f'{str(err)}')
 
     # Tests download_report function
     def test_html_download(self):
@@ -195,15 +204,6 @@ class TestCustomExceptions(unittest.TestCase):
         mock_render.side_effect = TimeoutError
         with self.assertRaises(DownloadFailError):
             download_report(1)
-
-# Side effect for import_report function calls in auto import testing
-def import_report_side_effect(*args, **kwargs):
-    # Mimics ATel report already imported into the database
-    if(args[0] == 3):
-        raise ReportAlreadyExistsError
-    # Mimics non-existing ATel report
-    elif(args[0] == 5):
-        raise ReportNotFoundError
 
 if __name__ == "__main__":
     unittest.main()
