@@ -145,7 +145,7 @@ def extract_coords(body_text: str) -> list[str]:
 
 def parse_coords(coords: list[str]) -> list[SkyCoord]:
     """
-    Parse coordinates that were found into appropriate format so that they can be used to query SIMBAD.
+    Parses coordinates that were found into appropriate format so that they can be used to query SIMBAD.
 
     Args:
         coords (list[str]): List of coordinates found in the body text of ATel report.
@@ -192,7 +192,7 @@ def extract_dates(body_text: str) -> list[str]:
 
 def parse_dates(dates: list[str]) -> list[datetime]:
     """
-    Parse dates that were found into datetime objects so that they can be inserted easily to the database.
+    Parses dates that were found into datetime objects so that they can be inserted easily to the database.
 
     Args:
         dates (list[str]): List of dates found in the body text of ATel report.
@@ -200,7 +200,53 @@ def parse_dates(dates: list[str]) -> list[datetime]:
     Returns:
         list[datetime]: List of datetime objects representing dates.
     """
-    return []
+
+    formatted_dates = []
+
+    # List of date formats to convert
+    date_formats = ['%d-%b-%Y %H:%M:%S', # dd-mmm-yyyy hh:mm:ss
+                    '%d/%m/%Y %H:%M:%S', # mm/dd/yyyy hh:mm:ss
+                    '%d.%m.%Y %H:%M:%S', # dd.mm.yyyy hh:mm:ss
+                    '%Y/%m/%d %H:%M:%S', # yyyy/mm/dd hh:mm:ss
+                    '%Y-%m-%d %H:%M:%S', # yyyy-mm-dd hh:mm:ss
+                    '%d-%b-%y %H:%M:%S', # dd-mmm-yy hh:mm:ss
+                    '%d/%m/%y %H:%M:%S', # mm/dd/yy hh:mm:ss
+                    '%d.%m.%y %H:%M:%S', # dd.mm.yy hh:mm:ss
+                    '%y/%m/%d %H:%M:%S', # yy/mm/dd hh:mm:ss
+                    '%y-%m-%d %H:%M:%S', # yy-mm-dd hh:mm:ss
+                    '%d-%b-%Y %H:%M', # dd-mmm-yyyy hh:mm
+                    '%d/%m/%Y %H:%M', # mm/dd/yyyy hh:mm
+                    '%d.%m.%Y %H:%M', # dd.mm.yyyy hh:mm
+                    '%Y/%m/%d %H:%M', # yyyy/mm/dd hh:mm
+                    '%Y-%m-%d %H:%M', # yyyy-mm-dd hh:mm
+                    '%d-%b-%y %H:%M', # dd-mmm-yy hh:mm
+                    '%d/%m/%y %H:%M', # mm/dd/yy hh:mm
+                    '%d.%m.%y %H:%M', # dd.mm.yy hh:mm
+                    '%y/%m/%d %H:%M', # yy/mm/dd hh:mm
+                    '%y-%m-%d %H:%M', # yy-mm-dd hh:mm
+                    '%d-%b-%Y', # dd-mmm-yyyy
+                    '%d/%m/%Y', # mm/dd/yyyy
+                    '%d.%m.%Y', # dd.mm.yyyy
+                    '%Y/%m/%d', # yyyy/mm/dd
+                    '%Y-%m-%d', # yyyy-mm-dd
+                    '%d-%b-%y', # dd-mmm-yy
+                    '%d/%m/%y', # mm/dd/yy
+                    '%d.%m.%y', # dd.mm.yy
+                    '%y/%m/%d', # yy/mm/dd
+                    '%y-%m-%d' # yy-mm-dd
+    ]
+
+    # Converts each extracted date to datetime object
+    for date in dates:
+        for date_format in date_formats:
+            try:
+                # Adds converted date to list
+                formatted_dates.append(datetime.strptime(date, date_format))
+                break
+            except ValueError:
+                pass
+
+    return list(dict.fromkeys(formatted_dates))
 
 def extract_known_aliases(body_text: str) -> list[str]:
     """
