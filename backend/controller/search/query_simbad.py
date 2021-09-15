@@ -208,7 +208,7 @@ def query_simbad_by_coords(coords: SkyCoord,
         table = Simbad.query_region(coords, radius_angle)
 
         if table is None:
-            return [] 
+            return dict()
 
         # For a region search, there may be multiple IDs. 
         # Get all the MAIN_IDs from the table. 
@@ -229,7 +229,7 @@ def query_simbad_by_coords(coords: SkyCoord,
         raise QuerySimbadError(str(e))
     except UserWarning as e:
         # No object found.
-        return [] 
+        return dict()
 
 
 def query_simbad_by_name(object_name: str, 

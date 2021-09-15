@@ -368,5 +368,25 @@ class TestSearchByCoords(TestSearch):
         self.assertIsNotNone(result)
 
 
+    def test_no_result(self):
+        '''
+        Case 5: SIMBAD returns no results. 
+        '''
+        mock = search 
+
+        mock.qs.query_simbad_by_coords = MagicMock(return_value={}) # Returns empty dict. 
+        mock.db.object_exists = MagicMock() 
+        mock.check_object_updates = MagicMock()
+        mock.db.add_object = MagicMock()
+        mock.db.find_reports_by_object = MagicMock() 
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=None) 
+
+        result = mock.search_reports_by_coords(self.filters, self.sample_coords) 
+        self.assertEqual(result, [])
+
+        for f in [mock.db.object_exists, mock.check_object_updates, mock.db.add_object, mock.db.find_reports_by_object]:
+            f.assert_not_called() 
+
+
 if __name__ == '__main__':
     ut.main()

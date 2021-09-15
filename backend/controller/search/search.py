@@ -86,8 +86,8 @@ def search_reports_by_coords(
 
     reports: list[ReportResult] = [] 
 
-    if query_result != []:
-        # The 'key' is the MAIN_ID
+    # The 'key' is the MAIN_ID
+    if query_result is not None:
         for key, value in query_result.items():
             exists, last_updated = db.object_exists(key) 
             if exists:
@@ -154,7 +154,7 @@ def search_reports_by_name(
             # The object does not exist, invoke an external (SIMBAD) search. 
             query_result = qs.query_simbad_by_name(name, True)
 
-            if query_result != []:
+            if query_result is not None:
                 # There is a result from the SIMBAD search. 
                 # Add the object to the local database.
                 main_id, coordinates, aliases = query_result
