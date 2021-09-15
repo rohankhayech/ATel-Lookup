@@ -32,7 +32,7 @@ from datetime import datetime
 
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 import model.db.db_interface as db
 from controller.search import query_simbad as qs
 
@@ -51,7 +51,8 @@ UPDATE_OBJECT_DAYS: int = 60
 ####################
 
 
-def search_reports_by_coords(search_filters: SearchFilters, 
+def search_reports_by_coords(search_filters: SearchFilters,
+                             date_filter: DateFilter,
                              coords: SkyCoord, 
                              radius: float=DEFAULT_RADIUS
 ) -> list[ReportResult]:
@@ -60,6 +61,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
 
     Args: 
         search_filters (SearchFilters): Filters for the frontend search. 
+        date_filter (DateFilter): Date filter for the frontend search.
         coords (SkyCoord): The coordinates that define the region search criteria. 
         radius (float): The radius, in arcseconds, that defines the size of the
             region. 10.0 arcsecs by default. Should be validated beforehand. 
@@ -77,7 +79,8 @@ def search_reports_by_coords(search_filters: SearchFilters,
 
 
 def search_reports_by_name(
-    search_filters: SearchFilters = None, 
+    search_filters: SearchFilters = None,
+    date_filter: DateFilter = None,
     name: str = None
 ) -> list[ReportResult]:
     """ Query the local database and the SIMBAD database by an object identifier
@@ -85,6 +88,7 @@ def search_reports_by_name(
 
     Args:
         search_filters (SearchFilters): Filters for the front-end search. 
+        date_filter (DateFilter, optional): Date filter for the front-end search. 
         name (str): The object identifier. 
 
     Returns:
@@ -128,13 +132,13 @@ def search_reports_by_name(
     # for all reports. 
 
     # Get the base reports from the database. 
-    reports = db.find_reports_by_object(search_filters, name)
+    reports = db.find_reports_by_object(search_filters, date_filter, name)
 
     if reports is None: 
         reports = []
 
     if coordinates is not None:
-        by_coord_range = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
+        by_coord_range = db.find_reports_in_coord_range(search_filters, date_filter, coordinates, DEFAULT_RADIUS)
         if by_coord_range is not None:
             # Append the list with reports with the same coordinates. 
             for additional_report in by_coord_range:

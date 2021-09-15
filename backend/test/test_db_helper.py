@@ -29,7 +29,7 @@ import mysql.connector
 
 from model.db import db_interface
 from model.ds.report_types import ImportedReport
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 
 class TestInitTables(unittest.TestCase):
     #Verify tables exist/were created on container init
@@ -133,11 +133,12 @@ class TestReports(unittest.TestCase):
 
     def testBuildQuery(self):
         #Test full query
-        sf = SearchFilters("term",["star","planet"],KeywordMode.ANY,datetime(2021,8,16),datetime(2021,8,17))
-        query, data = db_interface._build_report_query(sf)
+        sf = SearchFilters("term",["star","planet"],KeywordMode.ANY)
+        df = DateFilter(datetime(2021, 8, 16), datetime(2021, 8, 17))
+        query, data = db_interface._build_report_query(sf,df)
         self.maxDiff = None
-        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and submissionDate >= %s and submissionDate <= %s and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
-        self.assertTupleEqual(data,(sf.term,sf.term,sf.start_date,sf.end_date,sf.keywords[0],sf.keywords[1]))
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data,(df.start_date,df.end_date,sf.term,sf.term,sf.keywords[0],sf.keywords[1]))
 
         #Test keyword modes / single filter
         sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
@@ -177,12 +178,12 @@ class TestReports(unittest.TestCase):
             self.assertIsNone(results)
 
             #Test start date
-            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", start_date=datetime(2021,8,11)))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(start_date=datetime(2021,8,11)))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test end date
-            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", end_date=datetime(2021,8,13)))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(end_date=datetime(2021,8,13)))
             result = results[0]
             self.assertEqual(report,result)
 
@@ -219,13 +220,14 @@ class TestReports(unittest.TestCase):
                 SearchFilters(
                     term="B", 
                     keywords=["star","radio"], 
-                    keyword_mode=KeywordMode.ALL, 
+                    keyword_mode=KeywordMode.ALL),
+                DateFilter(
                     start_date=datetime(2021,8,11), 
                     end_date=datetime(2021,8,13)
                 )
             )
             result = results[0]
-            self.assertEqual(report, result)
+            self.assertIn(report, results)
 
             #Test no filters
             result = db_interface.find_reports_by_object(

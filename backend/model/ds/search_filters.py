@@ -176,7 +176,7 @@ class DateFilter:
         Raises:
             TypeError: When neither start or end date is specified.
         """
-        if start_date:
+        if start_date or end_date:
             self.start_date = start_date
             self.end_date = end_date
         else:
