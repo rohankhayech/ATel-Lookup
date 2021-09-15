@@ -72,7 +72,7 @@ class SearchFilters:
         Returns:
             str: A string describing the search filters specified by this object.
         """
-        return f"Free text: {self.term}, Keywords ({self.keyword_mode.name}): {self.keywords}."
+        return f"Free text: {self.term}, Keywords ({self.keyword_mode.name}): {self.keywords}"
 
     def __eq__(self, other)->bool: 
         """
@@ -187,7 +187,7 @@ class DateFilter:
         Returns:
             str: A string describing the search filters specified by this object.
         """
-        return f"Submitted between {self.start_date} and {self.end_date}."
+        return f"Submitted between {self.start_date} and {self.end_date}"
 
     def __eq__(self, other) -> bool:
         """
