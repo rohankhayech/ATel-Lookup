@@ -34,7 +34,6 @@ from datetime import datetime, timedelta
 import unittest as ut 
 from unittest.mock import MagicMock, call
 
-from controller.search import query_simbad as qs
 from controller.search import search
 
 
