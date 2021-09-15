@@ -312,7 +312,7 @@ class TestCoordSearch(ut.TestCase):
 
     @mock.patch('controller.search.query_simbad.Simbad.query_region', new=mocked_object_not_found)
     def test_no_object_found(self):
-        self.assertEqual(query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius), [])
+        self.assertEqual(query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius), {})
 
 
     # A 'None' SkyCoord should raise an error. 
