@@ -179,42 +179,42 @@ def parse_dates(dates: list[str]) -> list[datetime]:
     """
     return []
 
-def extract_known_aliases(body_text: str) -> list[str]:
+def extract_known_aliases(text: str) -> list[str]:
     """
-    Finds all known aliases in the body text of ATel report.
+    Finds all known aliases and object IDs in the title and body of ATel report.
 
     Args:
-        body_text (str): Body text of ATel report.
+        text (str): Title and body of ATel report.
 
     Returns:
-        list[str]: List of known aliases found.
+        list[str]: List of object IDs found.
     """
 
     object_IDs = []
     # Retrieves known aliases
     aliases = get_all_aliases()
 
-    # Finds all aliases in the body text of ATel report
+    # Finds all aliases and object IDs in the title and body of ATel report
     for alias in aliases:
         # Regex for alias
         regex = f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]'
 
-        # Attempts to find alias in the body text using regex
+        # Attempts to find alias in the title and body text using regex
         alias_regex = re.compile(regex)
-        alias_found = alias_regex.search(f' {body_text.lower()} ')
+        alias_found = alias_regex.search(f' {text.lower()} ')
 
-        # Adds object ID to list if its associated alias is found in the body text
+        # Adds object ID to list if its associated alias is found in the title and body text
         if(alias_found is not None):
             object_IDs.append(alias.object_ID.lower())
         else:
             # Regex for object ID associated to alias
             regex = f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]'
 
-            # Attempts to find object ID in the body text using regex
+            # Attempts to find object ID in the title and body text using regex
             object_ID_regex = re.compile(regex)
-            object_ID_found = object_ID_regex.search(f' {body_text.lower()} ')
+            object_ID_found = object_ID_regex.search(f' {text.lower()} ')
 
-            # Adds object ID to list if it is found in the body text
+            # Adds object ID to list if it is found in the title and body text
             if(object_ID_found is not None):
                 object_IDs.append(alias.object_ID.lower())
 
