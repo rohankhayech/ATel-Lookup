@@ -129,7 +129,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Formats submission date
     formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
 
-    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()))
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()), objects=extract_known_aliases(f'{title} {body.strip()}'))
 
 def extract_coords(body_text: str) -> list[str]:
     """
@@ -196,7 +196,7 @@ def extract_known_aliases(body_text: str) -> list[str]:
 
     # Finds all aliases in the body text of ATel report
     for alias in aliases:
-        # Ensures that only full words will be identified as keywords with no digits preceding and/or succeeding it
+        # Regex for alias
         regex = f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]'
 
         # Attempts to find alias in the body text using regex
@@ -206,6 +206,17 @@ def extract_known_aliases(body_text: str) -> list[str]:
         # Adds object ID to list if its associated alias is found in the body text
         if(alias_found is not None):
             object_IDs.append(alias.object_ID.lower())
+        else:
+            # Regex for object ID associated to alias
+            regex = f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]'
+
+            # Attempts to find object ID in the body text using regex
+            object_ID_regex = re.compile(regex)
+            object_ID_found = object_ID_regex.search(f' {body_text.lower()} ')
+
+            # Adds object ID to list if it is found in the body text
+            if(object_ID_found is not None):
+                object_IDs.append(alias.object_ID.lower())
 
     return list(dict.fromkeys(object_IDs))
 
