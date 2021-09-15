@@ -129,9 +129,11 @@ class TestImporterFunctions(unittest.TestCase):
 # Parser functions
 class TestParserFunctions(unittest.TestCase):
     # Tests parse_report function
+    @mock.patch('controller.importer.parser.extract_known_aliases')
     @mock.patch('controller.importer.parser.extract_keywords')
-    def test_html_parser(self, mock_extract_keywords):
+    def test_html_parser(self, mock_extract_keywords, mock_extract_known_aliases):
         mock_extract_keywords.return_value = []
+        mock_extract_known_aliases.return_value = []
 
         # Parses HTML of ATel #1000
         f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
@@ -199,8 +201,11 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_known_aliases('No such thing as another weird alias for x (test)'), ['x', 'y'])
         self.assertCountEqual(extract_known_aliases('   AnOtheR ALIas'), ['object'])
         self.assertCountEqual(extract_known_aliases('another alias   '), ['object'])
-        self.assertCountEqual(extract_known_aliases('6alias-for-object should return empty list'), [])
+        self.assertCountEqual(extract_known_aliases('6object should return empty list'), [])
         self.assertCountEqual(extract_known_aliases('another alias is test10'), ['object'])
+        self.assertCountEqual(extract_known_aliases('x'), ['x'])
+        self.assertCountEqual(extract_known_aliases('x, y and alias-for-object'), ['x', 'object', 'y'])
+        self.assertCountEqual(extract_known_aliases('object and y'), ['object', 'y'])
 
     # Tests extract_keywords function
     def test_keywords_extractor(self):
