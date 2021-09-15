@@ -30,8 +30,57 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 
-# Regex for extracting keywords
-KEYWORDS_REGEX = ["radio",
+# Regexes for extracting dates which could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
+DATE_REGEXES = ['(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mmm-yy (01-Feb-99) and dd-mmm-yyyy (01-Feb-1999)
+                '(?:[0-3]\d|[1-9])-(?:[0-1]\d|[1-9])-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mm-yy (01-02-99) and dd-mm-yyyy (01-02-1999)
+                '(?:[0-3]\d|[1-9])\/(?:[0-1]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd/mm/yy (01/02/99) and dd/mm/yyyy (01/02/1999)
+                '(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # mm/dd/yy (02/01/99) and mm/dd/yyyy (02/01/1999)
+                '(?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # yy/mm/dd (99/02/01) and yyyy/mm/dd (1999/02/01)
+                '(?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.[1-2]\d\d\d(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd.mm.yyyy (01.02.1999)
+                '[1-2]\d\d\d-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?' # yyyy-mm-dd (1999-02-01)
+]
+
+# List of date formats to convert
+DATE_FORMATS = ['%d-%b-%Y %H:%M:%S', # dd-mmm-yyyy hh:mm:ss
+                '%d-%m-%Y %H:%M:%S', # dd-mm-yyyy hh:mm:ss
+                '%d/%m/%Y %H:%M:%S', # dd/mm/yyyy hh:mm:ss
+                '%m/%d/%Y %H:%M:%S', # mm/dd/yyyy hh:mm:ss
+                '%Y/%m/%d %H:%M:%S', # yyyy/mm/dd hh:mm:ss
+                '%d.%m.%Y %H:%M:%S', # dd.mm.yyyy hh:mm:ss
+                '%Y-%m-%d %H:%M:%S', # yyyy-mm-dd hh:mm:ss
+                '%d-%b-%y %H:%M:%S', # dd-mmm-yy hh:mm:ss
+                '%d-%m-%y %H:%M:%S', # dd-mm-yy hh:mm:ss
+                '%d/%m/%y %H:%M:%S', # dd/mm/yy hh:mm:ss
+                '%m/%d/%y %H:%M:%S', # mm/dd/yy hh:mm:ss
+                '%y/%m/%d %H:%M:%S', # yy/mm/dd hh:mm:ss
+                '%d-%b-%Y %H:%M', # dd-mmm-yyyy hh:mm
+                '%d-%m-%Y %H:%M', # dd-mm-yyyy hh:mm
+                '%d/%m/%Y %H:%M', # dd/mm/yyyy hh:mm
+                '%m/%d/%Y %H:%M', # mm/dd/yyyy hh:mm
+                '%Y/%m/%d %H:%M', # yyyy/mm/dd hh:mm
+                '%d.%m.%Y %H:%M', # dd.mm.yyyy hh:mm
+                '%Y-%m-%d %H:%M', # yyyy-mm-dd hh:mm
+                '%d-%b-%y %H:%M', # dd-mmm-yy hh:mm
+                '%d-%m-%y %H:%M', # dd-mm-yy hh:mm
+                '%d/%m/%y %H:%M', # dd/mm/yy hh:mm
+                '%m/%d/%y %H:%M', # mm/dd/yy hh:mm
+                '%y/%m/%d %H:%M', # yy/mm/dd hh:mm
+                '%d-%b-%Y', # dd-mmm-yyyy
+                '%d-%m-%Y', # dd-mm-yyyy
+                '%d/%m/%Y', # dd/mm/yyyy
+                '%m/%d/%Y', # mm/dd/yyyy
+                '%Y/%m/%d', # yyyy/mm/dd
+                '%d.%m.%Y', # dd.mm.yyyy
+                '%Y-%m-%d', # yyyy-mm-dd
+                '%d-%b-%y', # dd-mmm-yy
+                '%d-%m-%y', # dd-mm-yy
+                '%d/%m/%y', # dd/mm/yy
+                '%m/%d/%y', # mm/dd/yy
+                '%y/%m/%d' # yy/mm/dd
+]
+
+# Regexes for extracting keywords
+KEYWORD_REGEXES = ["radio",
                   "millimeter",
                   "sub-millimeter",
                   "far-infra-red",
@@ -168,18 +217,8 @@ def extract_dates(body_text: str) -> list[str]:
 
     dates = []
 
-    # Date formats could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
-    date_regexes = ['(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mmm-yy (01-Feb-99) and dd-mmm-yyyy (01-Feb-1999)
-                    '(?:[0-3]\d|[1-9])-(?:[0-1]\d|[1-9])-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mm-yy (01-02-99) and dd-mm-yyyy (01-02-1999)
-                    '(?:[0-3]\d|[1-9])\/(?:[0-1]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd/mm/yy (01/02/99) and dd/mm/yyyy (01/02/1999)
-                    '(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # mm/dd/yy (02/01/99) and mm/dd/yyyy (02/01/1999)
-                    '(?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # yy/mm/dd (99/02/01) and yyyy/mm/dd (1999/02/01)
-                    '(?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.[1-2]\d\d\d(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd.mm.yyyy (01.02.1999)
-                    '[1-2]\d\d\d-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?' # yyyy-mm-dd (1999-02-01)
-    ]
-
     # Finds all dates that are in the above date formats in the body text of ATel report
-    for regex in date_regexes:
+    for regex in DATE_REGEXES:
         # Attempts to find all dates that are in a certain date format in the body text using regex
         date_regex = re.compile(f'[^\d]{regex}[^\d]')
         dates_found = date_regex.findall(f' {body_text.lower()} ')
@@ -205,48 +244,9 @@ def parse_dates(dates: list[str]) -> list[datetime]:
 
     formatted_dates = []
 
-    # List of date formats to convert
-    date_formats = ['%d-%b-%Y %H:%M:%S', # dd-mmm-yyyy hh:mm:ss
-                    '%d-%m-%Y %H:%M:%S', # dd-mm-yyyy hh:mm:ss
-                    '%d/%m/%Y %H:%M:%S', # dd/mm/yyyy hh:mm:ss
-                    '%m/%d/%Y %H:%M:%S', # mm/dd/yyyy hh:mm:ss
-                    '%Y/%m/%d %H:%M:%S', # yyyy/mm/dd hh:mm:ss
-                    '%d.%m.%Y %H:%M:%S', # dd.mm.yyyy hh:mm:ss
-                    '%Y-%m-%d %H:%M:%S', # yyyy-mm-dd hh:mm:ss
-                    '%d-%b-%y %H:%M:%S', # dd-mmm-yy hh:mm:ss
-                    '%d-%m-%y %H:%M:%S', # dd-mm-yy hh:mm:ss
-                    '%d/%m/%y %H:%M:%S', # dd/mm/yy hh:mm:ss
-                    '%m/%d/%y %H:%M:%S', # mm/dd/yy hh:mm:ss
-                    '%y/%m/%d %H:%M:%S', # yy/mm/dd hh:mm:ss
-                    '%d-%b-%Y %H:%M', # dd-mmm-yyyy hh:mm
-                    '%d-%m-%Y %H:%M', # dd-mm-yyyy hh:mm
-                    '%d/%m/%Y %H:%M', # dd/mm/yyyy hh:mm
-                    '%m/%d/%Y %H:%M', # mm/dd/yyyy hh:mm
-                    '%Y/%m/%d %H:%M', # yyyy/mm/dd hh:mm
-                    '%d.%m.%Y %H:%M', # dd.mm.yyyy hh:mm
-                    '%Y-%m-%d %H:%M', # yyyy-mm-dd hh:mm
-                    '%d-%b-%y %H:%M', # dd-mmm-yy hh:mm
-                    '%d-%m-%y %H:%M', # dd-mm-yy hh:mm
-                    '%d/%m/%y %H:%M', # dd/mm/yy hh:mm
-                    '%m/%d/%y %H:%M', # mm/dd/yy hh:mm
-                    '%y/%m/%d %H:%M', # yy/mm/dd hh:mm
-                    '%d-%b-%Y', # dd-mmm-yyyy
-                    '%d-%m-%Y', # dd-mm-yyyy
-                    '%d/%m/%Y', # dd/mm/yyyy
-                    '%m/%d/%Y', # mm/dd/yyyy
-                    '%Y/%m/%d', # yyyy/mm/dd
-                    '%d.%m.%Y', # dd.mm.yyyy
-                    '%Y-%m-%d', # yyyy-mm-dd
-                    '%d-%b-%y', # dd-mmm-yy
-                    '%d-%m-%y', # dd-mm-yy
-                    '%d/%m/%y', # dd/mm/yy
-                    '%m/%d/%y', # mm/dd/yy
-                    '%y/%m/%d' # yy/mm/dd
-    ]
-
     # Converts each extracted date to datetime object
     for date in dates:
-        for date_format in date_formats:
+        for date_format in DATE_FORMATS:
             try:
                 # Adds converted date to list
                 formatted_dates.append(datetime.strptime(date, date_format))
@@ -283,7 +283,7 @@ def extract_keywords(body_text: str) -> list[str]:
     keywords = []
 
     # Finds all keywords in the body text of ATel report
-    for keyword in KEYWORDS_REGEX:
+    for keyword in KEYWORD_REGEXES:
         # Ensures that only full words will be identified as keywords
         regex = f'[^a-z]{keyword}[^a-z]'
 
