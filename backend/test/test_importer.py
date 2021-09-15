@@ -178,6 +178,33 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.coordinates, [])
         self.assertCountEqual(imported_report.referenced_by, [])
 
+    # Tests extract_dates function
+    def test_dates_extractor(self):
+        self.assertCountEqual(extract_dates('210-Jan-2011 22:10:15'), [])
+        self.assertCountEqual(extract_dates('22/495/2011 and 2020-3-555'), [])
+        self.assertCountEqual(extract_dates('10-Jan-2011 22:10:15 and 11-06-99 9:55:34'), ['10-jan-2011 22:10:15', '11-06-99 9:55:34'])
+        self.assertCountEqual(extract_dates('22-01-2006 5:44 and 2003/6/9 23:44'), ['22-01-2006 5:44', '2003/6/9 23:44'])
+        self.assertCountEqual(extract_dates('17/06/1975 and 88/10/8'), ['17/06/1975', '88/10/8'])
+        self.assertCountEqual(extract_dates('12-Mar-1938 11:45 and 2005-5-29'), ['12-mar-1938 11:45', '2005-5-29'])
+        self.assertCountEqual(extract_dates('8/16/95 and 8/09/2005 6:45:33'), ['8/16/95', '8/09/2005 6:45:33'])
+        self.assertCountEqual(extract_dates('1/03/2011 19:45:04 and 1958-1-2 5:33:22'), ['1/03/2011 19:45:04', '1958-1-2 5:33:22'])
+        self.assertCountEqual(extract_dates('7-12-99 8:49 and 2013/8/15'), ['7-12-99 8:49', '2013/8/15'])
+        self.assertCountEqual(extract_dates('1990/6/20 11:45:45 and 17-05-1940 00:05:23'), ['1990/6/20 11:45:45', '17-05-1940 00:05:23'])
+        self.assertCountEqual(extract_dates('83/06/30 4:58 and 2017-5-20 18:30'), ['83/06/30 4:58', '2017-5-20 18:30'])
+        self.assertCountEqual(extract_dates('10-Dec-2020 and 7/11/2005 06:39'), ['10-dec-2020', '7/11/2005 06:39'])
+        self.assertCountEqual(extract_dates('17-02-88 and 9-Jul-36'), ['17-02-88', '9-jul-36'])
+        self.assertCountEqual(extract_dates('16/5/93 03:45 and 7/30/1950 8:02'), ['16/5/93 03:45', '7/30/1950 8:02'])
+        self.assertCountEqual(extract_dates('06/17/2000 06:42:16 and 10/13/1973'), ['06/17/2000 06:42:16', '10/13/1973'])
+        self.assertCountEqual(extract_dates('80/6/5 and 9-Apr-00 14:14:14'), ['80/6/5', '9-apr-00 14:14:14'])
+        self.assertCountEqual(extract_dates('7.3.2011 05:23:59 and 10/3/75'), ['7.3.2011 05:23:59', '10/3/75'])
+        self.assertCountEqual(extract_dates('30-09-1998 and 14.10.1938 6:02'), ['30-09-1998', '14.10.1938 6:02'])
+        self.assertCountEqual(extract_dates('9-Oct-73 10:39 and 07/29/99 04:27'), ['9-oct-73 10:39', '07/29/99 04:27'])
+        self.assertCountEqual(extract_dates('15.7.2018 and 03/17/65 17:40:39'), ['15.7.2018', '03/17/65 17:40:39'])
+
+    # Tests parse_dates function
+    def test_dates_parser(self):
+        pass
+
     # Tests extract_keywords function
     def test_keywords_extractor(self):
         self.assertCountEqual(extract_keywords('This is a test'), [])
