@@ -194,7 +194,7 @@ def query_simbad_by_coords(coords: SkyCoord,
             SIMBAD server using the Astroquery package.     
     """
     # Radius should be validated prior to calling this function. 
-    if  radius < 0.0 and radius > 20.0:
+    if  radius < 0.0 or radius > 20.0:
         raise ValueError(f"Invalid radius: \"${radius}\" not in range 0.0 to 20.0.")
     if coords is None:
         raise ValueError("SkyCoord value is unknown.")
