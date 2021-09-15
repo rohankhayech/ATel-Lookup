@@ -203,7 +203,26 @@ class TestParserFunctions(unittest.TestCase):
 
     # Tests parse_dates function
     def test_dates_parser(self):
-        pass
+        self.assertCountEqual(parse_dates([]), [])
+        self.assertCountEqual(parse_dates(['Test']), [])
+        self.assertCountEqual(parse_dates(['10-jan-2011 22:10:15', '11-06-99 9:55:34']), [datetime(year=2011, month=1, day=10, hour=22, minute=10, second=15), datetime(year=1999, month=6, day=11, hour=9, minute=55, second=34)])
+        self.assertCountEqual(parse_dates(['22-01-2006 5:44', '2003/6/9 23:44']), [datetime(year=2006, month=1, day=22, hour=5, minute=44), datetime(year=2003, month=6, day=9, hour=23, minute=44)])
+        self.assertCountEqual(parse_dates(['17/06/1975', '88/10/8']), [datetime(year=1975, month=6, day=17), datetime(year=1988, month=10, day=8)])
+        self.assertCountEqual(parse_dates(['12-mar-1938 11:45', '2005-5-29']),[datetime(year=1938, month=3, day=12, hour=11, minute=45), datetime(year=2005, month=5, day=29)])
+        self.assertCountEqual(parse_dates(['8/16/95', '8/09/2005 6:45:33']), [datetime(year=1995, month=8, day=16), datetime(year=2005, month=9, day=8, hour=6, minute=45, second=33)])
+        self.assertCountEqual(parse_dates(['1/03/2011 19:45:04', '1958-1-2 5:33:22']), [datetime(year=2011, month=3, day=1, hour=19, minute=45, second=4), datetime(year=1958, month=1, day=2, hour=5, minute=33, second=22)])
+        self.assertCountEqual(parse_dates(['7-12-99 8:49', '2013/8/15']), [datetime(year=1999, month=12, day=7, hour=8, minute=49), datetime(year=2013, month=8, day=15)])
+        self.assertCountEqual(parse_dates(['1990/6/20 11:45:45', '17-05-1940 00:05:23']), [datetime(year=1990, month=6, day=20, hour=11, minute=45, second=45), datetime(year=1940, month=5, day=17, hour=0, minute=5, second=23)])
+        self.assertCountEqual(parse_dates(['83/06/30 4:58', '2017-5-20 18:30']), [datetime(year=1983, month=6, day=30, hour=4, minute=58), datetime(year=2017, month=5, day=20, hour=18, minute=30)])
+        self.assertCountEqual(parse_dates(['10-dec-2020', '7/11/2005 06:39']), [datetime(year=2020, month=12, day=10), datetime(year=2005, month=11, day=7, hour=6, minute=39)])
+        self.assertCountEqual(parse_dates(['17-02-88', '9-jul-36']), [datetime(year=1988, month=2, day=17), datetime(year=2036, month=7, day=9)])
+        self.assertCountEqual(parse_dates(['16/5/93 03:45', '7/30/1950 8:02']), [datetime(year=1993, month=5, day=16, hour=3, minute=45), datetime(year=1950, month=7, day=30, hour=8, minute=2)])
+        self.assertCountEqual(parse_dates(['06/17/2000 06:42:16', '10/13/1973']), [datetime(year=2000, month=6, day=17, hour=6, minute=42, second=16), datetime(year=1973, month=10, day=13)])
+        self.assertCountEqual(parse_dates(['80/6/5', '9-apr-00 14:14:14']), [datetime(year=1980, month=6, day=5), datetime(year=2000, month=4, day=9, hour=14, minute=14, second=14)])
+        self.assertCountEqual(parse_dates(['7.3.2011 05:23:59', '10/3/75']), [datetime(year=2011, month=3, day=7, hour=5, minute=23, second=59), datetime(year=1975, month=3, day=10)])
+        self.assertCountEqual(parse_dates(['30-09-1998', '14.10.1938 6:02']), [datetime(year=1998, month=9, day=30), datetime(year=1938, month=10, day=14, hour=6, minute=2)])
+        self.assertCountEqual(parse_dates(['9-oct-73 10:39', '07/29/99 04:27']), [datetime(year=1973, month=10, day=9, hour=10, minute=39), datetime(year=1999, month=7, day=29, hour=4, minute=27)])
+        self.assertCountEqual(parse_dates(['15.7.2018', '03/17/65 17:40:39']), [datetime(year=2018, month=7, day=15), datetime(year=2065, month=3, day=17, hour=17, minute=40, second=39)])
 
     # Tests extract_keywords function
     def test_keywords_extractor(self):
