@@ -182,7 +182,7 @@ class TestParserFunctions(unittest.TestCase):
     # Tests extract_known_aliases function
     @mock.patch('controller.importer.parser.get_all_aliases')
     def test_aliases_extractor(self, mock_get_all_aliases):
-        mock_get_all_aliases.return_value = None
+        mock_get_all_aliases.return_value = []
 
         self.assertCountEqual(extract_known_aliases('This is a test'), [])
         self.assertCountEqual(extract_known_aliases('Double check that an empty list is returned'), [])

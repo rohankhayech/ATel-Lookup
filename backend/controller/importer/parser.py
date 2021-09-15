@@ -195,18 +195,17 @@ def extract_known_aliases(body_text: str) -> list[str]:
     aliases = get_all_aliases()
 
     # Finds all aliases in the body text of ATel report
-    if(aliases is not None):
-        for alias in aliases:
-            # Ensures that only full words will be identified as keywords with no digits preceding and/or succeeding it
-            regex = f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]'
+    for alias in aliases:
+        # Ensures that only full words will be identified as keywords with no digits preceding and/or succeeding it
+        regex = f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]'
 
-            # Attempts to find alias in the body text using regex
-            alias_regex = re.compile(regex)
-            alias_found = alias_regex.search(f' {body_text.lower()} ')
+        # Attempts to find alias in the body text using regex
+        alias_regex = re.compile(regex)
+        alias_found = alias_regex.search(f' {body_text.lower()} ')
 
-            # Adds object ID to list if its associated alias is found in the body text
-            if(alias_found is not None):
-                object_IDs.append(alias.object_ID.lower())
+        # Adds object ID to list if its associated alias is found in the body text
+        if(alias_found is not None):
+            object_IDs.append(alias.object_ID.lower())
 
     return list(dict.fromkeys(object_IDs))
 
