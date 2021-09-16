@@ -31,7 +31,10 @@ from datetime import datetime
 from astropy.coordinates import SkyCoord
 
 # Regexes for extracting dates which could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
-DATE_REGEXES = ['(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mmm-yy (01-Feb-99) and dd-mmm-yyyy (01-Feb-1999)
+DATE_REGEXES = ['(?:[0-3]\d|[1-9])\s(?:january|february|march|april|may|june|july|august|september|october|november|december)\s[1-2]\d\d\d(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd mmmm yyyy (01 February 1999)
+                '(?:[0-3]\d|[1-9])\s(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s[1-2]\d\d\d(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd mmm yyyy (01 Feb 1999)
+                '(?:january|february|march|april|may|june|july|august|september|october|november|december)\s(?:[0-3]\d|[1-9]),\s[1-2]\d\d\d(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # mmmm dd, yyyy (February 01, 1999)
+                '(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mmm-yy (01-Feb-99) and dd-mmm-yyyy (01-Feb-1999)
                 '(?:[0-3]\d|[1-9])-(?:[0-1]\d|[1-9])-(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd-mm-yy (01-02-99) and dd-mm-yyyy (01-02-1999)
                 '(?:[0-3]\d|[1-9])\/(?:[0-1]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd/mm/yy (01/02/99) and dd/mm/yyyy (01/02/1999)
                 '(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)(?:\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # mm/dd/yy (02/01/99) and mm/dd/yyyy (02/01/1999)
@@ -41,7 +44,10 @@ DATE_REGEXES = ['(?:[0-3]\d|[1-9])-(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|no
 ]
 
 # List of date formats to convert
-DATE_FORMATS = ['%d-%b-%Y %H:%M:%S', # dd-mmm-yyyy hh:mm:ss
+DATE_FORMATS = ['%d %B %Y %H:%M:%S', # dd mmmm yyyy hh:mm:ss
+                '%d %b %Y %H:%M:%S', # dd mmm yyyy hh:mm:ss
+                '%B %d, %Y %H:%M:%S', # mmmm dd, yyyy hh:mm:ss
+                '%d-%b-%Y %H:%M:%S', # dd-mmm-yyyy hh:mm:ss
                 '%d-%m-%Y %H:%M:%S', # dd-mm-yyyy hh:mm:ss
                 '%d/%m/%Y %H:%M:%S', # dd/mm/yyyy hh:mm:ss
                 '%m/%d/%Y %H:%M:%S', # mm/dd/yyyy hh:mm:ss
@@ -53,6 +59,9 @@ DATE_FORMATS = ['%d-%b-%Y %H:%M:%S', # dd-mmm-yyyy hh:mm:ss
                 '%d/%m/%y %H:%M:%S', # dd/mm/yy hh:mm:ss
                 '%m/%d/%y %H:%M:%S', # mm/dd/yy hh:mm:ss
                 '%y/%m/%d %H:%M:%S', # yy/mm/dd hh:mm:ss
+                '%d %B %Y %H:%M', # dd mmmm yyyy hh:mm
+                '%d %b %Y %H:%M', # dd mmm yyyy hh:mm
+                '%B %d, %Y %H:%M', # mmmm dd, yyyy hh:mm
                 '%d-%b-%Y %H:%M', # dd-mmm-yyyy hh:mm
                 '%d-%m-%Y %H:%M', # dd-mm-yyyy hh:mm
                 '%d/%m/%Y %H:%M', # dd/mm/yyyy hh:mm
@@ -65,6 +74,9 @@ DATE_FORMATS = ['%d-%b-%Y %H:%M:%S', # dd-mmm-yyyy hh:mm:ss
                 '%d/%m/%y %H:%M', # dd/mm/yy hh:mm
                 '%m/%d/%y %H:%M', # mm/dd/yy hh:mm
                 '%y/%m/%d %H:%M', # yy/mm/dd hh:mm
+                '%d %B %Y', # dd mmmm yyyy
+                '%d %b %Y', # dd mmm yyyy
+                '%B %d, %Y', # mmmm dd, yyyy
                 '%d-%b-%Y', # dd-mmm-yyyy
                 '%d-%m-%Y', # dd-mm-yyyy
                 '%d/%m/%Y', # dd/mm/yyyy
