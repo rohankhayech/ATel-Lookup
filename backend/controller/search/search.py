@@ -80,30 +80,31 @@ def search_reports_by_coords(
         raise ValueError("SearchFilters and coordinates cannot both be None.")
 
     # Always query SIMBAD first. 
-    query_result = None 
+    query_result = dict() 
     if coords is not None:
         query_result = qs.query_simbad_by_coords(coords, radius) 
 
     reports: list[ReportResult] = [] 
 
     # The 'key' is the MAIN_ID
-    if query_result is not None:
-        for key, value in query_result.items():
-            exists, last_updated = db.object_exists(key) 
-            if exists:
-                check_object_updates(key, last_updated)
-            else:
-                # Query by name without aliases. 
-                name_query_result = qs.query_simbad_by_name(key, False)
-                if name_query_result is not None:
-                    # Add the newly discovered object to the 
-                    # local database. 
-                    name, coords = name_query_result
-                    db.add_object(name, coords, value)
-            db_name_query = db.find_reports_by_object(search_filters, key)
-            if db_name_query is not None:
-                for r in db_name_query:
-                    if r not in reports: reports.append(r) 
+    for key, value in query_result.items():
+        exists, last_updated = db.object_exists(key) 
+        if exists:
+            check_object_updates(key, last_updated)
+        else:
+            # Query by name without aliases. 
+            name_query_result = qs.query_simbad_by_name(key, False)
+            if name_query_result is not None:
+                # Add the newly discovered object to the 
+                # local database. 
+                name, coords = name_query_result
+                db.add_object(name, coords, value)
+        db_name_query = db.find_reports_by_object(search_filters, key)
+
+        # TODO: Remove None-type checks for db when fix is merged. 
+        if db_name_query is not None:
+            for r in db_name_query:
+                if r not in reports: reports.append(r) 
 
     db_coord_query = db.find_reports_in_coord_range(search_filters, coords, radius)
     if db_coord_query is not None:
@@ -166,6 +167,7 @@ def search_reports_by_name(
     # Get the base reports from the database. 
     reports = db.find_reports_by_object(search_filters, name)
 
+    # TODO: Remove None-type checks when db list change is merged. 
     if reports is None: 
         reports = []
 

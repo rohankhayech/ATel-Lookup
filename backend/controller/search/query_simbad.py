@@ -259,7 +259,7 @@ def query_simbad_by_name(object_name: str,
 
         if table is None:
             # The object does not exist.
-            return [] 
+            return None
 
         # Get the MAIN_ID and the coordinates from the table. 
         # The table may be empty (non-result), which means these 
@@ -277,4 +277,4 @@ def query_simbad_by_name(object_name: str,
         raise QuerySimbadError(str(e))
     except UserWarning as e:
         # No object found.
-        return [] 
+        return None

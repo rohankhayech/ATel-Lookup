@@ -249,7 +249,7 @@ class TestNameSearch(ut.TestCase):
     @mock.patch('controller.search.query_simbad.Simbad.query_object', new=mocked_object_not_found)
     def test_no_object_found(self):
         # This function is patched by the mocked method. 
-        self.assertEqual(query_simbad.query_simbad_by_name("invalid_object"), [])
+        self.assertEqual(query_simbad.query_simbad_by_name("invalid_object"), None)
 
 
     # Test a standard object search.

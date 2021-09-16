@@ -373,7 +373,7 @@ class TestSearchByCoords(TestSearch):
         '''
         mock = search 
 
-        mock.qs.query_simbad_by_coords = MagicMock(return_value={}) # Returns empty dict. 
+        mock.qs.query_simbad_by_coords = MagicMock(return_value=dict()) # Returns empty dict. 
         mock.db.object_exists = MagicMock() 
         mock.check_object_updates = MagicMock()
         mock.db.add_object = MagicMock()
