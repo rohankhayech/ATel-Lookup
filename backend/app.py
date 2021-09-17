@@ -176,6 +176,8 @@ def imports() -> json:
             flag = 0
         except ReportNotFoundError as e:
             flag = 0
+        except ImportFailError as e:
+            flag = 9
         pass
 
     return jsonify({"flag": flag})
