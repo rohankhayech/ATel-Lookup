@@ -159,13 +159,9 @@ def imports() -> json:
     import_mode_in = request.json.get("import_mode", None)
     atel_num_in = request.json.get("atel_num", None)
 
-    if (
-        import_mode_in != "manual" and import_mode_in != "auto"
-    ):  # import mode not named correctly
+    if import_mode_in != "manual" and import_mode_in != "auto":  # import mode not named correctly
         flag = 0
-    elif (
-        import_mode_in == "manual" and atel_num_in is None
-    ):  # import mode set to manual but atel number was not provided
+    elif import_mode_in == "manual" and atel_num_in is None:  # import mode set to manual but atel number was not provided
         flag = 0
     elif import_mode_in == "manual" and atel_num_in <= 0:  # atel number not valid
         flag = 0
@@ -229,9 +225,9 @@ def search() -> json:
         keywords_in = None
 
     if start_date_in != None:
-        start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d")
+        start_date_obj = parse_date_input(start_date_in)
     if end_date_in != None:
-        end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d")
+        end_date_obj = parse_date_input(end_date_in)
     
 
     if search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
@@ -269,7 +265,7 @@ def search() -> json:
 
     keyword_mode_enum = KeywordMode.ANY
     if keyword_mode_in != None:
-        if keyword_mode_in == "all":
+        if keyword_mode_in == "all`":
             keyword_mode_enum = KeywordMode.ALL
         elif keyword_mode_in == "any":
             keyword_mode_enum = KeywordMode.ANY
