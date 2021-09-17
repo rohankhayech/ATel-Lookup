@@ -218,6 +218,8 @@ def search() -> json:
     end_date_in = None
     start_date_obj = None
     end_date_obj = None
+    ra_deg = 0.0
+    dec_deg = 0.0
 
     term_in = request.json.get("term", None)
     search_mode_in = request.json.get("search_mode", None)
