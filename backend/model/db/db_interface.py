@@ -186,7 +186,7 @@ def get_all_aliases() -> list[AliasResult]:
     Retrieves a list of all object aliases stored in the database and their associated object IDs.
 
     Returns:
-        list[AliasResult]: A list of AliasResult objects, containing aliases and their associated object ID, or None if no aliases are stored.
+        list[AliasResult]: A list of AliasResult objects, containing aliases and their associated object ID.
     """
     return [AliasResult("example", "x")]  # stub
 
@@ -333,10 +333,10 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
         object_name (str, optional): An object ID or alias to search  by. Defaults to None.
 
     Returns:
-        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
+        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
     if (filters is None):
-        return None #stubbed until object search is implemented
+        return [] #stubbed until object search is implemented
 
     if (filters or object_name):
         cn = _connect()
@@ -367,12 +367,9 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
             cur.close()
             cn.close()
 
-        if len(reports) == 0:
-            return None
-        else:
-            return reports
-    else: # If no parameters given, return None.
-        return None
+        return reports
+    else: # If no parameters given, return empty list.
+        return []
 
 def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, coords:SkyCoord, radius:float)->list[ReportResult]:
     """
@@ -385,14 +382,11 @@ def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, c
         radius (float): The radius defining the range around the specified coordinates to search.
 
     Returns:
-        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
+        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    return find_reports_by_object()  # stub
+    return find_reports_by_object(filters) # stub
 
     #TODO: Check in coord range.
-
-
-
 
 # Exceptions
 class ExistingUserError(Exception):
