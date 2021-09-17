@@ -174,7 +174,7 @@ class TestReports(unittest.TestCase):
 
             #Test search author (not possible)
             results = db_interface.find_reports_by_object(SearchFilters(term="db_test_authors"))
-            self.assertIsNone(results)
+            self.assertListEqual(results,[])
 
             #Test start date
             results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", start_date=datetime(2021,8,11)))
@@ -192,7 +192,7 @@ class TestReports(unittest.TestCase):
             self.assertEqual(report,result)
 
             results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","planet"],keyword_mode=KeywordMode.ALL))
-            self.assertIsNone(results)
+            self.assertListEqual(results,[])
 
             #Test keywords - any
             results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","radio"],keyword_mode=KeywordMode.ANY))
@@ -205,10 +205,10 @@ class TestReports(unittest.TestCase):
 
             #Test keywords - none
             results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star", "radio"], keyword_mode=KeywordMode.NONE))
-            self.assertIsNone(results)
+            self.assertListEqual(results,[])
 
             results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","planet"],keyword_mode=KeywordMode.NONE))
-            self.assertIsNone(results)
+            self.assertListEqual(results,[])
 
             results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["nova","planet"],keyword_mode=KeywordMode.NONE))
             result = results[0]
@@ -231,7 +231,7 @@ class TestReports(unittest.TestCase):
             result = db_interface.find_reports_by_object(
                 object_name=""
             )
-            self.assertIsNone(result)
+            self.assertListEqual(result,[])
 
         finally:
             #delete report
