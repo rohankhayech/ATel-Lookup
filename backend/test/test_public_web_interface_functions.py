@@ -149,7 +149,7 @@ test_search_bad_ra_value = {
 test_search_bad_keyword = {
     "term": "supermassive",
     "search_mode": "coords",
-    "search_data": [65.51, -22.022, 3.4],
+    "search_data": [65.51, 22.022, 3.4],
     "keywords": ["radio", "big rock"],
     "keyword_mode": "any",
     "start_date": "2001-01-22",

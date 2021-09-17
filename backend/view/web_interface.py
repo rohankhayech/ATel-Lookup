@@ -44,7 +44,7 @@ def parse_date_input(date_string: str) -> datetime:
 
     date_obj = datetime.strptime(date_string,"%Y-%m-%d")
 
-    return date_obj #stub
+    return date_obj
 
 
 def parse_search_coords(ra: str, dec: str) -> SkyCoord:
@@ -62,7 +62,7 @@ def parse_search_coords(ra: str, dec: str) -> SkyCoord:
 
     sky_coord_out = SkyCoord(ra, dec, frame="icrs", unit=("deg", "deg"))
 
-    return sky_coord_out #stub 
+    return sky_coord_out 
 
 
 def valid_ra(ra: str) -> bool:
@@ -76,7 +76,12 @@ def valid_ra(ra: str) -> bool:
         bool: A boolean representing if the string is a valid coordinate
 
     '''
-    return True #stub
+    bool_response = True
+    ra_float = float(ra)
+    if ra_float > 360 or ra_float < 0:
+        bool_response = False
+
+    return bool_response 
 
 
 def valid_dec(dec: str) -> bool:
@@ -90,10 +95,16 @@ def valid_dec(dec: str) -> bool:
         bool: A boolean representing if the string is a valid coordinate
 
     '''
-    return True #stub
+    bool_response = True
+    dec_float = float(dec)
+
+    if dec_float > 90.0 or dec_float < -90.0:
+        bool_response = False
+
+    return bool_response 
 
 
-def valid_radius(rad: float) -> bool:
+def valid_radius(rad: str) -> bool:
     '''Validates the given radius value to ensure it is a ‘possible’ radius value
 
     Args:
@@ -103,7 +114,13 @@ def valid_radius(rad: float) -> bool:
         bool: A boolean representing if the value is in the correct range
 
     '''
-    return True #stub
+    bool_response = True
+    rad_float = float(rad)
+
+    if rad_float > 10.0 or rad_float < 0.0:
+        bool_response = False
+
+    return bool_response 
 
 
 def valid_keyword_mode(keyword_mode: KeywordMode) -> bool:
