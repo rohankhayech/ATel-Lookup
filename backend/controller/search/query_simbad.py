@@ -31,7 +31,7 @@ from astroquery.simbad import Simbad
 
 from model.constants import DEFAULT_RADIUS, RADIUS_UNIT
 
-from requests import ConnectionError, HTTPError
+from requests.exceptions import ConnectionError, HTTPError
 
 
 #############################
