@@ -220,7 +220,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Formats submission date
     formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
 
-    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()))
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, observation_dates=parse_dates(extract_dates(f'{title} {body.strip()}')), keywords=extract_keywords(body.strip()))
 
 def extract_coords(body_text: str) -> list[str]:
     """
@@ -246,12 +246,12 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
     """
     return []
 
-def extract_dates(body_text: str) -> list[str]:
+def extract_dates(text: str) -> list[str]:
     """
-    Finds all dates in the body text of ATel report.
+    Finds all dates in the title and body of ATel report.
 
     Args:
-        body_text (str): Body text of ATel report.
+        text (str): Title and body of ATel report.
 
     Returns:
         list[str]: List of dates found.
@@ -259,11 +259,11 @@ def extract_dates(body_text: str) -> list[str]:
 
     dates = []
 
-    # Finds all dates that are in the above date formats in the body text of ATel report
+    # Finds all dates that are in the above date formats in the title and body of ATel report
     for regex in DATE_REGEXES:
-        # Attempts to find all dates that are in a certain date format in the body text using regex
+        # Attempts to find all dates that are in a certain date format in the title and body text using regex
         date_regex = re.compile(f'[^\d]{regex}[^\d]')
-        dates_found = date_regex.findall(f' {body_text.lower()} ')
+        dates_found = date_regex.findall(f' {text.lower()} ')
 
         # Removes any leading and/or trailing characters that are not part of the date format
         for date in dates_found:

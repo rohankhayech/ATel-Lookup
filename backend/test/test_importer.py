@@ -129,7 +129,11 @@ class TestImporterFunctions(unittest.TestCase):
 class TestParserFunctions(unittest.TestCase):
     # Tests parse_report function
     @mock.patch('controller.importer.parser.extract_keywords')
-    def test_html_parser(self, mock_extract_keywords):
+    @mock.patch('controller.importer.parser.parse_dates')
+    @mock.patch('controller.importer.parser.extract_dates')
+    def test_html_parser(self, mock_extract_dates, mock_parse_dates, mock_extract_keywords):
+        mock_extract_dates.return_value = []
+        mock_parse_dates.return_value = []
         mock_extract_keywords.return_value = []
 
         # Parses HTML of ATel #1000
