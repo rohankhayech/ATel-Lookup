@@ -129,7 +129,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.get_object_coords = MagicMock()
         mock.qs.query_simbad_by_name = MagicMock(return_value=None)
         mock.db.add_object = MagicMock()
-        mock.db.find_reports_by_object = MagicMock(return_value=None)
+        mock.db.find_reports_by_object = MagicMock(return_value=[])
 
         # Call the mocked function. 
         self.assertEqual(mock.search_reports_by_name(self.filters, "name"), [])
@@ -153,7 +153,7 @@ class TestSearchByName(ut.TestCase):
         mock.qs.get_aliases = MagicMock()
         mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
-        mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
         result = mock.search_reports_by_name(self.filters, "name")
 
@@ -186,7 +186,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.add_aliases = MagicMock()
         mock.qs.get_aliases = MagicMock()
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
-        mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
         mock.search_reports_by_name(self.filters, "name")
 
@@ -210,7 +210,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.add_object = MagicMock()
         mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
-        mock.db.find_reports_in_coord_range = MagicMock(return_value=None)
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
         result = mock.search_reports_by_name(self.filters, "name")
 
@@ -237,7 +237,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.add_object = MagicMock() 
 
         # Outside the if-statement:
-        mock.db.find_reports_by_object = MagicMock(return_value=None)
+        mock.db.find_reports_by_object = MagicMock(return_value=[])
         mock.db.find_reports_in_coord_range = MagicMock()
 
         mock.search_reports_by_name(self.filters, None)
