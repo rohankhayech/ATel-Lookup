@@ -125,7 +125,7 @@ def valid_radius(rad: str) -> bool:
     return bool_response 
 
 
-def valid_keyword_mode(keyword_mode: KeywordMode) -> bool:
+def valid_keyword_mode(keyword_mode: KeywordMode) -> bool: 
     '''To check that the user has selected either “none”, “any” or “all” as a 
     keyword mode for the search. These options are in the form of an enumeration. 
 
@@ -136,7 +136,10 @@ def valid_keyword_mode(keyword_mode: KeywordMode) -> bool:
         bool: A Boolean representing if a valid keyword mode has been chosen
 
     '''
-    return True #stub
+
+    # This function seems redundant now, will confirm and then remove
+
+    return True 
 
 
 def valid_atel_num(atel_num: int) -> bool:
@@ -149,4 +152,9 @@ def valid_atel_num(atel_num: int) -> bool:
         bool: A boolean representing if the ATel number is valid.
 
     '''
-    return True #stub
+    bool_response = True
+
+    if atel_num < 0:
+        bool_response = False
+
+    return bool_response 

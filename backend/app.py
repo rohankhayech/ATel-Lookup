@@ -167,6 +167,8 @@ def imports() -> json:
         flag = 0
     elif import_mode_in == "manual" and atel_num_in <= 0:  # atel number not valid
         flag = 0
+    elif valid_atel_num(atel_num_in) == False:
+        flag = 0
 
     if flag == 1:
         try:
