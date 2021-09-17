@@ -1,0 +1,79 @@
+dd = day of month (01 to 31), mm = month (01 to 12), mmm = abbreviated month name,
+mmmm = full month name, yy = year not in century (00 to 99), yyyy = year in century,
+hh = hour (00 to 23), mm = minute (00 to 59), ss = second (00 to 59)
+
+dd mmmm yyyy; hh:mm:ss
+dd mmm yyyy; hh:mm:ss
+mmmm dd, yyyy; hh:mm:ss
+dd-mmm-yyyy; hh:mm:ss
+dd-mm-yyyy; hh:mm:ss
+dd/mm/yyyy; hh:mm:ss
+mm/dd/yyyy; hh:mm:ss
+yyyy/mm/dd; hh:mm:ss
+dd.mm.yyyy; hh:mm:ss
+yyyy-mm-dd; hh:mm:ss
+dd-mmm-yy; hh:mm:ss
+dd-mm-yy; hh:mm:ss
+dd/mm/yy; hh:mm:ss
+mm/dd/yy; hh:mm:ss
+yy/mm/dd; hh:mm:ss
+dd mmmm yyyy hh:mm:ss
+dd mmm yyyy hh:mm:ss
+mmmm dd, yyyy hh:mm:ss
+dd-mmm-yyyy hh:mm:ss
+dd-mm-yyyy hh:mm:ss
+dd/mm/yyyy hh:mm:ss
+mm/dd/yyyy hh:mm:ss
+yyyy/mm/dd hh:mm:ss
+dd.mm.yyyy hh:mm:ss
+yyyy-mm-dd hh:mm:ss
+dd-mmm-yy hh:mm:ss
+dd-mm-yy hh:mm:ss
+dd/mm/yy hh:mm:ss
+mm/dd/yy hh:mm:ss
+yy/mm/dd hh:mm:ss
+dd mmmm yyyy; hh:mm
+dd mmm yyyy; hh:mm
+mmmm dd, yyyy; hh:mm
+dd-mmm-yyyy; hh:mm
+dd-mm-yyyy; hh:mm
+dd/mm/yyyy; hh:mm
+mm/dd/yyyy; hh:mm
+yyyy/mm/dd; hh:mm
+dd.mm.yyyy; hh:mm
+yyyy-mm-dd; hh:mm
+dd-mmm-yy; hh:mm
+dd-mm-yy; hh:mm
+dd/mm/yy; hh:mm
+mm/dd/yy; hh:mm
+yy/mm/dd; hh:mm
+mmmm yyyy hh:mm
+mmm yyyy hh:mm
+mmmm dd, yyyy hh:mm
+dd-mmm-yyyy hh:mm
+dd-mm-yyyy hh:mm
+dd/mm/yyyy hh:mm
+mm/dd/yyyy hh:mm
+yyyy/mm/dd hh:mm
+dd.mm.yyyy hh:mm
+yyyy-mm-dd hh:mm
+dd-mmm-yy hh:mm
+dd-mm-yy hh:mm
+dd/mm/yy hh:mm
+mm/dd/yy hh:mm
+yy/mm/dd hh:mm
+dd mmmm yyyy
+dd mmm yyyy
+mmmm dd, yyyy
+dd-mmm-yyyy
+dd-mm-yyyy
+dd/mm/yyyy
+mm/dd/yyyy
+yyyy/mm/dd
+dd.mm.yyyy
+yyyy-mm-dd
+dd-mmm-yy
+dd-mm-yy
+dd/mm/yy
+mm/dd/yy
+yy/mm/dd
