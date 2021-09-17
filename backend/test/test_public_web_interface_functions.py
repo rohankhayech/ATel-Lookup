@@ -189,7 +189,7 @@ class TestWebInterfaceImports(ut.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-    def test_imports_manual_success(self): 
+    def test_imports_manual_success(self):
         response = self.app.post('/import', json = test_manual_success)
         self.assertEqual(response.json.get("flag"), 1) 
         cn = db._connect()
@@ -212,20 +212,20 @@ class TestWebInterfaceImports(ut.TestCase):
         self.assertEqual(response.json.get("flag"), 0)
         #should show a failure (atel number provided but is 0 or less (invalid))
 
-    """def test_auto_with_atel_num(self): 
+    def test_auto_with_atel_num(self): 
         response = self.app.post('/import', json = test_auto_with_atel_num)
         self.assertEqual(response.json.get("flag"), 1)
-        #Should succeed as the atel number is not needed with the auto import"""
+        #Should succeed as the atel number is not needed with the auto import
 
     def test_bad_import_mode_name_fail(self): 
         response = self.app.post('/import', json = test_bad_import_mode_name_fail)
         self.assertEqual(response.json.get("flag"), 0)
         #Should fail as the import mode name is not correct
 
-    """def test_auto_success_no_atel_given(self): 
+    def test_auto_success_no_atel_given(self): 
         response = self.app.post('/import', json = test_auto_success_no_atel_given)
         self.assertEqual(response.json.get("flag"), 1)
-        #Should succeed as auto import mode does not need an atel number"""
+        #Should succeed as auto import mode does not need an atel number
 
     def test_report_not_found_error(self):
         response = self.app.post('/import', json = test_report_not_found_error)
@@ -312,7 +312,7 @@ class TestWebInterfaceSearch(ut.TestCase):
         # self.assertEqual(response.json.get("flag"), 1)
 
 
-    #Testing Mocking Tests 
+    #Testing Mocking Tests - none of this is implemented/working yet
     return_value=({
             "atel_num": 11876,
             "title": "title",

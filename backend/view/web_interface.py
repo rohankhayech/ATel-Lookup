@@ -60,9 +60,9 @@ def parse_search_coords(ra: str, dec: str) -> SkyCoord:
 
     '''
 
-    # validation goes here
+    sky_coord_out = SkyCoord(ra, dec, frame="icrs", unit=("deg", "deg"))
 
-    return SkyCoord(0,0) #stub 
+    return sky_coord_out #stub 
 
 
 def valid_ra(ra: str) -> bool:

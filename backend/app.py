@@ -169,7 +169,7 @@ def imports() -> json:
     if flag == 1:
         try:
             if import_mode_in == "manual":
-                import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
+                import_report(atel_num_in) 
             elif import_mode_in == "auto":
                 import_all_reports()
         except ReportAlreadyExistsError as e:
@@ -252,7 +252,7 @@ def search() -> json:
             ra = search_data_in[1]
             radius = search_data_in[2]
             try:
-                sky_coord = SkyCoord(ra, dec, frame="icrs", unit=("deg", "deg"))
+                sky_coord = parse_search_coords(ra,dec)
             except ValueError as e:
                 flag = 0
         else:
