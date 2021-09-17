@@ -47,7 +47,7 @@ def parse_date_input(date_string: str) -> datetime:
     return date_obj
 
 
-def parse_search_coords(ra: str, dec: str) -> SkyCoord:
+def parse_search_coords(ra: float, dec: float) -> SkyCoord:
     '''Parse coordinates into a SkyCoord object.
 
     Args:
@@ -59,8 +59,10 @@ def parse_search_coords(ra: str, dec: str) -> SkyCoord:
         SkyCoord: A SkyCoord object representing the parsed coordinates. 
 
     '''
+    sky_coord_out = None
 
-    sky_coord_out = SkyCoord(ra, dec, frame="icrs", unit=("deg", "deg"))
+    if valid_ra(ra) == True and valid_dec(dec) == True:
+        sky_coord_out = SkyCoord(ra, dec, frame="icrs", unit=("deg", "deg"))
 
     return sky_coord_out 
 

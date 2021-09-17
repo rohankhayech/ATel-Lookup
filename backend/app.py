@@ -46,6 +46,8 @@ from astropy.coordinates import SkyCoord
 from view.web_interface import *
 from view.vis import *
 
+import re
+
 
 from flask import Flask, jsonify, request
 from flask_jwt_extended import (
@@ -250,15 +252,28 @@ def search() -> json:
 
     if search_mode_in == "coords": # if the search mode is "coords" need to make sure there is three values given
         if len(search_data_in) == 3:
-            dec = search_data_in[0]
-            ra = search_data_in[1]
+            ra = search_data_in[0]
+            dec = search_data_in[1]
             radius = search_data_in[2]
-            try:
-                sky_coord = parse_search_coords(ra,dec)
-            except ValueError as e:
+
+            temp_string_split_ra = re.split('h|m|s',ra)
+            ra_deg = 15*float(temp_string_split_ra[0]) + 15*(float(temp_string_split_ra[1])/60) + 15*(float(temp_string_split_ra[2])/3600)
+            if valid_ra(ra_deg) == False:
                 flag = 0
+
+            temp_string_split_dec = re.split('d|m|s',dec)
+            dec_deg = float(temp_string_split_dec[0]) + float(temp_string_split_dec[1])/60 + float(temp_string_split_dec[2])/3600
+            if valid_dec(dec_deg) == False:
+                flag = 0
+
         else:
             flag = 0  # if search data is not fit for coords, set flag to failure
+
+    if flag == 1:
+        try:
+            sky_coord = parse_search_coords(ra_deg,dec_deg)
+        except ValueError as e:
+            flag = 0
 
     if keyword_mode_in != None:
         for x in keywords_in:
