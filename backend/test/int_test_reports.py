@@ -81,7 +81,7 @@ class TestFR2(unittest.TestCase):
                 authors="J. Brimacombe (Coral Towers Observatory), J. S. Brown, K. Z. Stanek, T. W.-S. Holoien, C. S. Kochanek, J. Shields, T. A. Thompson (Ohio State), B. J. Shappee (Hubble Fellow, Carnegie Observatories), J. L. Prieto (Diego Portales; MAS), D. Bersier (LJMU), Subo Dong, S. Bose, Ping Chen (KIAA-PKU), R. A. Koff (Antelope Hills Observatory), G. Masi (Virtual Telescope Project, Ceccano, Italy), R. S. Post (Post Astronomy), G. Stone (Sierra Remote Observatories)",
                 submission_date=datetime(2017,1,25,5,0),
                 body=expected_body)
-            self.assertIsNotNone(reports)
+            self.assertNotEqual(reports,[])
             self.assertTrue(expected in reports, str(reports))
         finally:
             #delete report
