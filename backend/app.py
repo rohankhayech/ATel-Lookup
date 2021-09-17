@@ -282,7 +282,7 @@ def search() -> json:
 
     keyword_mode_enum = KeywordMode.ANY
     if keyword_mode_in != None:
-        if keyword_mode_in == "all`":
+        if keyword_mode_in == "all":
             keyword_mode_enum = KeywordMode.ALL
         elif keyword_mode_in == "any":
             keyword_mode_enum = KeywordMode.ANY

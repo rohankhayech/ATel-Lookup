@@ -119,7 +119,7 @@ def valid_radius(rad: str) -> bool:
     bool_response = True
     rad_float = float(rad)
 
-    if rad_float > 10.0 or rad_float < 0.0:
+    if rad_float > 20.0 or rad_float < 0.0:
         bool_response = False
 
     return bool_response 
