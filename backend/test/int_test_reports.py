@@ -28,7 +28,7 @@ License Terms and Copyright:
 import os
 from model.ds.report_types import ImportedReport, ReportResult
 from datetime import datetime
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 import unittest
 
 from model.db import db_interface as db
@@ -74,7 +74,7 @@ class TestFR2(unittest.TestCase):
 
         try:
             #check report attributes
-            reports = db.find_reports_by_object(SearchFilters(term="A",start_date=datetime(2017,1,24),end_date=datetime(2017,1,26)))
+            reports = db.find_reports_by_object(SearchFilters(term="A"),DateFilter(start_date=datetime(2017,1,24),end_date=datetime(2017,1,26)))
             expected = ReportResult(
                 atel_num=10000,
                 title="ASASSN-17bd: Discovery of A Probable Supernova in 2MASX J15591858+1336487",
