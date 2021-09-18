@@ -1,5 +1,5 @@
 """
-Contains the SearchFilters data structure, used to pass common search criteria throughout the application.
+Contains the SearchFilters and DateFilter data structures, used to pass common search criteria throughout the application.
 
 Author:
     Rohan Khayech
@@ -44,7 +44,7 @@ class SearchFilters:
     An object used to pass common search criteria throughout the application.
     """
 
-    def __init__(self, term:Union[str,None]=None, keywords:Union[list[str],None]=None, keyword_mode:KeywordMode=KeywordMode.ANY, start_date:Union[datetime,None]=None, end_date:Union[datetime,None]=None):
+    def __init__(self, term:Union[str,None]=None, keywords:Union[list[str],None]=None, keyword_mode:KeywordMode=KeywordMode.ANY):
         """
         Creates a SearchFilters object with the given criteria. Either term or keywords must be not None for the object to be valid.
 
@@ -52,8 +52,6 @@ class SearchFilters:
             term (str, optional): String representing a free-text search term. Defaults to None.
             keywords (list[str], optional): List of strings representing fixed keywords. Defaults to None.
             keyword_mode (KeywordMode, optional): The mode to use for filtering on keywords (ANY, ALL or NONE). Defaults to KeywordMode.ANY.
-            start_date (datetime, optional): Datetime object representing the start of the date range to filter by. Defaults to None.
-            end_date (datetime, optional): Datetime object representing the start of the date range to filter by. Defaults to None.
 
         Raises:
             TypeError: When neither term or keywords is specified or the list of keywords is empty when type is not specified.
@@ -63,8 +61,6 @@ class SearchFilters:
             self.term = term
             self.keywords = keywords
             self.keyword_mode = keyword_mode
-            self.start_date = start_date
-            self.end_date = end_date
         else:
             if keywords == []:
                 raise TypeError("List of keywords must be non-empty if term is not specified.")
@@ -76,7 +72,7 @@ class SearchFilters:
         Returns:
             str: A string describing the search filters specified by this object.
         """
-        return f"Free text: {self.term}, Keywords ({self.keyword_mode.name}): {self.keywords}, Submitted between {self.start_date} and {self.end_date}"
+        return f"Free text: {self.term}, Keywords ({self.keyword_mode.name}): {self.keywords}"
 
     def __eq__(self, other)->bool: 
         """
@@ -91,9 +87,7 @@ class SearchFilters:
         if isinstance(other,SearchFilters):
             return (self.term == other.term
             and sorted(self.keywords) == sorted(other.keywords)
-            and self.keyword_mode == other.keyword_mode
-            and self.start_date == other.start_date
-            and self.end_date == other.end_date)
+            and self.keyword_mode == other.keyword_mode)
         else:
             return False
 
@@ -166,15 +160,60 @@ class SearchFilters:
         except AttributeError:
             raise TypeError("Keyword mode must be a valid value of the KeywordMode enum.")
 
+class DateFilter:
+    """
+    Data structure representing a date range used to filter reports.
+    """
+
+    def __init__(self, start_date: Union[datetime, None] = None, end_date: Union[datetime, None] = None):
+        """
+        Creates a DateFilter object with the given criteria. Either start or end date must be not None for the object to be valid.
+
+        Args:
+            start_date (datetime, optional): Datetime object representing the start of the date range to filter by. Defaults to None.
+            end_date (datetime, optional): Datetime object representing the start of the date range to filter by. Defaults to None.
+
+        Raises:
+            TypeError: When neither start or end date is specified.
+        """
+        if start_date or end_date:
+            self.start_date = start_date
+            self.end_date = end_date
+        else:
+            raise TypeError("Either start or end date must be specfied to create a valid DateFilter object.")
+
+    def __str__(self) -> str:
+        """
+        Returns:
+            str: A string describing the search filters specified by this object.
+        """
+        return f"Submitted between {self.start_date} and {self.end_date}"
+
+    def __eq__(self, other) -> bool:
+        """
+        Checks if the given object is equal to this DateFilter object.
+
+        Args:
+            other (Any): The object to compare.
+
+        Returns:
+            bool: Whether the object is equal.
+        """
+        if isinstance(other, DateFilter):
+            return (self.start_date == other.start_date
+                    and self.end_date == other.end_date)
+        else:
+            return False
+
     @property
-    def start_date(self)->datetime:
+    def start_date(self) -> datetime:
         """
         The start of the date range to filter by.
         """
         return self._start_date
 
     @start_date.setter
-    def start_date(self, date:datetime):
+    def start_date(self, date: datetime):
         """
         Sets the start date to filter by.
 
@@ -187,14 +226,14 @@ class SearchFilters:
             raise TypeError("Start date must be a valid datetime object.")
 
     @property
-    def end_date(self)->datetime:
+    def end_date(self) -> datetime:
         """
         The end of the date range to filter by.
         """
         return self._end_date
 
     @end_date.setter
-    def end_date(self, date:datetime):
+    def end_date(self, date: datetime):
         """
         Sets the end date to filter by.
 
