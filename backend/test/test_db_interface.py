@@ -37,8 +37,11 @@ class TestInitTables(unittest.TestCase):
         _verifyTable(self,"AdminUsers")
         _verifyTable(self, "Reports")
         _verifyTable(self,"Metadata")
+        _verifyTable(self,"Objects")
+        _verifyTable(self,"Aliases")
+        _verifyTable(self,"ObjectRefs")
 
-def _verifyTable(self, table_name):
+def _verifyTable(self:TestInitTables, table_name):
     cn = db_interface._connect()
     cur:MySQLCursor = cn.cursor()
 
