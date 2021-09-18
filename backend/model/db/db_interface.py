@@ -23,7 +23,7 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-from datetime import datetime
+from datetime import date, datetime
 import os
 
 from astropy.coordinates import SkyCoord
@@ -494,14 +494,7 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
         cn = _connect()
         cur:MySQLCursor = cn.cursor()
 
-        #Build query clauses.
-        base_query = _build_report_base_query()
-        join_clause, join_data = _build_join_clause(object_name)
-        where_clause, where_data = _build_where_clause(SearchFilters,DateFilter)
-
-        # Build final query and compile data
-        query = base_query + join_clause + where_clause
-        data = join_data + where_data
+        query, data = _build_report_name_query(filters, date_range, object_name)
 
         reports = []
 
@@ -686,6 +679,30 @@ def _build_report_base_query()->str:
 
     return base_query
 
+
+def _build_report_name_query(filters: SearchFilters = None, date_range: DateFilter = None, object_name: str = None):
+    """
+    Builds the SQL query to select reports based on the specified search filters and/or object name.
+
+    Args:
+        filters (SearchFilters, optional): A valid search filters object to build the query with.
+        date_filters (DateFilters, optional): A valid search filters object to build the query with. Defaults to None.
+
+    Returns:
+        str: The SQL where clause.
+        tuple: The data to inject into the query on execution. 
+    """
+
+    #Build query clauses.
+    base_query = _build_report_base_query()
+    join_clause, join_data = _build_join_clause(object_name)
+    where_clause, where_data = _build_where_clause(filters, date_range)
+
+    # Build final query and compile data
+    query = base_query + join_clause + where_clause
+    data = join_data + where_data
+
+    return query, data
 
 def _build_where_clause(filters: SearchFilters = None, date_range: DateFilter = None)->tuple[str,tuple]:
     """
