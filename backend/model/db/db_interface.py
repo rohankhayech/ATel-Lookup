@@ -24,6 +24,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 from datetime import date, datetime
+from math import trunc
 import os
 
 from astropy.coordinates import SkyCoord
@@ -224,7 +225,7 @@ def get_all_aliases() -> list[AliasResult]:
             
             #create result object and add to list
             alias_result = AliasResult(atel_num,object_ID)
-            aliases.append(aliases)
+            aliases.append(alias_result)
     except mysql.connector.Error as e:
         raise e
     finally:
@@ -312,7 +313,7 @@ def get_last_updated_date() -> datetime:
     return date
 
 
-def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
+def add_object(object_id: str, coords: SkyCoord, aliases: list[str]=[]):
     """
     Stores a new celestial object with the specified coordinates and it’s known aliases in the database.
 
@@ -326,7 +327,7 @@ def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
     """
     # Type conversion/check
     object_id = str(object_id)
-    if ((type(coords) is not SkyCoord) or (not list_is_type(aliases,str))):
+    if ((type(coords) is not SkyCoord) or (not list_is_type(aliases,str,allow_empty=True))):
         raise TypeError("Invalid coords or list of aliases.")
 
     # Check length is valid
@@ -340,7 +341,7 @@ def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
                 " (objectID, ra, declination)" 
                 " values (%s, %s, %s)")
 
-        data = (object, SkyCoord.ra.deg.item(), SkyCoord.dec.deg.item())
+        data = (object_id, round(coords.ra.deg.item(), 10), round(coords.dec.deg.item(),10))
 
         # execute query and handle errors
         try:
@@ -354,14 +355,13 @@ def add_object(object_id: str, coords: SkyCoord, aliases: list[str]):
             cn.commit()
             cur.close()
             cn.close()
+
+        # Add aliases
+        add_aliases(object_id, aliases)
     else:
         raise ValueError(
             "Specified object_id must be valid lengths and non-empty."
         )
-
-    # Add aliases
-    add_aliases(object_id,aliases)
-
 
 def add_aliases(object_id: str, aliases: list[str]):
     """
@@ -379,7 +379,8 @@ def add_aliases(object_id: str, aliases: list[str]):
     
     # Check length is valid
     if len(object_id) in range(1, 256):
-        if object_exists(object_id):
+        exists, updated = object_exists(object_id)
+        if exists:
             # connect to database
             cn = _connect()
             cur: MySQLCursor = cn.cursor()
@@ -390,8 +391,7 @@ def add_aliases(object_id: str, aliases: list[str]):
                     " values (%s, %s);")
 
             for alias in aliases:
-                data = (object_id,alias)
-
+                data = (alias, object_id)
                 # execute query and handle errors
                 try:
                     cur.execute(query, data)
@@ -399,11 +399,12 @@ def add_aliases(object_id: str, aliases: list[str]):
                     if e.errno == errorcode.ER_DUP_ENTRY:
                         pass #ignore any duplicate aliases
                     else:
-                        raise e
-                finally:
-                    cn.commit()
-                    cur.close()
-                    cn.close()
+                        cur.close()
+                        cn.close()
+                        raise e  
+            cn.commit()
+            cur.close()
+            cn.close()
         else:
             raise ObjectNotFoundError("The specified object ID is not stored in the database.")
     else:
@@ -463,7 +464,9 @@ def get_object_coords(alias: str) -> SkyCoord:
     query = ("select ra, declination from Objects"
              " where objectID = %s")
 
-    cur.execute(query, (id,))
+    object_id = _get_object_id(alias)
+
+    cur.execute(query, (object_id,))
 
     result = cur.fetchone()
 
@@ -595,7 +598,7 @@ def _link_reports(object_id: str, aliases: list[str]):
 
     add_query = ("insert into ObjectRefs"
                 " (atelNumFK, objectIDFK)"
-                " values (%s,%s);")
+                " values (%s, %s);")
 
     if (object_exists(object_id)):
         try:
@@ -812,18 +815,27 @@ def _get_object_id(alias:str)->str:
     """
     query = ("select objectIDFK "
              "from Aliases "
-             "where alias like '%s'"
-             "or objectIDFK like '%s'")
+             "where alias like %s "
+             "or objectIDFK like %s "
+             "limit 1;")
 
     cn = _connect()
     cur:MySQLCursor = cn.cursor()
 
     try:
-        cur.execute(query, (alias,alias))
+        cur.execute(query, (alias, alias))
         result = cur.fetchone()
-
         if result is None:
-            raise ObjectNotFoundError()
+            object_id_query = ("select objectID "
+                     "from Objects "
+                     "where objectID like %s "
+                     "limit 1;")
+            cur.execute(object_id_query, (alias,))
+            result = cur.fetchone()
+            if result is None:
+                raise ObjectNotFoundError()
+            else:
+                object_id = result[0]
         else:
             object_id = result[0]
     except mysql.connector.Error as e:
