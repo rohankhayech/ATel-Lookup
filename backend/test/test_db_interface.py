@@ -134,31 +134,31 @@ class TestReports(unittest.TestCase):
             cn.commit()
             cn.close()
 
-    def testBuildQuery(self):
+    def testBuildWhereClause(self):
         #Test full query
         sf = SearchFilters("term",["star","planet"],KeywordMode.ANY)
         df = DateFilter(datetime(2021, 8, 16), datetime(2021, 8, 17))
-        query, data = db_interface._build_report_query(sf,df)
+        query, data = db_interface._build_where_clause(sf,df)
         self.maxDiff = None
-        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertEqual(query, "submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data,(df.start_date,df.end_date,sf.term,sf.term,sf.keywords[0],sf.keywords[1]))
 
         #Test keyword modes / single filter
         sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
-        query2, data2 = db_interface._build_report_query(sf2)
-        self.assertEqual(query2,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
+        query2, data2 = db_interface._build_where_clause(sf2)
+        self.assertEqual(query2,"(FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data2,(sf.keywords[0],sf.keywords[1]))
 
         sf2.keyword_mode = KeywordMode.NONE
-        query3, data3 = db_interface._build_report_query(sf2)
-        self.assertEqual(query3,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
+        query3, data3 = db_interface._build_where_clause(sf2)
+        self.assertEqual(query3,"(FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
         self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
 
         #Test empty query
         sf = None
-        query, data = db_interface._build_report_query(sf)
+        query, data = db_interface._build_where_clause(sf)
         self.maxDiff = None
-        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where ")
+        self.assertEqual(query,"")
         self.assertTupleEqual(data,())
 
     def testFindGeneric(self):
