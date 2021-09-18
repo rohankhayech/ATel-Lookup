@@ -132,8 +132,6 @@ def add_report(report: ImportedReport):
     Raises:
         ExistingReportError: When the ATel number of the specified report is already associated with a report stored in the database.
     """
-    cn = _connect()
-    cur:MySQLCursor = cn.cursor()
     
     # Format keywords
     sep = ','
@@ -149,24 +147,45 @@ def add_report(report: ImportedReport):
     metadata_query = ("update Metadata "
                       "set lastUpdatedDate = CURDATE()")                
 
-    #execute query and handle errors
+    cn = _connect()
     try:
-        cur.execute(report_query, data)
-        cur.execute(metadata_query)
-    except mysql.connector.Error as e:
-        if e.errno == errorcode.ER_DUP_ENTRY:
-            raise ExistingReportError()
-        else:
-            raise e
-    finally:
-        cn.commit()
-        cur.close()
-        cn.close()
+        # Execute query and handle errors
+        cur:MySQLCursor = cn.cursor()
+        try:
+            cur.execute(report_query, data)
+            cur.execute(metadata_query)
+        except mysql.connector.Error as e:
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                raise ExistingReportError()
+            else:
+                raise e
+        finally:
+            cn.commit()
+            cur.close()
+            
+        # Add object relations
+        object_ref_query = ("insert into ObjectRefs"
+                            "(atelNumFK, objectIDFK) "
+                            "values (%s, %s)")
+        cur: MySQLCursor = cn.cursor()
+        for object_id in report.objects:
+            try:  
+                object_ref_data = (report.atel_num, object_id)
+                cur.execute(object_ref_query, object_ref_data)
+                
+            except mysql.connector.Error as e:
+                raise e
+            finally:
+                cn.commit()
+                cur.close()
 
-    #TODO: Add objects.
-    #TODO: Add observation dates.
-    #TODO: Convert and and coordinates.
-    #TODO: Add referenced reports/by. 
+            #TODO: Add observation dates.
+            #TODO: Convert and add coordinates.
+            #TODO: Add referenced reports/by.
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cn.close()
 
 
 def report_exists(atel_num: int) -> bool:
@@ -405,13 +424,17 @@ def object_exists(alias:str)->tuple[bool,datetime]:
         bool: True if an object with the specified alias exists, false otherwise.
         datetime: The date the specified object was last updated via SIMBAD, or None if no object exists.
     """
-    cn = _connect()
-    cur: MySQLCursor = cn.cursor()
-
     query = ("select lastUpdated from Objects"
              " where objectID = %s")
+    
+    try: 
+        object_id = _get_object_id(alias)
+    except (ObjectNotFoundError):
+        return False, None
 
-    cur.execute(query, (id,))
+    cn = _connect()
+    cur: MySQLCursor = cn.cursor()
+    cur.execute(query, (object_id,))
 
     result = cur.fetchone()
 
@@ -471,9 +494,14 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
         cn = _connect()
         cur:MySQLCursor = cn.cursor()
 
-        query, data = _build_report_query(filters)
+        #Build query clauses.
+        base_query = _build_report_base_query()
+        join_clause, join_data = _build_join_clause(object_name)
+        where_clause, where_data = _build_where_clause(SearchFilters,DateFilter)
 
-        #TODO Check object.
+        # Build final query and compile data
+        query = base_query + join_clause + where_clause
+        data = join_data + where_data
 
         reports = []
 
@@ -513,7 +541,7 @@ def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, c
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    return find_reports_by_object(filters) # stub
+    return find_reports_by_object(filters, date_range) # stub
 
     #TODO: Check in coord range.
 
@@ -643,57 +671,69 @@ def _record_exists(table_name:str,primary_key:str,id:str)->bool:
     else:
         return False
 
-def _build_report_query(filters: SearchFilters = None, date_range: DateFilter = None):
+def _build_report_base_query()->str:
     """
-    Builds an SQL query to select reports based on the specified search filters.
-
-    Args:
-        filters (SearchFilters, optional): A valid search filters object to build the query with.
-        date_filters (DateFilters, optional): A valid search filters object to build the query with. Defaults to None.
+    Builds the base query SQL query to select reports.
 
     Returns:
         str: The SQL query.
-        tuple: The data to inject into the query on execution. 
     """
 
     # Define base Select from Reports query
     base_query = ("select atelNum, title, authors, body, submissionDate"
             " from Reports"
             " where ")
+
+    return base_query
+
+
+def _build_where_clause(filters: SearchFilters = None, date_range: DateFilter = None)->tuple[str,tuple]:
+    """
+    Builds the where clause of the SQL query to select reports based on the specified search filters.
+
+    Args:
+        filters (SearchFilters, optional): A valid search filters object to build the query with.
+        date_filters (DateFilters, optional): A valid search filters object to build the query with. Defaults to None.
+
+    Returns:
+        str: The SQL where clause.
+        tuple: The data to inject into the query on execution. 
+    """
     
     # Start with empty lists of terms and data
     data = ()
     clauses = []
 
     if date_range:
-           # Append date clauses and data
-            if date_range.start_date:
-                clauses.append("submissionDate >= %s ")
-                data = data + (date_range.start_date,)
+        # Append date clauses and data
+        if date_range.start_date:
+            clauses.append("submissionDate >= %s ")
+            data = data + (date_range.start_date,)
 
-            if date_range.end_date:
-                clauses.append("submissionDate <= %s ")
-                data = data + (date_range.end_date,)
+        if date_range.end_date:
+            clauses.append("submissionDate <= %s ")
+            data = data + (date_range.end_date,)
 
     if filters:
         # Append term clause and data
         if filters.term:
-            clauses.append("(title like concat('%', %s, '%') or body like concat('%', %s, '%')) ")
-            data = data + (filters.term,filters.term)
-        
+            clauses.append(
+                "(title like concat('%', %s, '%') or body like concat('%', %s, '%')) ")
+            data = data + (filters.term, filters.term)
+
         # Append keyword clauses and data
         if filters.keywords:
             kw_clauses = []
             if filters.keyword_mode == KeywordMode.NONE:
                 # Add a clause for each keyword in filters to not be in set
                 for kw in filters.keywords:
-                    kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
+                    kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")  # If kw not in set
                     data = data + (kw,)
-                kw_sep = " and "  
+                kw_sep = " and "
             else:
                 # Append a clause for each keyword to be in set
                 for kw in filters.keywords:
-                    kw_clauses.append("FIND_IN_SET(%s, keywords) > 0") # If kw in set.
+                    kw_clauses.append("FIND_IN_SET(%s, keywords) > 0")  # If kw in set.
                     data = data + (kw,)
 
                 # Set or/and condition
@@ -704,12 +744,75 @@ def _build_report_query(filters: SearchFilters = None, date_range: DateFilter = 
             # Join keyword clauses into one clause
             kw_clause = "(" + kw_sep.join(kw_clauses)+") "
             clauses.append(kw_clause)
-    
+
     # Join where clauses together
     sep = "and "
     where_clause = sep.join(clauses)
 
-    # Assemble final query and return with data
-    query = base_query + where_clause
+    return where_clause, data
 
-    return query, data
+def _build_join_clause(object_name:str = None)->tuple[str,tuple]:
+    """
+    Builds the join clause of the SQL query to select reports linked to the specified object.
+
+    Args:
+        object_name (str, optional): An object ID or alias to search by. Defaults to None.
+
+    Returns:
+        str: The SQL join clause.
+        tuple: The data to inject into the query on execution. 
+
+    Raises:
+        ObjectNotFoundError: When an object with the given alias is not stored in the database.
+
+    """
+    if object_name:
+        object_id = _get_object_id(object_name)
+
+        join_clause = ("right join ObjectRefs"
+                       "on Reports.atelNum = ObjectRefs.atelNumFK"
+                       "and ObjectRefs.objectIDFK = %s")
+        
+        join_data = (object_id,)
+    else:
+        join_clause = ""
+        join_data = ()
+
+    return join_clause, join_data
+
+def _get_object_id(alias:str)->str:
+    """
+    Finds the main object ID that the given alias refers to.
+
+    Args:
+        alias (str): The alias to lookup.
+
+    Returns:
+        str: The object's main ID from SIMBAD.
+
+    Raises:
+        ObjectNotFoundError: When an object with the given alias is not stored in the database.
+    """
+    query = ("select objectIDFK "
+             "from Aliases "
+             "where alias like '%s'"
+             "or objectIDFK like '%s'")
+
+    cn = _connect()
+    cur:MySQLCursor = cn.cursor()
+
+    try:
+        cur.execute(query, (alias,alias))
+        result = cur.fetchone()
+
+        if result is None:
+            raise ObjectNotFoundError()
+        else:
+            object_id = result[0]
+    except mysql.connector.Error as e:
+        raise e
+    finally:
+        cur.close()
+        cn.close()
+
+    return object_id
