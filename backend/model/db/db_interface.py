@@ -32,9 +32,8 @@ from mysql.connector import errorcode
 from mysql.connector.connection import MySQLConnection
 from mysql.connector.cursor import MySQLCursor
 
-
 from model.ds.report_types import ImportedReport, ReportResult
-from model.ds.search_filters import SearchFilters, KeywordMode
+from model.ds.search_filters import SearchFilters, DateFilter, KeywordMode
 from model.ds.alias_result import AliasResult
 from controller.helper.type_checking import list_is_type
 
@@ -188,7 +187,7 @@ def get_all_aliases() -> list[AliasResult]:
     Retrieves a list of all object aliases stored in the database and their associated object IDs.
 
     Returns:
-        list[AliasResult]: A list of AliasResult objects, containing aliases and their associated object ID, or None if no aliases are stored.
+        list[AliasResult]: A list of AliasResult objects, containing aliases and their associated object ID.
     """
     cn = _connect()
     cur: MySQLCursor = cn.cursor()
@@ -453,17 +452,21 @@ def get_object_coords(alias: str) -> SkyCoord:
         raise ObjectNotFoundError("The specified object ID is not stored in the database.")
 
 
-def find_reports_by_object(filters: SearchFilters = None, object_name: str = None) -> list[ReportResult]:
+def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter = None, object_name: str = None) -> list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
     Args:
-        filters (SearchFilters): The search criteria to filter the report query with.
+        filters (SearchFilters, optional): The search criteria to filter the report query with. Defaults to None.
+        date_range (DateFilter, optional): The date range to filter the report query by. Defaults to None.
         object_name (str, optional): An object ID or alias to search  by. Defaults to None.
 
     Returns:
-        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
+        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
+    if (filters is None):
+        return [] #stubbed until object search is implemented
+
     if (filters or object_name):
         cn = _connect()
         cur:MySQLCursor = cn.cursor()
@@ -493,26 +496,24 @@ def find_reports_by_object(filters: SearchFilters = None, object_name: str = Non
             cur.close()
             cn.close()
 
-        if len(reports) == 0:
-            return None
-        else:
-            return reports
-    else: # If no parameters given, return None.
-        return None
+        return reports
+    else: # If no parameters given, return empty list.
+        return []
 
-def find_reports_in_coord_range(filters:SearchFilters, coords:SkyCoord, radius:float)->list[ReportResult]:
+def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, coords:SkyCoord, radius:float)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
     Args:
         filters (SearchFilters): The search criteria to filter the report query with.
+        date_range (DateFilter, optional): The date range to filter the report query by. Defaults to None.
         coords (SkyCoord): The coordinates to search around.
         radius (float): The radius defining the range around the specified coordinates to search.
 
     Returns:
-        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object, or None if no matching reports where found.
+        list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    return find_reports_by_object()  # stub
+    return find_reports_by_object(filters) # stub
 
     #TODO: Check in coord range.
 
@@ -642,12 +643,13 @@ def _record_exists(table_name:str,primary_key:str,id:str)->bool:
     else:
         return False
 
-def _build_report_query(filters: SearchFilters):
+def _build_report_query(filters: SearchFilters = None, date_range: DateFilter = None):
     """
     Builds an SQL query to select reports based on the specified search filters.
 
     Args:
-        filters (SearchFilters): A valid search filters object to build the query with.
+        filters (SearchFilters, optional): A valid search filters object to build the query with.
+        date_filters (DateFilters, optional): A valid search filters object to build the query with. Defaults to None.
 
     Returns:
         str: The SQL query.
@@ -662,44 +664,46 @@ def _build_report_query(filters: SearchFilters):
     # Start with empty lists of terms and data
     data = ()
     clauses = []
-    
-    # Append term clause and data
-    if filters.term:
-        clauses.append("(title like %s or body like %s) ")
-        data = data + (filters.term,filters.term)
-    
-    # Append date clauses and data
-    if filters.start_date:
-        clauses.append("submissionDate >= %s ")
-        data = data + (filters.start_date,)
-    
-    if filters.end_date:
-        clauses.append("submissionDate <= %s ")
-        data = data + (filters.end_date,)
-    
-    # Append keyword clauses and data
-    if filters.keywords:
-        kw_clauses = []
-        if filters.keyword_mode == KeywordMode.NONE:
-            # Add a clause for each keyword in filters to not be in set
-            for kw in filters.keywords:
-                kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
-                data = data + (kw,)
-            kw_sep = " and "  
-        else:
-            # Append a clause for each keyword to be in set
-            for kw in filters.keywords:
-                kw_clauses.append("FIND_IN_SET(%s, keywords) > 0") # If kw in set.
-                data = data + (kw,)
 
-            # Set or/and condition
-            if filters.keyword_mode == KeywordMode.ALL:
-                kw_sep = " and "
-            elif filters.keyword_mode == KeywordMode.ANY:
-                kw_sep = " or "
-        # Join keyword clauses into one clause
-        kw_clause = "(" + kw_sep.join(kw_clauses)+") "
-        clauses.append(kw_clause)
+    if date_range:
+           # Append date clauses and data
+            if date_range.start_date:
+                clauses.append("submissionDate >= %s ")
+                data = data + (date_range.start_date,)
+
+            if date_range.end_date:
+                clauses.append("submissionDate <= %s ")
+                data = data + (date_range.end_date,)
+
+    if filters:
+        # Append term clause and data
+        if filters.term:
+            clauses.append("(title like concat('%', %s, '%') or body like concat('%', %s, '%')) ")
+            data = data + (filters.term,filters.term)
+        
+        # Append keyword clauses and data
+        if filters.keywords:
+            kw_clauses = []
+            if filters.keyword_mode == KeywordMode.NONE:
+                # Add a clause for each keyword in filters to not be in set
+                for kw in filters.keywords:
+                    kw_clauses.append("FIND_IN_SET(%s, keywords) = 0")# If kw not in set
+                    data = data + (kw,)
+                kw_sep = " and "  
+            else:
+                # Append a clause for each keyword to be in set
+                for kw in filters.keywords:
+                    kw_clauses.append("FIND_IN_SET(%s, keywords) > 0") # If kw in set.
+                    data = data + (kw,)
+
+                # Set or/and condition
+                if filters.keyword_mode == KeywordMode.ALL:
+                    kw_sep = " and "
+                elif filters.keyword_mode == KeywordMode.ANY:
+                    kw_sep = " or "
+            # Join keyword clauses into one clause
+            kw_clause = "(" + kw_sep.join(kw_clauses)+") "
+            clauses.append(kw_clause)
     
     # Join where clauses together
     sep = "and "
@@ -709,4 +713,3 @@ def _build_report_query(filters: SearchFilters):
     query = base_query + where_clause
 
     return query, data
-

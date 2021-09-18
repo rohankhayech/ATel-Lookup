@@ -29,7 +29,7 @@ import mysql.connector
 
 from model.db import db_interface
 from model.ds.report_types import ImportedReport
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 
 class TestInitTables(unittest.TestCase):
     #Verify tables exist/were created on container init
@@ -133,11 +133,12 @@ class TestReports(unittest.TestCase):
 
     def testBuildQuery(self):
         #Test full query
-        sf = SearchFilters("term",["star","planet"],KeywordMode.ANY,datetime(2021,8,16),datetime(2021,8,17))
-        query, data = db_interface._build_report_query(sf)
+        sf = SearchFilters("term",["star","planet"],KeywordMode.ANY)
+        df = DateFilter(datetime(2021, 8, 16), datetime(2021, 8, 17))
+        query, data = db_interface._build_report_query(sf,df)
         self.maxDiff = None
-        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where (title like %s or body like %s) and submissionDate >= %s and submissionDate <= %s and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
-        self.assertTupleEqual(data,(sf.term,sf.term,sf.start_date,sf.end_date,sf.keywords[0],sf.keywords[1]))
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data,(df.start_date,df.end_date,sf.term,sf.term,sf.keywords[0],sf.keywords[1]))
 
         #Test keyword modes / single filter
         sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
@@ -150,13 +151,20 @@ class TestReports(unittest.TestCase):
         self.assertEqual(query3,"select atelNum, title, authors, body, submissionDate from Reports where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
         self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
 
+        #Test empty query
+        sf = None
+        query, data = db_interface._build_report_query(sf)
+        self.maxDiff = None
+        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports where ")
+        self.assertTupleEqual(data,())
+
     def testFindGeneric(self):
-        report = ImportedReport(20001,"db_test_report","A","B", datetime(2021,8,12), keywords=["star","radio"])
+        report = ImportedReport(20001,"db_test_report","db_test_authors_text","db_test_body_text", datetime(2021,8,12), keywords=["star","radio"])
 
         db_interface.add_report(report)
         try:
             #test search body
-            results = db_interface.find_reports_by_object(SearchFilters(term="B"))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b"))
             result = results[0]
             self.assertEqual(report,result)
 
@@ -166,44 +174,44 @@ class TestReports(unittest.TestCase):
             self.assertEqual(report,result)
 
             #Test search author (not possible)
-            results = db_interface.find_reports_by_object(SearchFilters(term="A"))
-            self.assertIsNone(results)
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_authors"))
+            self.assertListEqual(results,[])
 
             #Test start date
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", start_date=datetime(2021,8,11)))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(start_date=datetime(2021,8,11)))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test end date
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", end_date=datetime(2021,8,13)))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(end_date=datetime(2021,8,13)))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test keywords - all
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ALL))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","radio"],keyword_mode=KeywordMode.ALL))
             result = results[0]
             self.assertEqual(report,result)
 
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ALL))
-            self.assertIsNone(results)
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","planet"],keyword_mode=KeywordMode.ALL))
+            self.assertListEqual(results,[])
 
             #Test keywords - any
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","radio"],keyword_mode=KeywordMode.ANY))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","radio"],keyword_mode=KeywordMode.ANY))
             result = results[0]
             self.assertEqual(report,result)
 
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.ANY))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","planet"],keyword_mode=KeywordMode.ANY))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test keywords - none
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star", "radio"], keyword_mode=KeywordMode.NONE))
-            self.assertIsNone(results)
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star", "radio"], keyword_mode=KeywordMode.NONE))
+            self.assertListEqual(results,[])
 
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["star","planet"],keyword_mode=KeywordMode.NONE))
-            self.assertIsNone(results)
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["star","planet"],keyword_mode=KeywordMode.NONE))
+            self.assertListEqual(results,[])
 
-            results = db_interface.find_reports_by_object(SearchFilters(term="B", keywords=["nova","planet"],keyword_mode=KeywordMode.NONE))
+            results = db_interface.find_reports_by_object(SearchFilters(term="db_test_b", keywords=["nova","planet"],keyword_mode=KeywordMode.NONE))
             result = results[0]
             self.assertEqual(report, result)
 
@@ -212,13 +220,20 @@ class TestReports(unittest.TestCase):
                 SearchFilters(
                     term="B", 
                     keywords=["star","radio"], 
-                    keyword_mode=KeywordMode.ALL, 
+                    keyword_mode=KeywordMode.ALL),
+                DateFilter(
                     start_date=datetime(2021,8,11), 
                     end_date=datetime(2021,8,13)
                 )
             )
             result = results[0]
-            self.assertEqual(report, result)
+            self.assertIn(report, results)
+
+            #Test no filters
+            result = db_interface.find_reports_by_object(
+                object_name=""
+            )
+            self.assertListEqual(result,[])
 
         finally:
             #delete report

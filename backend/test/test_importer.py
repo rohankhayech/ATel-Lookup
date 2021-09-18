@@ -24,10 +24,14 @@ License Terms and Copyright:
 import os
 import unittest
 
+from model.ds.report_types import ImportedReport
+from model.db.db_interface import ExistingReportError
 from controller.importer.importer import *
 from controller.importer.parser import *
 
 from unittest import mock
+from unittest.mock import call
+from bs4 import BeautifulSoup
 from datetime import datetime
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
@@ -42,7 +46,7 @@ class TestImporterFunctions(unittest.TestCase):
         mock_report_exists.return_value = False
 
         # Reads HTML string of ATel #1000
-        f = open(os.path.join('test','res','atel1000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
         html_string = f.read()
         f.close()
         mock_download_report.return_value = html_string
@@ -52,7 +56,7 @@ class TestImporterFunctions(unittest.TestCase):
         mock_add_report.assert_called_with(parse_report(1000, html_string))
 
         # Reads HTML string of ATel #10000
-        f = open(os.path.join('test','res','atel10000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel10000.html'), 'r')
         html_string = f.read()
         f.close()
         mock_download_report.return_value = html_string
@@ -61,8 +65,53 @@ class TestImporterFunctions(unittest.TestCase):
         import_report(10000)
         mock_add_report.assert_called_with(parse_report(10000, html_string))
 
+    # Tests import_all_reports function
+    @mock.patch('controller.importer.importer.set_next_atel_num')
+    @mock.patch('controller.importer.importer.import_report')
+    @mock.patch('controller.importer.importer.get_next_atel_num')
+    def test_auto_import(self, mock_get_next_atel_num, mock_import_report, mock_set_next_atel_num):
+        # Expected import_report function calls
+        expected_calls = [call(1), call(2), call(3), call(4), call(5)]
+
+        mock_get_next_atel_num.return_value = 1
+        mock_import_report.side_effect = [None, None, ReportAlreadyExistsError, None, ReportNotFoundError]
+
+        # Checks for expected import_report function calls and that set_next_atel_num is called with expected integer
+        import_all_reports()
+        mock_import_report.assert_has_calls(expected_calls)
+        mock_set_next_atel_num.assert_called_with(5)
+
+        # Checks that import_report was not called with the argument 6
+        try:
+            mock_import_report.assert_has_calls([call(6)], any_order=True)
+            raise Exception('\'import_report\' was called with the argument \'6\'')
+        except AssertionError:
+            pass
+        except Exception as err:
+            raise AssertionError(f'{str(err)}')
+
+        # Expected import_report function calls
+        expected_calls = [call(6), call(7), call(8)]
+
+        mock_get_next_atel_num.return_value = 6
+        mock_import_report.side_effect = [None, None, ImportFailError]
+
+        # Checks for expected import_report function calls and that set_next_atel_num is called with expected integer
+        import_all_reports()
+        mock_import_report.assert_has_calls(expected_calls)
+        mock_set_next_atel_num.assert_called_with(8)
+
+        # Checks that import_report was not called with the argument 9
+        try:
+            mock_import_report.assert_has_calls([call(9)], any_order=True)
+            raise Exception('\'import_report\' was called with the argument \'9\'')
+        except AssertionError:
+            pass
+        except Exception as err:
+            raise AssertionError(f'{str(err)}')
+
     # Tests download_report function
-    '''def test_html_download(self):
+    def test_html_download(self):
         # ATel report titles for comparison
         titles = ['QPOs in 4U 1626-67', 'GB971227', 'Improved Coordinates for GB971227']
 
@@ -70,7 +119,11 @@ class TestImporterFunctions(unittest.TestCase):
         for i in range(3):
             html = download_report(i + 1)
             soup = BeautifulSoup(html, 'html.parser')
-            self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])'''
+            self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])
+        
+        # Tests HTML downloader for non-existing ATel
+        html_string = download_report(9999999999)
+        self.assertIsNone(html_string, 'Detecting non-existing ATel has failed')
 
 # Parser functions
 class TestParserFunctions(unittest.TestCase):
@@ -80,7 +133,7 @@ class TestParserFunctions(unittest.TestCase):
         mock_extract_keywords.return_value = []
 
         # Parses HTML of ATel #1000
-        f = open(os.path.join('test','res','atel1000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
         imported_report = parse_report(1000, f.read())
         f.close()
 
@@ -103,12 +156,12 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.referenced_by, [])
 
         # Parses HTML of ATel #10000
-        f = open(os.path.join('test','res','atel10000.html'), 'r')
+        f = open(os.path.join('test', 'res', 'atel10000.html'), 'r')
         imported_report = parse_report(10000, f.read())
         f.close()
 
         # Retrieves ATel #10000 body text
-        f = open(os.path.join('test','res','atel10000_body.txt'), 'r')
+        f = open(os.path.join('test', 'res', 'atel10000_body.txt'), 'r')
         body = f.read()
         f.close()
 
@@ -133,22 +186,51 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_keywords('far-infra-red and infra-red'), ['far-infra-red', 'infra-red'])
         self.assertCountEqual(extract_keywords('comment'), [])
         self.assertCountEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
-        self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid(binary)', 'supernova remnant'])
+        self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid', 'asteroid(binary)', 'binary', 'supernova remnant'])
+        self.assertCountEqual(extract_keywords('Steve, a comment, euhemerism and agn'), ['a comment', 'agn'])
+        self.assertCountEqual(extract_keywords('   ExopLANet'), ['exoplanet'])
+        self.assertCountEqual(extract_keywords('black hole   '), ['black hole'])
 
 # Custom exceptions
 class TestCustomExceptions(unittest.TestCase):
     # Tests that ReportAlreadyExistsError is being raised
+    @mock.patch('controller.importer.importer.add_report')
+    @mock.patch('controller.importer.importer.parse_report')
+    @mock.patch('controller.importer.importer.download_report')
     @mock.patch('controller.importer.importer.report_exists')
-    def test_report_already_exists_error(self, mock_report_exists):
+    def test_report_already_exists_error(self, mock_report_exists, mock_download_report, mock_parse_report, mock_add_report):
         mock_report_exists.return_value = True
+        with self.assertRaises(ReportAlreadyExistsError):
+            import_report(1)
+
+        mock_report_exists.return_value = False
+        mock_download_report.return_value = 'Test'
+        mock_parse_report.return_value = ImportedReport(1, 'Title', 'Authors', 'Body', datetime(1999, 1, 1))
+        mock_add_report.side_effect = ExistingReportError
         with self.assertRaises(ReportAlreadyExistsError):
             import_report(1)
 
     # Tests that ReportNotFoundError is being raised
     @mock.patch('controller.importer.importer.download_report')
-    def test_report_not_found_error(self, mock_download_report):
-        mock_download_report.return_value = ''
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_report_not_found_error(self, mock_report_exists, mock_download_report):
+        mock_report_exists.return_value = False
+        mock_download_report.return_value = None
         with self.assertRaises(ReportNotFoundError):
+            import_report(1)
+
+    # Tests that ImportFailError is being raised
+    @mock.patch('controller.importer.importer.download_report')
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_import_fail_error(self, mock_report_exists, mock_download_report):
+        mock_report_exists.return_value = False
+
+        mock_download_report.side_effect = NetworkError
+        with self.assertRaises(ImportFailError):
+            import_report(1)
+
+        mock_download_report.side_effect = DownloadFailError
+        with self.assertRaises(ImportFailError):
             import_report(1)
 
     # Tests that NetworkError is being raised
@@ -168,6 +250,6 @@ class TestCustomExceptions(unittest.TestCase):
         mock_render.side_effect = TimeoutError
         with self.assertRaises(DownloadFailError):
             download_report(1)
-    
+
 if __name__ == "__main__":
     unittest.main()
