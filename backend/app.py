@@ -281,7 +281,7 @@ def search() -> json:
     else:
         search_filters = SearchFilters(term_in, keywords_in, keyword_mode_enum) # creating the search filters object 
     
-    if start_date_in == None or end_date_in == None:
+    if start_date_in == None and end_date_in == None:
         date_filter = None
     else:
         date_filter = DateFilter(start_date_obj, end_date_obj)
