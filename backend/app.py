@@ -68,9 +68,6 @@ CORS(app)
 
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 
-# Initialise the database
-init_db()
-
 
 @app.route("/")
 def index():
@@ -129,11 +126,6 @@ def get_user():
         string: The email address of the current user
     """
     return current_user
-
-
-if __name__ == "__main__":
-    app.run()
-
 
 """
 Web Interface Endpoints
@@ -354,3 +346,14 @@ def load_metadata() -> json:
     return jsonify(
         {"keywords": keywords, "lastUpdated": last_updated, "reportCount": report_count}
     )
+
+"""
+Application Main Line  
+  
+"""
+# Initialise the database
+init_db()
+
+if __name__ == "__main__":
+    # Run the application
+    app.run()
