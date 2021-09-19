@@ -10,4 +10,4 @@ RUN apt install -y gconf-service libasound2 libatk1.0-0 libc6 libcairo2 libcups2
 COPY . .
 
 EXPOSE 8080
-CMD [ "gunicorn", "app:app", "-b", "0.0.0.0:8080" ]
+CMD [ "gunicorn", "app:app", "-b", "0.0.0.0:8080", "--timeout", "600" ]
