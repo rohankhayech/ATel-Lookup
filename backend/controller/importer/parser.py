@@ -179,6 +179,10 @@ KEYWORD_REGEXES = ['radio',
                   'young stellar object'
 ]
 
+# Custom exception
+class MissingReportElementError(Exception):
+    pass
+
 # Parser functions
 def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     """
@@ -192,18 +196,30 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
         ImportedReport: Object containing all extracted data from the ATel report.
 
     Raises:
-        MissingReportElementException: Thrown when important data could not be extracted or are missing from the report.
+        MissingReportElementError: Thrown when important data could not be extracted or are missing from the report.
     """
 
     # Parses HTML into a tree
     soup = BeautifulSoup(html_string, 'html.parser')
 
-    # Extracts title and authors of ATel report
-    title = str(soup.find('h1', {'class': 'title'}).get_text(strip=True))
-    authors = str(soup.find('strong').get_text(strip=True))
-    body = ''
+    # Extracts title of ATel report
+    title = ''
+
+    if(soup.find('h1', {'class': 'title'}) is not None):
+        title = str(soup.find('h1', {'class': 'title'}).get_text(strip=True))
+    else:
+        raise MissingReportElementError(f'Title is missing in ATel #{str(atel_num)}')
+    
+    # Extracts authors of ATel report
+    authors = ''
+
+    if(soup.find('strong') is not None):
+        authors = str(soup.find('strong').get_text(strip=True))
+    else:
+        raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
 
     # Finds all possible paragraphs in the HTML
+    body = ''
     texts = soup.find_all('p', {'class': None, 'align': None})
 
     # Filters out non-body text elements and formats the body text
@@ -214,12 +230,20 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
             else:
                 body += f'{text.get_text()}\n'
 
+    if(body == ''):
+        raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
+    
     # Extracts submission date of ATel report
     elements = soup.find_all('strong')
     submission_date = elements[1].get_text(strip=True)
 
     # Formats submission date
-    formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
+    formatted_submission_date = None
+
+    try:
+        formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
+    except ValueError:
+        raise MissingReportElementError(f'Submission date is missing in ATel #{str(atel_num)}')
 
     # Extracts the number of any ATel reports that referenced the ATel report
     referenced_by = []
@@ -242,7 +266,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
             num = re.search('\d+', link['href'])
             referenced_reports.append(int(num.group()))
 
-    # Filters out referred by ATel numbers
+    # Filters out referenced by ATel numbers
     for referenced_by_num in referenced_by:
         referenced_reports.remove(referenced_by_num)
 
