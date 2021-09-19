@@ -1,7 +1,5 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
-import { Parameters } from '../parameters.interface';
 import { SearchResultsComponent } from '../search-results/search-results.component';
-import { SearchService } from '../search.service';
 import { Telegram } from '../telegram.interface';
 
 @Component({
@@ -15,15 +13,9 @@ export class HomePageComponent {
 
   public telegrams?: Telegram[];
 
-  constructor(private searchService: SearchService) {}
+  search(telegrams: Telegram[]) {
+    this.telegrams = telegrams;
 
-  search(parameters: Parameters) {
-    console.log(parameters);
-
-    this.searchService.search(parameters).subscribe((telegrams) => {
-      this.telegrams = telegrams;
-
-      this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
-    });
+    this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
   }
 }
