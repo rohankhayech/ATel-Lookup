@@ -43,6 +43,9 @@ class TestInitTables(unittest.TestCase):
         _verifyTable(self,"Objects")
         _verifyTable(self,"Aliases")
         _verifyTable(self,"ObjectRefs")
+        _verifyTable(self, "ReportRefs")
+        _verifyTable(self, "ReportCoords")
+        _verifyTable(self, "ObservationDates")
 
 def _verifyTable(self:TestInitTables, table_name):
     cn = db._connect()
