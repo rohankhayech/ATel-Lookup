@@ -17,4 +17,11 @@
 ></app-telegram-card>
 
 <!-- Floating Button -->
-<button mat-raised-button class="floating" (click)="top()">Back to Top</button>
+<button
+  mat-raised-button
+  *ngIf="telegrams?.length"
+  (click)="top()"
+  class="floating"
+>
+  Back to Top
+</button>

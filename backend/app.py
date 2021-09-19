@@ -26,7 +26,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 from model.ds.report_types import ReportResult
 from model.constants import FIXED_KEYWORDS
 from typing import Tuple
@@ -75,6 +75,14 @@ init_db()
 @app.route("/")
 def index():
     return jsonify("")
+
+
+"""
+Authentication Endpoints
+
+Author:
+    Greg Lahaye
+"""
 
 
 @jwt.user_identity_loader
@@ -127,10 +135,12 @@ if __name__ == "__main__":
     app.run()
 
 
-# Web Interface Functions - Tully Slattery
+"""
+Web Interface Endpoints
 
-
-# Tully's Pulbic Web Interface Functions
+Author:
+    Tully Slattery
+"""
 
 
 @app.route("/import", methods=["POST"])
@@ -165,7 +175,9 @@ def imports() -> json:
     if flag == 1:
         try:
             if import_mode_in == "manual":
-                import_report(atel_num_in) #currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
+                import_report(
+                    atel_num_in
+                )  # currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
             elif import_mode_in == "auto":
                 import_all_reports()
         except ReportAlreadyExistsError as e:
@@ -221,12 +233,16 @@ def search() -> json:
         keywords_in = None
 
     if start_date_in != None:
-        start_date_obj = datetime.strptime(start_date_in,"%Y-%m-%d")
+        start_date_obj = datetime.strptime(start_date_in, "%Y-%m-%d")
     if end_date_in != None:
         end_date_obj = datetime.strptime(end_date_in, "%Y-%m-%d")
-    
 
-    if search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
+    if (
+        search_data_in == None
+        and keywords_in == None
+        and keyword_mode_in == None
+        and term_in == None
+    ):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
         if start_date_obj > datetime.now() and end_date_obj > datetime.now():
@@ -235,14 +251,20 @@ def search() -> json:
     if search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
         print(search_mode_in)
-    elif keyword_mode_in != "none" and keyword_mode_in != "all" and keyword_mode_in != "any" and keyword_mode_in != None:
+    elif (
+        keyword_mode_in != "none"
+        and keyword_mode_in != "all"
+        and keyword_mode_in != "any"
+        and keyword_mode_in != None
+    ):
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
         if start_date_obj > end_date_obj or end_date_obj < start_date_obj:
             flag = 0
-    
 
-    if search_mode_in == "coords": # if the search mode is "coords" need to make sure there is three values given
+    if (
+        search_mode_in == "coords"
+    ):  # if the search mode is "coords" need to make sure there is three values given
         if len(search_data_in) == 3:
             dec = search_data_in[0]
             ra = search_data_in[1]
@@ -254,7 +276,7 @@ def search() -> json:
         else:
             flag = 0  # if search data is not fit for coords, set flag to failure
 
-    if keyword_mode_in != None:
+    if keywords_in != None:
         for x in keywords_in:
             if x not in FIXED_KEYWORDS:
                 flag = 0
@@ -271,16 +293,27 @@ def search() -> json:
     if term_in == None and keywords_in == None:
         search_filters = None
     else:
-        search_filters = SearchFilters(term_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj) # creating the search filters object 
+        search_filters = SearchFilters(
+            term_in, keywords_in, keyword_mode_enum
+        )  # creating the search filters object
+
+    if start_date_in == None and end_date_in == None:
+        date_filter = None
+    else:
+        date_filter = DateFilter(start_date_obj, end_date_obj)
 
     if flag == 1:
         if search_mode_in == "name":
             try:
-                reports = search_reports_by_name(search_filters, search_data_in)
+                reports = search_reports_by_name(
+                    search_filters, date_filter, search_data_in
+                )
             except ValueError as e:
                 flag = 0
         elif search_mode_in == "coords":
-            reports = search_reports_by_coords(search_filters, sky_coord, radius)
+            reports = search_reports_by_coords(
+                search_filters, date_filter, sky_coord, radius
+            )
 
     if flag == 1:
         list_result = create_nodes_list(reports)

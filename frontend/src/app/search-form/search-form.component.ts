@@ -73,10 +73,6 @@ export class SearchFormComponent implements OnInit {
       return EMPTY;
     }
 
-    const keywords = this.metadata?.keywords.filter(
-      (keyword) => this.keywords[keyword]
-    );
-
     const coordinates: Coordinates = {
       ra: +this.ra,
       declination: +this.declination,
@@ -89,23 +85,34 @@ export class SearchFormComponent implements OnInit {
       name: this.name,
       coordinates,
       match: this.match,
-      keywords,
+      keywords: this.keywordList,
       start: this.start,
       end: this.end,
     };
 
-    return this.searchService
-      .search(parameters)
-      .pipe(tap((result) => this.search.emit(result)));
+    return this.searchService.search(parameters).pipe(
+      tap((telegrams) => this.search.emit(telegrams)),
+      tap((telegrams) => {
+        if (telegrams.length === 0) {
+          this.snackBar.open('No ATels matched your query', 'Close', {
+            duration: 8000,
+          });
+        }
+      })
+    );
   }
 
   get valid() {
     return (
       this.query ||
-      Object.keys(this.keywords).length ||
+      this.keywordList?.length ||
       (this.mode === SearchMode.Coordinate
         ? this.ra && this.declination && this.radius
         : this.name)
     );
+  }
+
+  get keywordList() {
+    return this.metadata?.keywords.filter((keyword) => this.keywords[keyword]);
   }
 }

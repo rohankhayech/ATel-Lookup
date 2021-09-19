@@ -32,7 +32,7 @@ from datetime import datetime
 
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 import model.db.db_interface as db
 from controller.search import query_simbad as qs
 
@@ -51,7 +51,8 @@ UPDATE_OBJECT_DAYS: int = 60
 ####################
 
 
-def search_reports_by_coords(search_filters: SearchFilters, 
+def search_reports_by_coords(search_filters: SearchFilters,
+                             date_filter: DateFilter,
                              coords: SkyCoord, 
                              radius: float=DEFAULT_RADIUS
 ) -> list[ReportResult]:
@@ -60,6 +61,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
 
     Args: 
         search_filters (SearchFilters): Filters for the frontend search. 
+        date_filter (DateFilter): Date filter for the frontend search.
         coords (SkyCoord): The coordinates that define the region search criteria. 
         radius (float): The radius, in arcseconds, that defines the size of the
             region. 10.0 arcsecs by default. Should be validated beforehand. 
@@ -72,12 +74,48 @@ def search_reports_by_coords(search_filters: SearchFilters,
         QuerySimbadError: When the SIMBAD server is unavailable. The error is
             raised as a connection to the server is required to perform a coordinate
             search. 
+        ValueError: (from query_simbad.py) if the radius is invalid, or the
+            SearchFilters and coordinates are both None. 
     """
-    return [] # Stub
+    if search_filters is None and coords is None:
+        raise ValueError("SearchFilters and coordinates cannot both be None.")
+
+    # Always query SIMBAD first. 
+    query_result = dict() 
+    if coords is not None:
+        query_result = qs.query_simbad_by_coords(coords, radius) 
+
+    reports: list[ReportResult] = [] 
+
+    # The 'key' is the MAIN_ID
+    for key, value in query_result.items():
+        exists, last_updated = db.object_exists(key) 
+        if exists:
+            check_object_updates(key, last_updated)
+        else:
+            # Query by name without aliases. 
+            name_query_result = qs.query_simbad_by_name(key, False)
+            if name_query_result is not None:
+                # Add the newly discovered object to the 
+                # local database. 
+                name, coords = name_query_result
+                db.add_object(name, coords, value)
+        db_name_query = db.find_reports_by_object(search_filters, date_filter, key)
+
+        for r in db_name_query:
+            if r not in reports: reports.append(r) 
+
+    db_coord_query = db.find_reports_in_coord_range(search_filters, date_filter, coords, radius)
+    for report in db_coord_query:
+        if report not in reports: 
+            reports.append(report)
+
+    return reports 
 
 
 def search_reports_by_name(
-    search_filters: SearchFilters = None, 
+    search_filters: SearchFilters = None,
+    date_filter: DateFilter = None,
     name: str = None
 ) -> list[ReportResult]:
     """ Query the local database and the SIMBAD database by an object identifier
@@ -85,6 +123,7 @@ def search_reports_by_name(
 
     Args:
         search_filters (SearchFilters): Filters for the front-end search. 
+        date_filter (DateFilter, optional): Date filter for the front-end search. 
         name (str): The object identifier. 
 
     Returns:
@@ -119,22 +158,21 @@ def search_reports_by_name(
             if query_result is not None:
                 # There is a result from the SIMBAD search. 
                 # Add the object to the local database.
-                main_id = query_result[0]
-                coordinates = query_result[1]
-                aliases = query_result[2]
+                main_id, coordinates, aliases = query_result
                 db.add_object(main_id, coordinates, aliases)
 
     # After update checking and external search, query the local database 
     # for all reports. 
 
     # Get the base reports from the database. 
-    reports = db.find_reports_by_object(search_filters, name)
+    reports = db.find_reports_by_object(search_filters, date_filter, name)
 
+    # TODO: Remove None-type checks when db list change is merged. 
     if reports is None: 
         reports = []
 
     if coordinates is not None:
-        by_coord_range = db.find_reports_in_coord_range(search_filters, coordinates, DEFAULT_RADIUS)
+        by_coord_range = db.find_reports_in_coord_range(search_filters, date_filter, coordinates, DEFAULT_RADIUS)
         if by_coord_range is not None:
             # Append the list with reports with the same coordinates. 
             for additional_report in by_coord_range:

@@ -31,7 +31,7 @@ from astroquery.simbad import Simbad
 
 from model.constants import DEFAULT_RADIUS, RADIUS_UNIT
 
-from requests import ConnectionError, HTTPError
+from requests.exceptions import ConnectionError, HTTPError
 
 
 #############################
@@ -194,7 +194,7 @@ def query_simbad_by_coords(coords: SkyCoord,
             SIMBAD server using the Astroquery package.     
     """
     # Radius should be validated prior to calling this function. 
-    if not (radius >= 0.0 and radius <= 20.0):
+    if  radius < 0.0 or radius > 20.0:
         raise ValueError(f"Invalid radius: \"${radius}\" not in range 0.0 to 20.0.")
     if coords is None:
         raise ValueError("SkyCoord value is unknown.")
@@ -208,14 +208,14 @@ def query_simbad_by_coords(coords: SkyCoord,
         table = Simbad.query_region(coords, radius_angle)
 
         if table is None:
-            return None 
+            return dict()
 
         # For a region search, there may be multiple IDs. 
         # Get all the MAIN_IDs from the table. 
         main_ids = _get_names_from_table(table)
 
         # Create empty dictionary.
-        results = { }
+        results = dict()
 
         # Get the aliases for each ID. Assign the alias list to 
         # the value of the main ID.
@@ -229,7 +229,7 @@ def query_simbad_by_coords(coords: SkyCoord,
         raise QuerySimbadError(str(e))
     except UserWarning as e:
         # No object found.
-        return None 
+        return dict()
 
 
 def query_simbad_by_name(object_name: str, 
@@ -259,7 +259,7 @@ def query_simbad_by_name(object_name: str,
 
         if table is None:
             # The object does not exist.
-            return None 
+            return None
 
         # Get the MAIN_ID and the coordinates from the table. 
         # The table may be empty (non-result), which means these 
@@ -277,4 +277,4 @@ def query_simbad_by_name(object_name: str,
         raise QuerySimbadError(str(e))
     except UserWarning as e:
         # No object found.
-        return None 
+        return None

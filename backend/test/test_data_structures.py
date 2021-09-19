@@ -27,7 +27,7 @@ import unittest
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 from model.ds.alias_result import AliasResult
-from model.ds.search_filters import SearchFilters, KeywordMode
+from model.ds.search_filters import SearchFilters, DateFilter, KeywordMode
 from model.ds.report_types import ImportedReport, ReportResult
 from model.constants import valid_keyword
 
@@ -74,15 +74,16 @@ class TestAliasResult(unittest.TestCase):
 
 class TestSearchFilters(unittest.TestCase):
     def setUp(self):
-        self.sf = SearchFilters("term",["key", "word"],KeywordMode.ALL,datetime(2021,7,30),datetime(2021,7,31))
+        self.sf = SearchFilters("term",["key", "word"],KeywordMode.ALL)
+        self.df = DateFilter(datetime(2021,7,30),datetime(2021,7,31))
 
     #test regular creation, setters
     def test_creation(self):
         self.assertEqual(self.sf._term, "term")
         self.assertListEqual(self.sf._keywords, ["key", "word"])
         self.assertEqual(self.sf._keyword_mode, KeywordMode.ALL)
-        self.assertEqual(self.sf._start_date, datetime(2021,7,30))
-        self.assertEqual(self.sf._end_date, datetime(2021,7,31))
+        self.assertEqual(self.df._start_date, datetime(2021,7,30))
+        self.assertEqual(self.df._end_date, datetime(2021,7,31))
 
     #test with only term, defaults
     def test_creation_only_term(self):
@@ -90,8 +91,6 @@ class TestSearchFilters(unittest.TestCase):
         self.assertEqual(sf2._term, "term")
         self.assertIsNone(sf2._keywords)
         self.assertEqual(sf2._keyword_mode, KeywordMode.ANY)
-        self.assertIsNone(sf2._start_date)
-        self.assertIsNone(sf2._end_date)
 
     def test_keywords_none_getter(self):
         sf2 = SearchFilters("term")
@@ -116,8 +115,8 @@ class TestSearchFilters(unittest.TestCase):
         self.assertEqual(self.sf.term, "term")
         self.assertListEqual(self.sf.keywords, ["key", "word"])
         self.assertEqual(self.sf.keyword_mode, KeywordMode.ALL)
-        self.assertEqual(self.sf.start_date, datetime(2021,7,30))
-        self.assertEqual(self.sf.end_date, datetime(2021,7,31))
+        self.assertEqual(self.df.start_date, datetime(2021,7,30))
+        self.assertEqual(self.df.end_date, datetime(2021,7,31))
 
         self.sf.term = None
         self.assertIsNone(self.sf.term)
@@ -129,9 +128,9 @@ class TestSearchFilters(unittest.TestCase):
         with self.assertRaises(TypeError):
             self.sf.keywords = [1]
         with self.assertRaises(TypeError):
-            self.sf.start_date = 1
+            self.df.start_date = 1
         with self.assertRaises(TypeError):
-            self.sf.end_date = 1
+            self.df.end_date = 1
 
     #test kw mode enum setter
     def test_enum(self):
@@ -142,11 +141,13 @@ class TestSearchFilters(unittest.TestCase):
             self.sf.keyword_mode = 5
 
     def testEquals(self):
-        sf2 = SearchFilters("term",["key", "word"],KeywordMode.ALL,datetime(2021,7,30),datetime(2021,7,31))
+        sf2 = SearchFilters("term",["key", "word"],KeywordMode.ALL)
+        df2 = DateFilter(datetime(2021, 7, 30), datetime(2021, 7, 31))
         self.assertEqual(self.sf, sf2)
+        self.assertEqual(self.df, df2)
 
         # test not equal
-        sf3 = SearchFilters("term",["key","word"],KeywordMode.ANY,datetime(2021,7,30),datetime(2021,7,31))
+        sf3 = SearchFilters("term",["key","word"],KeywordMode.ANY)
         self.assertNotEqual(self.sf, sf3)
 
 class TestReportTypes(unittest.TestCase):

@@ -20,23 +20,16 @@
       </section>
 
       <section class="section">
-        <mat-form-field appearance="fill">
-          <mat-label>Search Type</mat-label>
-          <mat-select [(value)]="mode" class="uppercase">
-            <mat-option [value]="SearchMode.Name" class="uppercase"
-              >Name</mat-option
-            >
-            <mat-option [value]="SearchMode.Coordinate" class="uppercase"
+        <span class="bold">Search by Object </span>
+
+        <mat-form-field appearance="standard">
+          <mat-select [(value)]="mode" class="bold">
+            <mat-option [value]="SearchMode.Name" class="bold">Name</mat-option>
+            <mat-option [value]="SearchMode.Coordinate" class="bold"
               >Coordinates</mat-option
             >
           </mat-select>
         </mat-form-field>
-
-        <mat-icon
-          style="color: grey"
-          matTooltip="Search by object name or coordinates"
-          >help</mat-icon
-        >
 
         <ng-container [ngSwitch]="mode">
           <mat-form-field
@@ -44,7 +37,7 @@
             appearance="fill"
             class="wide"
           >
-            <mat-label>Name</mat-label>
+            <mat-label>Object Name</mat-label>
             <input
               matInput
               [(ngModel)]="name"
@@ -55,7 +48,7 @@
 
           <ng-container *ngSwitchCase="SearchMode.Coordinate">
             <mat-form-field appearance="fill" class="wide">
-              <mat-label>RA</mat-label>
+              <mat-label>Right Ascension</mat-label>
               <input
                 matInput
                 [(ngModel)]="ra"
@@ -90,7 +83,9 @@
       <section class="section">
         <mat-form-field appearance="standard">
           <mat-select [(value)]="match" class="bold">
-            <mat-option [value]="Match.Any" class="bold">Including</mat-option>
+            <mat-option [value]="Match.Any" class="bold"
+              >Including any of</mat-option
+            >
             <mat-option [value]="Match.All" class="bold"
               >Including all of</mat-option
             >
