@@ -393,22 +393,18 @@ class TestCustomExceptions(unittest.TestCase):
             download_report(1)
 
     # Tests that MissingReportElementError is being raised
-    @mock.patch('bs4.BeautifulSoup.find_all')
-    @mock.patch('bs4.BeautifulSoup.find.get_text')
-    @mock.patch('bs4.BeautifulSoup.find')
-    @mock.patch('bs4.BeautifulSoup')
-    def test_missing_report_element_error(self, mock_BeautifulSoup, mock_find, mock_get_text, mock_find_all):
-        mock_BeautifulSoup.return_value = None
-
-        mock_find.return_value = None
+    def test_missing_report_element_error(self):
         with self.assertRaises(MissingReportElementError):
             parse_report(1, '<Test></Test>')
 
-        mock_find.return_value = 'Test'
-        mock_get_text.return_value = 'Test'
-        mock_find_all.return_value = []
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<Test></Test>')
+            parse_report(1, '<h1 class=\'title\'></h1>')
+
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong>')
+        
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><p>Test</p><strong></strong>')
 
 if __name__ == "__main__":
     unittest.main()
