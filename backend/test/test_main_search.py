@@ -279,7 +279,7 @@ class TestSearchByCoords(TestSearch):
         Case 1: Invalid parameters for function call. 
         '''
         with self.assertRaises(ValueError):
-            search.search_reports_by_coords(None, None)
+            search.search_reports_by_coords(None, None, None)
 
 
     def test_only_searchfilters(self):
@@ -295,14 +295,14 @@ class TestSearchByCoords(TestSearch):
         mock.db.add_object = MagicMock() 
         mock.db.find_reports_in_coord_range = MagicMock(return_value=[self.sample_report])
 
-        result = mock.search_reports_by_coords(self.filters, None)
+        result = mock.search_reports_by_coords(self.filters, None, None)
 
         mock.qs.query_simbad_by_coords.assert_not_called() 
         mock.db.object_exists.assert_not_called() 
         mock.check_object_updates.assert_not_called()
         mock.qs.query_simbad_by_name.assert_not_called() 
         mock.db.add_object.assert_not_called()
-        mock.db.find_reports_in_coord_range.assert_called_with(self.filters, None, mock.DEFAULT_RADIUS)
+        mock.db.find_reports_in_coord_range.assert_called_with(self.filters, None, None, mock.DEFAULT_RADIUS)
 
         self.assertEqual(result, [self.sample_report])
 
@@ -324,14 +324,14 @@ class TestSearchByCoords(TestSearch):
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
-        result = mock.search_reports_by_coords(self.filters, self.sample_coords) 
+        result = mock.search_reports_by_coords(self.filters, None, self.sample_coords) 
 
         mock.db.object_exists.assert_has_calls([call("main_1"), call("main_2")])
         mock.qs.query_simbad_by_name.assert_has_calls([call("main_1", False), call("main_2", False)])
         mock.db.add_object.assert_has_calls([
             call("name", self.sample_coords, ["alias_1a", "alias_1b", "alias_1c"]), 
             call("name", self.sample_coords, ["alias_2a", "alias_2b"])])
-        mock.db.find_reports_by_object.assert_has_calls([call(self.filters, "main_1"), call(self.filters, "main_2")])
+        mock.db.find_reports_by_object.assert_has_calls([call(self.filters, None, "main_1"), call(self.filters, None, "main_2")])
         mock.db.find_reports_in_coord_range.assert_called()
         mock.check_object_updates.assert_not_called() 
 
@@ -355,12 +355,12 @@ class TestSearchByCoords(TestSearch):
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
-        result = mock.search_reports_by_coords(self.filters, self.sample_coords) 
+        result = mock.search_reports_by_coords(self.filters, None, self.sample_coords) 
 
         mock.db.object_exists.assert_has_calls([call("main_1"), call("main_2")])
         mock.qs.query_simbad_by_name.assert_not_called()
         mock.db.add_object.assert_not_called()
-        mock.db.find_reports_by_object.assert_has_calls([call(self.filters, "main_1"), call(self.filters, "main_2")])
+        mock.db.find_reports_by_object.assert_has_calls([call(self.filters, None, "main_1"), call(self.filters, None, "main_2")])
         mock.db.find_reports_in_coord_range.assert_called()
         mock.check_object_updates.assert_has_calls([call("main_1", self.dt_now), call("main_2", self.dt_now)]) 
 
@@ -378,9 +378,9 @@ class TestSearchByCoords(TestSearch):
         mock.check_object_updates = MagicMock()
         mock.db.add_object = MagicMock()
         mock.db.find_reports_by_object = MagicMock() 
-        mock.db.find_reports_in_coord_range = MagicMock(return_value=None) 
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[]) 
 
-        result = mock.search_reports_by_coords(self.filters, self.sample_coords) 
+        result = mock.search_reports_by_coords(self.filters, None, self.sample_coords) 
         self.assertEqual(result, [])
 
         for f in [mock.db.object_exists, mock.check_object_updates, mock.db.add_object, mock.db.find_reports_by_object]:

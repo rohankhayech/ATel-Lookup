@@ -100,18 +100,15 @@ def search_reports_by_coords(search_filters: SearchFilters,
                 # local database. 
                 name, coords = name_query_result
                 db.add_object(name, coords, value)
-        db_name_query = db.find_reports_by_object(search_filters, key)
+        db_name_query = db.find_reports_by_object(search_filters, date_filter, key)
 
-        # TODO: Remove None-type checks for db when fix is merged. 
-        if db_name_query is not None:
-            for r in db_name_query:
-                if r not in reports: reports.append(r) 
+        for r in db_name_query:
+            if r not in reports: reports.append(r) 
 
-    db_coord_query = db.find_reports_in_coord_range(search_filters, coords, radius)
-    if db_coord_query is not None:
-        for report in db_coord_query:
-            if report not in reports: 
-                reports.append(report)
+    db_coord_query = db.find_reports_in_coord_range(search_filters, date_filter, coords, radius)
+    for report in db_coord_query:
+        if report not in reports: 
+            reports.append(report)
 
     return reports 
 
