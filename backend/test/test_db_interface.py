@@ -320,7 +320,8 @@ class TestObjects(unittest.TestCase):
 
     def testGetAllAliases(self):
         results = db.get_all_aliases()
-        self.assertCountEqual(results,[AliasResult("test-alias-1","test_main_id"),AliasResult("test-alias-2","test_main_id")])
+        self.assertIn(AliasResult("test-alias-1","test_main_id"), results)
+        self.assertIn(AliasResult("test-alias-2","test_main_id"), results)
 
     def testObjectExists(self):
         #check valid
@@ -390,12 +391,12 @@ class TestObjects(unittest.TestCase):
     def testBuildJoinClause(self):
         #using main id
         query, data = db._build_join_clause("test_main_id") 
-        self.assertEqual(query, "right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
+        self.assertEqual(query, "inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
         self.assertTupleEqual(data, ("test_main_id",))
 
         # using alias
         query, data = db._build_join_clause("test-alias-1")
-        self.assertEqual(query, "right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
+        self.assertEqual(query, "inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
         self.assertTupleEqual(data, ("test_main_id",))
         
         # using none
@@ -420,7 +421,7 @@ class TestObjects(unittest.TestCase):
 
         # Test only object name
         query, data = db._build_report_name_query(object_name="test-alias-1")
-        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
         self.assertTupleEqual(data, ("test_main_id",))
 
         # Test only filters
@@ -430,7 +431,7 @@ class TestObjects(unittest.TestCase):
 
         # Test full query
         query, data = db._build_report_name_query(sf,df,"test_main_id")
-        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data, ("test_main_id", df.start_date, df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
 
     def testFindByObject(self):

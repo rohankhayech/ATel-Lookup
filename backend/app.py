@@ -290,7 +290,7 @@ def search() -> json:
         elif keyword_mode_in == "none":
             keyword_mode_enum = KeywordMode.NONE
 
-    if term_in == None and keywords_in == None:
+    if not term_in and not keywords_in:
         search_filters = None
     else:
         search_filters = SearchFilters(

@@ -798,7 +798,7 @@ def _build_join_clause(object_name:str = None)->tuple[str,tuple]:
     if object_name:
         object_id = _get_object_id(object_name)
 
-        join_clause = ("right join ObjectRefs "
+        join_clause = ("inner join ObjectRefs "
                        "on Reports.atelNum = ObjectRefs.atelNumFK "
                        "and ObjectRefs.objectIDFK = %s ")
         
