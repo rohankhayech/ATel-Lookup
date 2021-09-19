@@ -684,9 +684,8 @@ def _build_report_base_query()->str:
     """
 
     # Define base Select from Reports query
-    base_query = ("select atelNum, title, authors, body, submissionDate"
-            " from Reports"
-            " where ")
+    base_query = ("select atelNum, title, authors, body, submissionDate "
+                  "from Reports ")
 
     return base_query
 
@@ -731,6 +730,7 @@ def _build_where_clause(filters: SearchFilters = None, date_range: DateFilter = 
     # Start with empty lists of terms and data
     data = ()
     clauses = []
+    where_clause = ""
 
     if date_range:
         # Append date clauses and data
@@ -774,8 +774,9 @@ def _build_where_clause(filters: SearchFilters = None, date_range: DateFilter = 
             clauses.append(kw_clause)
 
     # Join where clauses together
-    sep = "and "
-    where_clause = sep.join(clauses)
+    if clauses:
+        sep = "and "
+        where_clause = "where " + sep.join(clauses)
 
     return where_clause, data
 
@@ -797,9 +798,9 @@ def _build_join_clause(object_name:str = None)->tuple[str,tuple]:
     if object_name:
         object_id = _get_object_id(object_name)
 
-        join_clause = ("right join ObjectRefs"
-                       "on Reports.atelNum = ObjectRefs.atelNumFK"
-                       "and ObjectRefs.objectIDFK = %s")
+        join_clause = ("right join ObjectRefs "
+                       "on Reports.atelNum = ObjectRefs.atelNumFK "
+                       "and ObjectRefs.objectIDFK = %s ")
         
         join_data = (object_id,)
     else:

@@ -137,24 +137,27 @@ class TestReports(unittest.TestCase):
             cn.commit()
             cn.close()
 
+    def testBuildBaseQuery(self):
+        self.assertEqual(db._build_report_base_query(), "select atelNum, title, authors, body, submissionDate from Reports ")
+
     def testBuildWhereClause(self):
         #Test full query
         sf = SearchFilters("term",["star","planet"],KeywordMode.ANY)
         df = DateFilter(datetime(2021, 8, 16), datetime(2021, 8, 17))
         query, data = db._build_where_clause(sf,df)
         self.maxDiff = None
-        self.assertEqual(query, "submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertEqual(query, "where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data,(df.start_date,df.end_date,sf.term,sf.term,sf.keywords[0],sf.keywords[1]))
 
         #Test keyword modes / single filter
         sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
         query2, data2 = db._build_where_clause(sf2)
-        self.assertEqual(query2,"(FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertEqual(query2,"where (FIND_IN_SET(%s, keywords) > 0 and FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data2,(sf.keywords[0],sf.keywords[1]))
 
         sf2.keyword_mode = KeywordMode.NONE
         query3, data3 = db._build_where_clause(sf2)
-        self.assertEqual(query3,"(FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
+        self.assertEqual(query3,"where (FIND_IN_SET(%s, keywords) = 0 and FIND_IN_SET(%s, keywords) = 0) ")
         self.assertTupleEqual(data3,(sf.keywords[0],sf.keywords[1]))
 
         #Test empty query
@@ -347,7 +350,6 @@ class TestObjects(unittest.TestCase):
 
         with self.assertRaises(db.ObjectNotFoundError):
             db.get_object_coords("test-other-alias")
-            
 
     def testLinkReports(self):
         #Test case - alias in title
@@ -384,6 +386,53 @@ class TestObjects(unittest.TestCase):
         cn.commit()
         cur.close()
         cn.close()
+
+    def testBuildJoinClause(self):
+        #using main id
+        query, data = db._build_join_clause("test_main_id") 
+        self.assertEqual(query, "right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
+        self.assertTupleEqual(data, ("test_main_id",))
+
+        # using alias
+        query, data = db._build_join_clause("test-alias-1")
+        self.assertEqual(query, "right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
+        self.assertTupleEqual(data, ("test_main_id",))
+        
+        # using none
+        query, data = db._build_join_clause(None)
+        self.assertEqual(query, "")
+        self.assertTupleEqual(data, ())
+
+        # using invalid alias
+        with self.assertRaises(db.ObjectNotFoundError):
+            db._build_join_clause("db-test-invalid-alias")
+
+    def testBuildReportNameQuery(self):
+        self.maxDiff = None
+
+        sf=SearchFilters("term", ["star", "planet"], KeywordMode.ANY)
+        df=DateFilter(datetime(2021, 8, 16), datetime(2021, 8, 17))
+
+        # Test empty query
+        query, data = db._build_report_name_query()
+        self.assertEqual(query,"select atelNum, title, authors, body, submissionDate from Reports ")
+        self.assertTupleEqual(data, ())
+
+        # Test only object name
+        query, data = db._build_report_name_query(object_name="test-alias-1")
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
+        self.assertTupleEqual(data, ("test_main_id",))
+
+        # Test only filters
+        query, data = db._build_report_name_query(sf,df)
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data, (df.start_date, df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
+
+        # Test full query
+        query, data = db._build_report_name_query(sf,df,"test_main_id")
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data, ("test_main_id", df.start_date, df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
+
 
     def tearDown(self):
         cn = db._connect()
