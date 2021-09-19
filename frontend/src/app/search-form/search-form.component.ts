@@ -92,7 +92,7 @@ export class SearchFormComponent implements OnInit {
 
     return this.searchService.search(parameters).pipe(
       tap((telegrams) => this.search.emit(telegrams)),
-      tap((telegrams) => {
+      tap(({ telegrams }) => {
         if (telegrams.length === 0) {
           this.snackBar.open('No ATels matched your query', 'Close', {
             duration: 8000,
