@@ -173,16 +173,44 @@ def add_report(report: ImportedReport):
             try:  
                 object_ref_data = (report.atel_num, object_id)
                 cur.execute(object_ref_query, object_ref_data)
-                
             except mysql.connector.Error as e:
                 raise e
             finally:
                 cn.commit()
                 cur.close()
 
-            #TODO: Add observation dates.
-            #TODO: Convert and add coordinates.
-            #TODO: Add referenced reports/by.
+        # Add observation dates
+        ob_date_query = ("insert into ObservationDates"
+                            "(atelNumFK, obDate) "
+                            "values (%s, %s)")
+        cur: MySQLCursor = cn.cursor()
+        for date in report.observation_dates:
+            try:
+                ob_date_data = (report.atel_num, date)
+                cur.execute(ob_date_query, ob_date_data)
+            except mysql.connector.Error as e:
+                raise e
+            finally:
+                cn.commit()
+                cur.close()
+            
+
+        #Convert and add coordinates.
+        coords_query = ("insert into ReportCoords"
+                         "(atelNumFK, ra, declination) "
+                         "values (%s, %s)")
+        cur: MySQLCursor = cn.cursor()
+        for coord in report.coordinates:
+            try:
+                coords_data = (report.atel_num, round(coord.ra.hourangle.item(), 10), round(coord.dec.deg.item(), 10))
+                cur.execute(coords_query, coords_data)
+            except mysql.connector.Error as e:
+                raise e
+            finally:
+                cn.commit()
+                cur.close()
+
+        #TODO: Add referenced reports/by.
     except mysql.connector.Error as e:
         raise e
     finally:
