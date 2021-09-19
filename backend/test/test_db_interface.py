@@ -122,20 +122,29 @@ class TestReports(unittest.TestCase):
         _set_last_updated_date(old_date)
 
     def testReports(self):
-        report = ImportedReport(20000,"db_test_report","A","B",datetime(2021,8,12), keywords=["star","radio"])
+        report1 = ImportedReport(19999,"db_test_report1","A","B",datetime(2021,8,12),referenced_reports=[19998],referenced_by=[20000],keywords=["star","radio"])
+        report2 = ImportedReport(20000,"db_test_report2","A","B",datetime(2021,8,12),referenced_reports=[19999],referenced_by=[20001],keywords=["star","radio"])
+        report3 = ImportedReport(20001,"db_test_report3","A","B",datetime(2021,8,12),referenced_reports=[20000],referenced_by=[20002],keywords=["star","radio"])
 
-        db.add_report(report)
+        db.add_report(report1)
+        db.add_report(report2)
+        db.add_report(report3)
+
         try:
             results = db.find_reports_by_object(SearchFilters(term="db_test_report"))
-            result = results[0]
 
-            self.assertEqual(report,result)
+            self.assertIn(report1,results)
+            self.assertTrue(db.report_exists(19999))
+            self.assertIn(report2, results)
             self.assertTrue(db.report_exists(20000))
+            self.assertIn(report3, results)
+            self.assertTrue(db.report_exists(20001))
         finally:
             #delete report
             cn = db._connect()
             cur:MySQLCursor = cn.cursor()
-            cur.execute("delete from Reports where atelNum = 20000")
+            cur.execute("delete from Reports where atelNum between 19999 and 20001")
+            cur.execute("delete from ReportRefs where atelNum between 19998 and 20002")
             cur.close()
             cn.commit()
             cn.close()

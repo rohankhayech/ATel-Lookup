@@ -213,7 +213,7 @@ def add_report(report: ImportedReport):
 
         # Add referenced reports
         ref_report_query = ("insert into ReportRefs"
-                        "(atelNumFK, refReportFK) "
+                        "(atelNum, refReport) "
                         "values (%s, %s)")
         cur: MySQLCursor = cn.cursor()
         for other_report in report.referenced_reports:
@@ -221,7 +221,10 @@ def add_report(report: ImportedReport):
                 ref_report_data = (report.atel_num, other_report)
                 cur.execute(ref_report_query, ref_report_data)
             except mysql.connector.Error as e:
-                raise e
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
             finally:
                 cn.commit()
                 cur.close()
@@ -233,7 +236,10 @@ def add_report(report: ImportedReport):
                 ref_by_data = (other_report, report.atel_num)
                 cur.execute(ref_report_query, ref_by_data)
             except mysql.connector.Error as e:
-                raise e
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
             finally:
                 cn.commit()
                 cur.close()
@@ -877,17 +883,19 @@ def _populate_referenced_reports(reports:list[ReportResult])->list[ReportResult]
     """
     cn = _connect()
 
-    query = ("select refReportFK "
+    query = ("select refReport "
              "from ReportRefs "
-             "where atelNumFK = %s;")
+             "where atelNum = %s;")
 
     for report in reports:
         cur:MySQLCursor = cn.cursor()
         try:
             cur.execute(query,(report.atel_num,))
             results = cur.fetchall()
+            ref_reports = []
             for result in results:
-                report.add_referenced_report(int(result[0]))
+                ref_reports.append(int(result[0]))
+            report.referenced_reports = ref_reports
         finally:
             cur.close()
 
