@@ -351,9 +351,9 @@ def load_metadata() -> json:
 Application Main Line  
   
 """
-if __name__ == "__main__":
-    # Initialise the database
-    init_db()
+# Initialise the database
+init_db()
 
+if __name__ == "__main__":
     # Run the application
     app.run()
