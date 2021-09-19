@@ -348,9 +348,46 @@ class TestObjects(unittest.TestCase):
         with self.assertRaises(db.ObjectNotFoundError):
             db.get_object_coords("test-other-alias")
             
+
+    def testLinkReports(self):
+        #Test case - alias in title
+        db.add_report(ImportedReport(99999, "test-db-title-about:test-alias-1, findings","db-test-authors","db-test-body",datetime(2021,9,18)))
+        #Test case - main id in title
+        db.add_report(ImportedReport(99998, "test-db-title-about:Test_main_id, findings","db-test-authors","db-test-body",datetime(2021,9,18)))
+        #Test case - alias in body
+        db.add_report(ImportedReport(99997, "test-db-title, findings","db-test-authors","db-test-body-test-Alias-2",datetime(2021,9,18)))
+        #Test case - main id in body
+        db.add_report(ImportedReport(99996, "test-db-title, findings", "db-test-authors", "test_main_iddb-test-body", datetime(2021, 9, 18)))
+        #Test case - no matches in body or title
+        db.add_report(ImportedReport(99995, "test-db-title, findings", "db-test-authors-test-alias-1", "db-test-body", datetime(2021, 9, 18)))
+
+        # call function
+        db._link_reports("test_main_id",["test-alias-1","test-alias-2"])
+
+        # check results from db
+        cn = db._connect()
+        cur: MySQLCursor = cn.cursor()
+        cur.execute("select * from ObjectRefs")
+        results = cur.fetchall()
+
+        self.assertIn((99999,"test_main_id"),results)
+        self.assertIn((99998,"test_main_id"),results)
+        self.assertIn((99997,"test_main_id"),results)
+        self.assertIn((99996,"test_main_id"),results)
+        self.assertNotIn((99995,"test_main_id"),results)
+
+        # ensure it ignores duplicate entries
+        db._link_reports("test_main_id", ["test-alias-1", "test-alias-2"])
+
+        # clean up
+        cur.execute("delete from Reports where atelNum between 99995 and 99999")
+        cn.commit()
+        cur.close()
+        cn.close()
+
     def tearDown(self):
         cn = db._connect()
-        cur = cn.cursor()
+        cur:MySQLCursor = cn.cursor()
 
         # clean up test objects and aliases
         cur.execute("delete from Objects where objectID like 'test_main_id'")        

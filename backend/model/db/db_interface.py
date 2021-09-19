@@ -405,6 +405,9 @@ def add_aliases(object_id: str, aliases: list[str]):
             cn.commit()
             cur.close()
             cn.close()
+
+            # Link reports
+            _link_reports(object_id,aliases)
         else:
             raise ObjectNotFoundError("The specified object ID is not stored in the database.")
     else:
@@ -591,7 +594,7 @@ def _link_reports(object_id: str, aliases: list[str]):
     reports:list[int] = []
 
     #query to find all reports with alias in body or title
-    find_query = ("select atel_num"
+    find_query = ("select atelNum"
             " from Reports"
             " where title like concat('%', %s, '%')"
             " or body like concat('%', %s, '%');")
@@ -602,7 +605,8 @@ def _link_reports(object_id: str, aliases: list[str]):
 
     if (object_exists(object_id)):
         try:
-            #loop through every alias
+            #loop through every alias and the main id
+            aliases.append(object_id)
             for alias in aliases:
                 find_data = (alias, alias)
                 
@@ -620,8 +624,12 @@ def _link_reports(object_id: str, aliases: list[str]):
                 add_data = (atel_num, object_id)
                 cur.execute(add_query, add_data)
         except mysql.connector.Error as e:
-            raise e
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                pass  # ignore any duplicate entries
+            else:
+                raise e
         finally:
+            cn.commit()
             cur.close()
             cn.close()
     else:
