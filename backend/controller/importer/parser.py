@@ -25,6 +25,7 @@ import re
 
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
+from model.db.db_interface import get_all_aliases
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -128,7 +129,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Formats submission date
     formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
 
-    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()))
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, keywords=extract_keywords(body.strip()), objects=extract_known_aliases(f'{title} {body.strip()}'))
 
 def extract_coords(body_text: str) -> list[str]:
     """
@@ -178,17 +179,46 @@ def parse_dates(dates: list[str]) -> list[datetime]:
     """
     return []
 
-def extract_known_aliases(body_text: str) -> list[str]:
+def extract_known_aliases(text: str) -> list[str]:
     """
-    Finds all known aliases in the body text of ATel report.
+    Finds all known aliases and object IDs in the title and body of ATel report.
 
     Args:
-        body_text (str): Body text of ATel report.
+        text (str): Title and body of ATel report.
 
     Returns:
-        list[str]: List of known aliases found.
+        list[str]: List of object IDs found.
     """
-    return []
+
+    object_IDs = []
+    # Retrieves known aliases
+    aliases = get_all_aliases()
+
+    # Finds all aliases and object IDs in the title and body of ATel report
+    for alias in aliases:
+        # Regex for alias
+        regex = f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]'
+
+        # Attempts to find alias in the title and body text using regex
+        alias_regex = re.compile(regex)
+        alias_found = alias_regex.search(f' {text.lower()} ')
+
+        # Adds object ID to list if its associated alias is found in the title and body text
+        if(alias_found is not None):
+            object_IDs.append(alias.object_ID.lower())
+        else:
+            # Regex for object ID associated to alias
+            regex = f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]'
+
+            # Attempts to find object ID in the title and body text using regex
+            object_ID_regex = re.compile(regex)
+            object_ID_found = object_ID_regex.search(f' {text.lower()} ')
+
+            # Adds object ID to list if it is found in the title and body text
+            if(object_ID_found is not None):
+                object_IDs.append(alias.object_ID.lower())
+
+    return list(dict.fromkeys(object_IDs))
 
 def extract_keywords(body_text: str) -> list[str]:
     """
@@ -214,7 +244,7 @@ def extract_keywords(body_text: str) -> list[str]:
         keyword_found = keyword_regex.search(f' {body_text.lower()} ')
 
         # Adds keyword to list if it is found in the body text
-        if keyword_found is not None:
+        if(keyword_found is not None):
             keywords.append(FIXED_KEYWORDS[i])
 
         i = i + 1

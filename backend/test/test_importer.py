@@ -24,6 +24,7 @@ License Terms and Copyright:
 import os
 import unittest
 
+from model.ds.alias_result import AliasResult
 from model.ds.report_types import ImportedReport
 from model.db.db_interface import ExistingReportError
 from controller.importer.importer import *
@@ -128,9 +129,11 @@ class TestImporterFunctions(unittest.TestCase):
 # Parser functions
 class TestParserFunctions(unittest.TestCase):
     # Tests parse_report function
+    @mock.patch('controller.importer.parser.extract_known_aliases')
     @mock.patch('controller.importer.parser.extract_keywords')
-    def test_html_parser(self, mock_extract_keywords):
+    def test_html_parser(self, mock_extract_keywords, mock_extract_known_aliases):
         mock_extract_keywords.return_value = []
+        mock_extract_known_aliases.return_value = []
 
         # Parses HTML of ATel #1000
         f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
@@ -177,6 +180,32 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.objects, [])
         self.assertCountEqual(imported_report.coordinates, [])
         self.assertCountEqual(imported_report.referenced_by, [])
+
+    # Tests extract_known_aliases function
+    @mock.patch('controller.importer.parser.get_all_aliases')
+    def test_aliases_extractor(self, mock_get_all_aliases):
+        mock_get_all_aliases.return_value = []
+
+        self.assertCountEqual(extract_known_aliases('This is a test'), [])
+        self.assertCountEqual(extract_known_aliases('Double check that an empty list is returned'), [])
+
+        mock_get_all_aliases.return_value = [AliasResult('Test', 'x'), AliasResult('alias-for-object', 'object'), AliasResult('another alias', 'object'), AliasResult('test', 'y')]
+
+        self.assertCountEqual(extract_known_aliases('No alias to be found here'), [])
+        self.assertCountEqual(extract_known_aliases('This is a test'), ['x', 'y'])
+        self.assertCountEqual(extract_known_aliases('Test for extracting alias-for-object'), ['x', 'object', 'y'])
+        self.assertCountEqual(extract_known_aliases('teST for x and tESt for y'), ['x', 'y'])
+        self.assertCountEqual(extract_known_aliases('testing should return empty list'), [])
+        self.assertCountEqual(extract_known_aliases('There is another alias for object which is ALIAS-FOR-OBJECT'), ['object'])
+        self.assertCountEqual(extract_known_aliases('alias-For-OBject is being tested'), ['object'])
+        self.assertCountEqual(extract_known_aliases('No such thing as another weird alias for x (test)'), ['x', 'y'])
+        self.assertCountEqual(extract_known_aliases('   AnOtheR ALIas'), ['object'])
+        self.assertCountEqual(extract_known_aliases('another alias   '), ['object'])
+        self.assertCountEqual(extract_known_aliases('6object should return empty list'), [])
+        self.assertCountEqual(extract_known_aliases('another alias is test10'), ['object'])
+        self.assertCountEqual(extract_known_aliases('x'), ['x'])
+        self.assertCountEqual(extract_known_aliases('x, y and alias-for-object'), ['x', 'object', 'y'])
+        self.assertCountEqual(extract_known_aliases('object and y'), ['object', 'y'])
 
     # Tests extract_keywords function
     def test_keywords_extractor(self):
