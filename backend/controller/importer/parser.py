@@ -206,7 +206,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Finds all possible paragraphs in the HTML
     texts = soup.find_all('p', {'class': None, 'align': None})
 
-    # Filters out non body text elements and formats the body text
+    # Filters out non-body text elements and formats the body text
     for text in texts:
         if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
             if('\n' in text.get_text()):
@@ -221,7 +221,40 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Formats submission date
     formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
 
-    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, observation_dates=parse_dates(extract_dates(f'{title} {body.strip()}')), keywords=extract_keywords(body.strip()), objects=extract_known_aliases(f'{title} {body.strip()}'))
+    # Extracts the number of any ATel reports that referenced the ATel report
+    referred_by = []
+
+    if(soup.find('div', {'id': 'references'}) is not None):
+        referred_by = soup.find('div', {'id': 'references'}).get_text()
+        referred_by = re.findall('\d+', referred_by)
+    
+    referred_by = list(dict.fromkeys(referred_by))
+
+    # Extracts any links that are in the ATel report
+    referenced_reports = []
+    div_element = soup.find('div', {'id': 'telegram'})
+    links = div_element.find_all('a', href=True)
+    url_string = 'https://www.astronomerstelegram.org/?read='
+
+    # Extracts the number of any ATel reports referenced
+    for link in links:
+        if((link['href'].find(url_string) != -1) and (link['href'] != url_string) and (link.get_text() != 'Previous') and (link.get_text() != 'Next')):
+            num = re.search('\d+', link['href'])
+            referenced_reports.append(num.group())
+
+    # Filters out referred by ATel numbers
+    for referred_by_num in referred_by:
+        referenced_reports.remove(referred_by_num)
+
+    referenced_reports = list(dict.fromkeys(referenced_reports))
+
+    # Extracts subjects for keywords extractor
+    subjects = ''
+
+    if(soup.find('p', {'class': 'subjects'}) is not None):
+        subjects = soup.find('p', {'class': 'subjects'}).get_text()
+
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, observation_dates=parse_dates(extract_dates(f'{title} {body.strip()}')), keywords=extract_keywords(f'{title} {subjects} {body.strip()}'), objects=extract_known_aliases(f'{title} {body.strip()}'))
 
 def extract_coords(body_text: str) -> list[str]:
     """
