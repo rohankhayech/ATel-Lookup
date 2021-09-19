@@ -50,7 +50,7 @@ export class SearchService {
   }
 
   serializeDate(date?: Moment) {
-    return date?.format('DD/MM/YYYY');
+    return date?.format('YYYY-MM-DD');
   }
 
   deserializeTelegram(telegram: ApiTelegram): Telegram {
