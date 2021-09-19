@@ -20,23 +20,16 @@
       </section>
 
       <section class="section">
-        <mat-form-field appearance="fill">
-          <mat-label>Search Type</mat-label>
-          <mat-select [(value)]="mode" class="uppercase">
-            <mat-option [value]="SearchMode.Name" class="uppercase"
-              >Name</mat-option
-            >
-            <mat-option [value]="SearchMode.Coordinate" class="uppercase"
+        <span class="bold">Search by Object </span>
+
+        <mat-form-field appearance="standard">
+          <mat-select [(value)]="mode" class="bold">
+            <mat-option [value]="SearchMode.Name" class="bold">Name</mat-option>
+            <mat-option [value]="SearchMode.Coordinate" class="bold"
               >Coordinates</mat-option
             >
           </mat-select>
         </mat-form-field>
-
-        <mat-icon
-          style="color: grey"
-          matTooltip="Search by object name or coordinates"
-          >help</mat-icon
-        >
 
         <ng-container [ngSwitch]="mode">
           <mat-form-field
