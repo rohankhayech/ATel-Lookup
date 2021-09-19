@@ -199,8 +199,8 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     soup = BeautifulSoup(html_string, 'html.parser')
 
     # Extracts title and authors of ATel report
-    title = soup.find('h1', {'class': 'title'}).get_text(strip=True)
-    authors = soup.find('strong').get_text(strip=True)
+    title = str(soup.find('h1', {'class': 'title'}).get_text(strip=True))
+    authors = str(soup.find('strong').get_text(strip=True))
     body = ''
 
     # Finds all possible paragraphs in the HTML
@@ -210,9 +210,9 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     for text in texts:
         if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
             if('\n' in text.get_text()):
-                body += text.get_text()
+                body += str(text.get_text())
             else:
-                body += text.get_text() + '\n'
+                body += f'{text.get_text()}\n'
 
     # Extracts submission date of ATel report
     elements = soup.find_all('strong')
@@ -222,13 +222,13 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
 
     # Extracts the number of any ATel reports that referenced the ATel report
-    referred_by = []
+    referenced_by = []
 
     if(soup.find('div', {'id': 'references'}) is not None):
-        referred_by = soup.find('div', {'id': 'references'}).get_text()
-        referred_by = re.findall('\d+', referred_by)
+        referenced_by = soup.find('div', {'id': 'references'}).get_text()
+        referenced_by = re.findall('\d+', referenced_by)
     
-    referred_by = list(dict.fromkeys(referred_by))
+    referenced_by = list(dict.fromkeys([int(referenced_by_num) for referenced_by_num in referenced_by]))
 
     # Extracts any links that are in the ATel report
     referenced_reports = []
@@ -240,11 +240,11 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     for link in links:
         if((link['href'].find(url_string) != -1) and (link['href'] != url_string) and (link.get_text() != 'Previous') and (link.get_text() != 'Next')):
             num = re.search('\d+', link['href'])
-            referenced_reports.append(num.group())
+            referenced_reports.append(int(num.group()))
 
     # Filters out referred by ATel numbers
-    for referred_by_num in referred_by:
-        referenced_reports.remove(referred_by_num)
+    for referenced_by_num in referenced_by:
+        referenced_reports.remove(referenced_by_num)
 
     referenced_reports = list(dict.fromkeys(referenced_reports))
 
@@ -254,7 +254,9 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     if(soup.find('p', {'class': 'subjects'}) is not None):
         subjects = soup.find('p', {'class': 'subjects'}).get_text()
 
-    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, observation_dates=parse_dates(extract_dates(f'{title} {body.strip()}')), keywords=extract_keywords(f'{title} {subjects} {body.strip()}'), objects=extract_known_aliases(f'{title} {body.strip()}'))
+    text = f'{title} {body.strip()}'
+
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, referenced_reports, parse_dates(extract_dates(text)), extract_keywords(f'{title} {subjects} {body.strip()}'), extract_known_aliases(text), parse_coords(extract_coords(text)), referenced_by)
 
 def extract_coords(text: str) -> list[str]:
     """
@@ -358,7 +360,7 @@ def extract_known_aliases(text: str) -> list[str]:
 
         # Adds object ID to list if its associated alias is found in the title and body text
         if(alias_found is not None):
-            object_IDs.append(alias.object_ID.lower())
+            object_IDs.append(str(alias.object_ID.lower()))
         else:
             # Regex for object ID associated to alias
             regex = f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]'
@@ -369,7 +371,7 @@ def extract_known_aliases(text: str) -> list[str]:
 
             # Adds object ID to list if it is found in the title and body text
             if(object_ID_found is not None):
-                object_IDs.append(alias.object_ID.lower())
+                object_IDs.append(str(alias.object_ID.lower()))
 
     return list(dict.fromkeys(object_IDs))
 
@@ -398,7 +400,7 @@ def extract_keywords(text: str) -> list[str]:
 
         # Adds keyword to list if it is found in the title, subjects section and body text
         if(keyword_found is not None):
-            keywords.append(FIXED_KEYWORDS[i])
+            keywords.append(str(FIXED_KEYWORDS[i]))
 
         i = i + 1
 
