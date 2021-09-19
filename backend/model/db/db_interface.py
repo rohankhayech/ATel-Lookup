@@ -476,7 +476,7 @@ def get_object_coords(alias: str) -> SkyCoord:
     if result:
         ra = result[0]
         dec = result[1]
-        return SkyCoord(ra, dec, frame='icrs', unit=('hourangle', 'deg'))
+        return SkyCoord(ra, dec, frame='icrs', unit=('deg', 'deg'))
     else:
         raise ObjectNotFoundError("The specified object ID is not stored in the database.")
 

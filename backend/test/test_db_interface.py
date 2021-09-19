@@ -346,7 +346,7 @@ class TestObjects(unittest.TestCase):
 
     def testGetObjectCoords(self):
         coords = db.get_object_coords("test-alias-1")
-        self.assertAlmostEqual(coords.ra.hourangle.item(), self.ex_coords.ra.hourangle.item())
+        self.assertAlmostEqual(coords.ra.deg.item(), self.ex_coords.ra.hourangle.item())
         self.assertAlmostEqual(coords.dec.deg.item(), self.ex_coords.dec.deg.item())
 
         with self.assertRaises(db.ObjectNotFoundError):
