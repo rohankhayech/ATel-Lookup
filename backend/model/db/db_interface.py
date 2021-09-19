@@ -341,7 +341,7 @@ def add_object(object_id: str, coords: SkyCoord, aliases: list[str]=[]):
                 " (objectID, ra, declination)" 
                 " values (%s, %s, %s)")
 
-        data = (object_id, round(coords.ra.deg.item(), 10), round(coords.dec.deg.item(),10))
+        data = (object_id, round(coords.ra.hourangle.item(), 10), round(coords.dec.deg.item(),10))
 
         # execute query and handle errors
         try:
