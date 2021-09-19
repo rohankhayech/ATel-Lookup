@@ -10,23 +10,7 @@
 #
 
 
-import sys
 import search.query_simbad as qs
-
-
-def usage():
-    print(
-        """
-        Search Module Utility: Search by name/ID. 
-        Usage:
-        =========================================
-        python search-by-name.py [id/name] [-a (optional)]
-
-        [id/name] -> The string identifier or name of the object. 
-        [-a]      -> Use this option to retrieve aliases too. Otherwise, only 
-                    the MAIN_ID will be retrieved. 
-        """
-    )
 
 
 def retrieve(name: str, get_aliases: bool):
