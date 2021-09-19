@@ -305,9 +305,10 @@ class TestCustomExceptions(unittest.TestCase):
             import_report(1)
 
     # Tests that ImportFailError is being raised
+    @mock.patch('controller.importer.importer.parse_report')
     @mock.patch('controller.importer.importer.download_report')
     @mock.patch('controller.importer.importer.report_exists')
-    def test_import_fail_error(self, mock_report_exists, mock_download_report):
+    def test_import_fail_error(self, mock_report_exists, mock_download_report, mock_parse_report):
         mock_report_exists.return_value = False
 
         mock_download_report.side_effect = NetworkError
@@ -315,6 +316,11 @@ class TestCustomExceptions(unittest.TestCase):
             import_report(1)
 
         mock_download_report.side_effect = DownloadFailError
+        with self.assertRaises(ImportFailError):
+            import_report(1)
+
+        mock_download_report.return_value = 'Test'
+        mock_parse_report.side_effect = MissingReportElementError
         with self.assertRaises(ImportFailError):
             import_report(1)
 
@@ -335,6 +341,24 @@ class TestCustomExceptions(unittest.TestCase):
         mock_render.side_effect = TimeoutError
         with self.assertRaises(DownloadFailError):
             download_report(1)
+
+    # Tests that MissingReportElementError is being raised
+    @mock.patch('bs4.BeautifulSoup.find_all')
+    @mock.patch('bs4.BeautifulSoup.find.get_text')
+    @mock.patch('bs4.BeautifulSoup.find')
+    @mock.patch('bs4.BeautifulSoup')
+    def test_missing_report_element_error(self, mock_BeautifulSoup, mock_find, mock_get_text, mock_find_all):
+        mock_BeautifulSoup.return_value = None
+
+        mock_find.return_value = None
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<Test></Test>')
+
+        mock_find.return_value = 'Test'
+        mock_get_text.return_value = 'Test'
+        mock_find_all.return_value = []
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<Test></Test>')
 
 if __name__ == "__main__":
     unittest.main()
