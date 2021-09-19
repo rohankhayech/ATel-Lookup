@@ -32,12 +32,14 @@ from model.ds.search_filters import SearchFilters
 from controller.search.query_simbad import QuerySimbadError
 from datetime import datetime, timedelta
 import unittest as ut 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, call
 
-from controller.search import query_simbad as qs
 from controller.search import search
 
 
+###################################
+# Testing: check_object_updates() #
+###################################
 class TestCheckObjectUpdates(ut.TestCase):
     def setUp(self):
         # Current date.
@@ -108,7 +110,7 @@ class TestCheckObjectUpdates(ut.TestCase):
         mock.qs.get_aliases.assert_called_with("test2")
 
 
-class TestSearchByName(ut.TestCase):
+class TestSearch(ut.TestCase):
     def setUp(self): 
         self.filters = SearchFilters(term="term")
         self.sample_coords = SkyCoord("20 54 05.689", "+37 01 17.38", unit=('hourangle','deg'))
@@ -116,9 +118,13 @@ class TestSearchByName(ut.TestCase):
         self.dt_almost = datetime.now() - timedelta(days=59)
         self.dt_exact = datetime.now() - timedelta(days=60)
         self.dt_old = datetime.now() - timedelta(days=200)
-        self.sample_report = ReportResult(1000, "Title", "Authors", "Body", self.dt_old, [])
+        self.sample_report = ReportResult(1000, "Title", "Authors", "Body", self.dt_old, []) 
 
 
+#####################################
+# Testing: search_reports_by_name() #
+#####################################
+class TestSearchByName(TestSearch):
     def test_invalid_object(self):
         '''
         Case 1: An object that does not exist in either database. 
@@ -132,7 +138,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.find_reports_by_object = MagicMock(return_value=[])
 
         # Call the mocked function. 
-        self.assertEqual(mock.search_reports_by_name(self.filters, "name"), [])
+        self.assertEqual(mock.search_reports_by_name(self.filters, None, "name"), [])
 
         mock.check_object_updates.assert_not_called()
         mock.db.get_object_coords.assert_not_called() 
@@ -155,7 +161,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
-        result = mock.search_reports_by_name(self.filters, "name")
+        result = mock.search_reports_by_name(self.filters, None, "name")
 
         mock.db.object_exists.assert_called_with("name")
         mock.qs.query_simbad_by_name.assert_not_called()
@@ -188,7 +194,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
-        mock.search_reports_by_name(self.filters, "name")
+        mock.search_reports_by_name(self.filters, None, "name")
 
         self.assertEqual(mock.db.object_exists("name"), (True, self.dt_old))
 
@@ -212,15 +218,15 @@ class TestSearchByName(ut.TestCase):
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
 
-        result = mock.search_reports_by_name(self.filters, "name")
+        result = mock.search_reports_by_name(self.filters, None, "name")
 
         mock.db.object_exists.assert_called_with("name")
         mock.check_object_updates.assert_not_called()
         mock.db.get_object_coords.assert_not_called()
         mock.qs.query_simbad_by_name.assert_called_with("name", True)
         mock.db.add_object.assert_called_with("mainid", self.sample_coords, ["alias1", "alias2"])
-        mock.db.find_reports_by_object.assert_called_with(self.filters, "name")
-        mock.db.find_reports_in_coord_range.assert_called_with(self.filters, self.sample_coords, DEFAULT_RADIUS)
+        mock.db.find_reports_by_object.assert_called_with(self.filters, None, "name")
+        mock.db.find_reports_in_coord_range.assert_called_with(self.filters, None, self.sample_coords, DEFAULT_RADIUS)
 
         self.assertIsNotNone(result)
         self.assertNotEqual(result, [])
@@ -228,6 +234,9 @@ class TestSearchByName(ut.TestCase):
 
 
     def test_only_searchfilters(self):
+        '''
+        Case 5: Searching using only SearchFilters 
+        '''
         mock = search 
 
         # Within the if-statement (should not be called)
@@ -240,7 +249,7 @@ class TestSearchByName(ut.TestCase):
         mock.db.find_reports_by_object = MagicMock(return_value=[])
         mock.db.find_reports_in_coord_range = MagicMock()
 
-        mock.search_reports_by_name(self.filters, None)
+        mock.search_reports_by_name(self.filters, None, None)
 
         for func in [mock.db.object_exists, 
             mock.check_object_updates, 
@@ -250,12 +259,132 @@ class TestSearchByName(ut.TestCase):
         ]:
             func.assert_not_called()
         
-        mock.db.find_reports_by_object.assert_called_with(self.filters, None)
+        mock.db.find_reports_by_object.assert_called_with(self.filters, None, None)
 
         
     def test_invalid_imports(self):
+        '''
+        Case 6: Invalid parameters for function call. 
+        '''
         with self.assertRaises(ValueError):
-            search.search_reports_by_name(None, None)
+            search.search_reports_by_name(None, None, None)
+
+
+#######################################
+# Testing: search_reports_by_coords() #
+#######################################
+class TestSearchByCoords(TestSearch):
+    def test_invalid_params(self):
+        '''
+        Case 1: Invalid parameters for function call. 
+        '''
+        with self.assertRaises(ValueError):
+            search.search_reports_by_coords(None, None, None)
+
+
+    def test_only_searchfilters(self):
+        '''
+        Case 2: Searching using only SearchFilters.
+        '''
+        mock = search 
+
+        mock.qs.query_simbad_by_coords = MagicMock() 
+        mock.db.object_exists = MagicMock() 
+        mock.check_object_updates = MagicMock() 
+        mock.qs.query_simbad_by_name = MagicMock() 
+        mock.db.add_object = MagicMock() 
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[self.sample_report])
+
+        result = mock.search_reports_by_coords(self.filters, None, None)
+
+        mock.qs.query_simbad_by_coords.assert_not_called() 
+        mock.db.object_exists.assert_not_called() 
+        mock.check_object_updates.assert_not_called()
+        mock.qs.query_simbad_by_name.assert_not_called() 
+        mock.db.add_object.assert_not_called()
+        mock.db.find_reports_in_coord_range.assert_called_with(self.filters, None, None, mock.DEFAULT_RADIUS)
+
+        self.assertEqual(result, [self.sample_report])
+
+
+    def test_new_object(self):
+        '''
+        Case 3: SIMBAD search returns results that are not in the local database. 
+        '''
+        mock = search 
+
+        mock.qs.query_simbad_by_coords = MagicMock(return_value={
+            "main_1" : ["alias_1a", "alias_1b", "alias_1c"], 
+            "main_2" : ["alias_2a", "alias_2b"]
+        })
+        mock.db.object_exists = MagicMock(return_value=(False, None))
+        mock.check_object_updates = MagicMock() 
+        mock.qs.query_simbad_by_name = MagicMock(return_value=("name", self.sample_coords)) 
+        mock.db.add_object = MagicMock()
+        mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
+
+        result = mock.search_reports_by_coords(self.filters, None, self.sample_coords) 
+
+        mock.db.object_exists.assert_has_calls([call("main_1"), call("main_2")])
+        mock.qs.query_simbad_by_name.assert_has_calls([call("main_1", False), call("main_2", False)])
+        mock.db.add_object.assert_has_calls([
+            call("name", self.sample_coords, ["alias_1a", "alias_1b", "alias_1c"]), 
+            call("name", self.sample_coords, ["alias_2a", "alias_2b"])])
+        mock.db.find_reports_by_object.assert_has_calls([call(self.filters, None, "main_1"), call(self.filters, None, "main_2")])
+        mock.db.find_reports_in_coord_range.assert_called()
+        mock.check_object_updates.assert_not_called() 
+
+        self.assertIsNotNone(result)
+
+
+    def test_existing_object(self):
+        '''
+        Case 4: SIMBAD search returns results that are in the local database. (object_exits=True)
+        '''
+        mock = search 
+
+        mock.qs.query_simbad_by_coords = MagicMock(return_value={
+            "main_1" : ["alias_1a", "alias_1b", "alias_1c"], 
+            "main_2" : ["alias_2a", "alias_2b"]
+        })
+        mock.db.object_exists = MagicMock(return_value=(True, self.dt_now))
+        mock.check_object_updates = MagicMock() 
+        mock.qs.query_simbad_by_name = MagicMock() 
+        mock.db.add_object = MagicMock()
+        mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
+
+        result = mock.search_reports_by_coords(self.filters, None, self.sample_coords) 
+
+        mock.db.object_exists.assert_has_calls([call("main_1"), call("main_2")])
+        mock.qs.query_simbad_by_name.assert_not_called()
+        mock.db.add_object.assert_not_called()
+        mock.db.find_reports_by_object.assert_has_calls([call(self.filters, None, "main_1"), call(self.filters, None, "main_2")])
+        mock.db.find_reports_in_coord_range.assert_called()
+        mock.check_object_updates.assert_has_calls([call("main_1", self.dt_now), call("main_2", self.dt_now)]) 
+
+        self.assertIsNotNone(result)
+
+
+    def test_no_result(self):
+        '''
+        Case 5: SIMBAD returns no results. 
+        '''
+        mock = search 
+
+        mock.qs.query_simbad_by_coords = MagicMock(return_value=dict()) # Returns empty dict. 
+        mock.db.object_exists = MagicMock() 
+        mock.check_object_updates = MagicMock()
+        mock.db.add_object = MagicMock()
+        mock.db.find_reports_by_object = MagicMock() 
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[]) 
+
+        result = mock.search_reports_by_coords(self.filters, None, self.sample_coords) 
+        self.assertEqual(result, [])
+
+        for f in [mock.db.object_exists, mock.check_object_updates, mock.db.add_object, mock.db.find_reports_by_object]:
+            f.assert_not_called() 
 
 
 if __name__ == '__main__':
