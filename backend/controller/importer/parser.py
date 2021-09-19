@@ -123,60 +123,60 @@ DATE_FORMATS = ['%d %B %Y; %H:%M:%S', # dd mmmm yyyy; hh:mm:ss
 ]
 
 # Regexes for extracting keywords
-KEYWORD_REGEXES = ["radio",
-                  "millimeter",
-                  "sub-millimeter",
-                  "far-infra-red",
-                  "infra-red",
-                  "optical",
-                  "ultra-violet",
-                  "x-ray",
-                  "gamma ray",
-                  "> gev",
-                  "tev",
-                  "vhe",
-                  "uhe",
-                  "neutrinos",
-                  "a comment",
-                  "agn",
-                  "asteroid\(binary\)",
-                  "asteroid",
-                  "binary",
-                  "black hole",
-                  "blazar",
-                  "cataclysmic variable",
-                  "comet",
-                  "cosmic rays",
-                  "direct collapse event",
-                  "exoplanet",
-                  "fast radio burst",
-                  "gamma-ray burst",
-                  "globular cluster",
-                  "gravitational lensing",
-                  "gravitational waves",
-                  "magnetar",
-                  "meteor",
-                  "microlensing event",
-                  "near-earth object",
-                  "neutron star",
-                  "nova",
-                  "planet\(minor\)",
-                  "planet",
-                  "potentially hazardous asteroid",
-                  "pre-main-sequence star",
-                  "pulsar",
-                  "quasar",
-                  "request for observations",
-                  "soft gamma-ray repeater",
-                  "solar system object",
-                  "star",
-                  "supernova remnant",
-                  "supernovae",
-                  "the sun",
-                  "tidal disruption event",
-                  "transient",
-                  "variables",
-                  "young stellar object"
+KEYWORD_REGEXES = ['radio',
+                  'millimeter',
+                  'sub-millimeter',
+                  'far-infra-red',
+                  'infra-red',
+                  'optical',
+                  'ultra-violet',
+                  'x-ray',
+                  'gamma ray',
+                  '> gev',
+                  'tev',
+                  'vhe',
+                  'uhe',
+                  'neutrinos',
+                  'a comment',
+                  'agn',
+                  'asteroid\(binary\)',
+                  'asteroid',
+                  'binary',
+                  'black hole',
+                  'blazar',
+                  'cataclysmic variable',
+                  'comet',
+                  'cosmic rays',
+                  'direct collapse event',
+                  'exoplanet',
+                  'fast radio burst',
+                  'gamma-ray burst',
+                  'globular cluster',
+                  'gravitational lensing',
+                  'gravitational waves',
+                  'magnetar',
+                  'meteor',
+                  'microlensing event',
+                  'near-earth object',
+                  'neutron star',
+                  'nova',
+                  'planet\(minor\)',
+                  'planet',
+                  'potentially hazardous asteroid',
+                  'pre-main-sequence star',
+                  'pulsar',
+                  'quasar',
+                  'request for observations',
+                  'soft gamma-ray repeater',
+                  'solar system object',
+                  'star',
+                  'supernova remnant',
+                  'supernovae',
+                  'the sun',
+                  'tidal disruption event',
+                  'transient',
+                  'variables',
+                  'young stellar object'
 ]
 
 # Parser functions
@@ -256,12 +256,12 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
 
     return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, observation_dates=parse_dates(extract_dates(f'{title} {body.strip()}')), keywords=extract_keywords(f'{title} {subjects} {body.strip()}'), objects=extract_known_aliases(f'{title} {body.strip()}'))
 
-def extract_coords(body_text: str) -> list[str]:
+def extract_coords(text: str) -> list[str]:
     """
-    Finds all coordinates in the body text of ATel report.
+    Finds all coordinates in the title and body of ATel report.
 
     Args:
-        body_text (str): Body text of ATel report.
+        text (str): Title and body of ATel report.
 
     Returns:
         list[str]: List of coordinates found.
@@ -273,7 +273,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
     Parses coordinates that were found into appropriate format so that they can be used to query SIMBAD.
 
     Args:
-        coords (list[str]): List of coordinates found in the body text of ATel report.
+        coords (list[str]): List of coordinates found in the title and body of ATel report.
 
     Returns:
         list[SkyCoord]: List of formatted coordinates.
@@ -312,7 +312,7 @@ def parse_dates(dates: list[str]) -> list[datetime]:
     Parses dates that were found into datetime objects so that they can be inserted easily to the database.
 
     Args:
-        dates (list[str]): List of dates found in the body text of ATel report.
+        dates (list[str]): List of dates found in the title and body of ATel report.
 
     Returns:
         list[datetime]: List of datetime objects representing dates.
@@ -373,12 +373,12 @@ def extract_known_aliases(text: str) -> list[str]:
 
     return list(dict.fromkeys(object_IDs))
 
-def extract_keywords(body_text: str) -> list[str]:
+def extract_keywords(text: str) -> list[str]:
     """
-    Finds all keywords in the body text of ATel report.
+    Finds all keywords in the title, subjects section and body of ATel report.
 
     Args:
-        body_text (str): Body text of ATel report.
+        text (str): Title, subjects section and body of ATel report.
 
     Returns:
         list[str]: List of keywords found.
@@ -387,16 +387,16 @@ def extract_keywords(body_text: str) -> list[str]:
     i = 0
     keywords = []
 
-    # Finds all keywords in the body text of ATel report
+    # Finds all keywords in the title, subjects section and body of ATel report
     for keyword in KEYWORD_REGEXES:
         # Ensures that only full words will be identified as keywords
         regex = f'[^a-z]{keyword}[^a-z]'
 
-        # Attempts to find keyword in the body text using regex
+        # Attempts to find keyword in the title, subjects section and body text using regex
         keyword_regex = re.compile(regex)
-        keyword_found = keyword_regex.search(f' {body_text.lower()} ')
+        keyword_found = keyword_regex.search(f' {text.lower()} ')
 
-        # Adds keyword to list if it is found in the body text
+        # Adds keyword to list if it is found in the title, subjects section and body text
         if(keyword_found is not None):
             keywords.append(FIXED_KEYWORDS[i])
 
