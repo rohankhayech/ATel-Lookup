@@ -26,7 +26,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 from model.ds.report_types import ReportResult
 from model.constants import FIXED_KEYWORDS
 from typing import Tuple
@@ -294,17 +294,26 @@ def search() -> json:
         search_filters = None
     else:
         search_filters = SearchFilters(
-            term_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj
+            term_in, keywords_in, keyword_mode_enum
         )  # creating the search filters object
+
+    if start_date_in == None and end_date_in == None:
+        date_filter = None
+    else:
+        date_filter = DateFilter(start_date_obj, end_date_obj)
 
     if flag == 1:
         if search_mode_in == "name":
             try:
-                reports = search_reports_by_name(search_filters, search_data_in)
+                reports = search_reports_by_name(
+                    search_filters, date_filter, search_data_in
+                )
             except ValueError as e:
                 flag = 0
         elif search_mode_in == "coords":
-            reports = search_reports_by_coords(search_filters, sky_coord, radius)
+            reports = search_reports_by_coords(
+                search_filters, date_filter, sky_coord, radius
+            )
 
     if flag == 1:
         list_result = create_nodes_list(reports)

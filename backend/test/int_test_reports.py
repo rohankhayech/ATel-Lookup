@@ -28,7 +28,7 @@ License Terms and Copyright:
 import os
 from model.ds.report_types import ImportedReport, ReportResult
 from datetime import datetime
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 import unittest
 
 from model.db import db_interface as db
@@ -74,14 +74,14 @@ class TestFR2(unittest.TestCase):
 
         try:
             #check report attributes
-            reports = db.find_reports_by_object(SearchFilters(term="A",start_date=datetime(2017,1,24),end_date=datetime(2017,1,26)))
+            reports = db.find_reports_by_object(SearchFilters(term="A"),DateFilter(start_date=datetime(2017,1,24),end_date=datetime(2017,1,26)))
             expected = ReportResult(
                 atel_num=10000,
                 title="ASASSN-17bd: Discovery of A Probable Supernova in 2MASX J15591858+1336487",
                 authors="J. Brimacombe (Coral Towers Observatory), J. S. Brown, K. Z. Stanek, T. W.-S. Holoien, C. S. Kochanek, J. Shields, T. A. Thompson (Ohio State), B. J. Shappee (Hubble Fellow, Carnegie Observatories), J. L. Prieto (Diego Portales; MAS), D. Bersier (LJMU), Subo Dong, S. Bose, Ping Chen (KIAA-PKU), R. A. Koff (Antelope Hills Observatory), G. Masi (Virtual Telescope Project, Ceccano, Italy), R. S. Post (Post Astronomy), G. Stone (Sierra Remote Observatories)",
                 submission_date=datetime(2017,1,25,5,0),
                 body=expected_body)
-            self.assertIsNotNone(reports)
+            self.assertNotEqual(reports,[])
             self.assertTrue(expected in reports, str(reports))
         finally:
             #delete report
