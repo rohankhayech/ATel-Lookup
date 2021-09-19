@@ -540,7 +540,7 @@ def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, c
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    return find_reports_by_object(filters, date_range) # stub
+    return [] # stub
 
     #TODO: Check in coord range.
 
