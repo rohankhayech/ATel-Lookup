@@ -1,12 +1,17 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
 import { Moment } from 'moment';
+import { EMPTY } from 'rxjs';
+import { tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Coordinates } from '../coordinates.interface';
 import { Match } from '../match.enum';
 import { Metadata } from '../metadata.interface';
 import { Parameters } from '../parameters.interface';
 import { SearchMode } from '../search-mode.enum';
+import { SearchService } from '../search.service';
+import { Telegram } from '../telegram.interface';
 
 interface Keywords {
   [key: string]: boolean;
@@ -18,7 +23,7 @@ interface Keywords {
   styleUrls: ['./search-form.component.scss'],
 })
 export class SearchFormComponent implements OnInit {
-  @Output() public search = new EventEmitter<Parameters>();
+  @Output() public search = new EventEmitter<Telegram[]>();
 
   public SearchMode = SearchMode;
   public Match = Match;
@@ -36,7 +41,11 @@ export class SearchFormComponent implements OnInit {
   public start?: Moment;
   public end?: Moment;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private searchService: SearchService,
+    private snackBar: MatSnackBar
+  ) {}
 
   ngOnInit() {
     this.fetchMetadata();
@@ -55,9 +64,14 @@ export class SearchFormComponent implements OnInit {
   }
 
   submit() {
-    const keywords = this.metadata?.keywords.filter(
-      (keyword) => this.keywords[keyword]
-    );
+    if (!this.valid) {
+      this.snackBar.open(
+        'You must input either a free-text search query, object name, coordinates or keywords',
+        'Close',
+        { duration: 8000 }
+      );
+      return EMPTY;
+    }
 
     const coordinates: Coordinates = {
       ra: +this.ra,
@@ -71,11 +85,34 @@ export class SearchFormComponent implements OnInit {
       name: this.name,
       coordinates,
       match: this.match,
-      keywords,
+      keywords: this.keywordList,
       start: this.start,
       end: this.end,
     };
 
-    this.search.emit(parameters);
+    return this.searchService.search(parameters).pipe(
+      tap((telegrams) => this.search.emit(telegrams)),
+      tap((telegrams) => {
+        if (telegrams.length === 0) {
+          this.snackBar.open('No ATels matched your query', 'Close', {
+            duration: 8000,
+          });
+        }
+      })
+    );
+  }
+
+  get valid() {
+    return (
+      this.query ||
+      this.keywordList?.length ||
+      (this.mode === SearchMode.Coordinate
+        ? this.ra && this.declination && this.radius
+        : this.name)
+    );
+  }
+
+  get keywordList() {
+    return this.metadata?.keywords.filter((keyword) => this.keywords[keyword]);
   }
 }
