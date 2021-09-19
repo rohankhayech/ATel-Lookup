@@ -30,29 +30,21 @@ def usage():
 
 
 def retrieve(name: str, get_aliases: bool):
-    name, coords, aliases = qs.query_simbad_by_name(name, False)
+    name, coords, aliases = qs.query_simbad_by_name(name, get_aliases)
     print(
         " MAIN_ID:", name, "\n", 
         "RA:     ", coords.ra.hms, "\n", 
         "DEC:    ", coords.dec.dms, "\n", 
+        "NumAls: ", len(aliases),
         "aliases:", aliases
     )
 
 
-def main(argv: list[str]):
-    get_aliases = False 
-
-    if len(argv) not in [2, 3]:
-        usage() 
-    else:
-        name = argv[1] 
-        if len(argv) == 3:
-            if argv[2] == '-a':
-                get_aliases = True 
-            else:
-                usage() 
-        retrieve(name, get_aliases)
+def main():
+    while (True):
+        name = input('Enter name:') 
+        retrieve(name, True)
 
 
 if __name__ == '__main__':
-    main(sys.argv) 
+    main() 
