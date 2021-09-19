@@ -24,6 +24,7 @@ License Terms and Copyright:
 import os
 import unittest
 
+from model.ds.alias_result import AliasResult
 from model.ds.report_types import ImportedReport
 from model.db.db_interface import ExistingReportError
 from controller.importer.importer import *
@@ -128,13 +129,15 @@ class TestImporterFunctions(unittest.TestCase):
 # Parser functions
 class TestParserFunctions(unittest.TestCase):
     # Tests parse_report function
+    @mock.patch('controller.importer.parser.extract_known_aliases')
     @mock.patch('controller.importer.parser.extract_keywords')
     @mock.patch('controller.importer.parser.parse_dates')
     @mock.patch('controller.importer.parser.extract_dates')
-    def test_html_parser(self, mock_extract_dates, mock_parse_dates, mock_extract_keywords):
+    def test_html_parser(self, mock_extract_dates, mock_parse_dates, mock_extract_keywords, mock_extract_known_aliases):
         mock_extract_dates.return_value = []
         mock_parse_dates.return_value = []
         mock_extract_keywords.return_value = []
+        mock_extract_known_aliases.return_value = []
 
         # Parses HTML of ATel #1000
         f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
@@ -233,6 +236,32 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(parse_dates(['1 january 1997 23:55:40', '15 april 2009; 11:34', '09 september 1983']), [datetime(year=1997, month=1, day=1, hour=23, minute=55, second=40), datetime(year=2009, month=4, day=15, hour=11, minute=34), datetime(year=1983, month=9, day=9)])
         self.assertCountEqual(parse_dates(['16 nov 1964 8:48:01', '30 oct 1984; 09:53', '25 mar 2004']), [datetime(year=1964, month=11, day=16, hour=8, minute=48, second=1), datetime(year=1984, month=10, day=30, hour=9, minute=53), datetime(year=2004, month=3, day=25)])
         self.assertCountEqual(parse_dates(['february 17, 2014; 10:22:40', 'december 25, 1998; 17:23', 'june 13, 2020']), [datetime(year=2014, month=2, day=17, hour=10, minute=22, second=40), datetime(year=1998, month=12, day=25, hour=17, minute=23), datetime(year=2020, month=6, day=13)])
+    
+    # Tests extract_known_aliases function
+    @mock.patch('controller.importer.parser.get_all_aliases')
+    def test_aliases_extractor(self, mock_get_all_aliases):
+        mock_get_all_aliases.return_value = []
+
+        self.assertCountEqual(extract_known_aliases('This is a test'), [])
+        self.assertCountEqual(extract_known_aliases('Double check that an empty list is returned'), [])
+
+        mock_get_all_aliases.return_value = [AliasResult('Test', 'x'), AliasResult('alias-for-object', 'object'), AliasResult('another alias', 'object'), AliasResult('test', 'y')]
+
+        self.assertCountEqual(extract_known_aliases('No alias to be found here'), [])
+        self.assertCountEqual(extract_known_aliases('This is a test'), ['x', 'y'])
+        self.assertCountEqual(extract_known_aliases('Test for extracting alias-for-object'), ['x', 'object', 'y'])
+        self.assertCountEqual(extract_known_aliases('teST for x and tESt for y'), ['x', 'y'])
+        self.assertCountEqual(extract_known_aliases('testing should return empty list'), [])
+        self.assertCountEqual(extract_known_aliases('There is another alias for object which is ALIAS-FOR-OBJECT'), ['object'])
+        self.assertCountEqual(extract_known_aliases('alias-For-OBject is being tested'), ['object'])
+        self.assertCountEqual(extract_known_aliases('No such thing as another weird alias for x (test)'), ['x', 'y'])
+        self.assertCountEqual(extract_known_aliases('   AnOtheR ALIas'), ['object'])
+        self.assertCountEqual(extract_known_aliases('another alias   '), ['object'])
+        self.assertCountEqual(extract_known_aliases('6object should return empty list'), [])
+        self.assertCountEqual(extract_known_aliases('another alias is test10'), ['object'])
+        self.assertCountEqual(extract_known_aliases('x'), ['x'])
+        self.assertCountEqual(extract_known_aliases('x, y and alias-for-object'), ['x', 'object', 'y'])
+        self.assertCountEqual(extract_known_aliases('object and y'), ['object', 'y'])
 
     # Tests extract_keywords function
     def test_keywords_extractor(self):
