@@ -181,8 +181,8 @@ def add_report(report: ImportedReport):
 
         # Add observation dates
         ob_date_query = ("insert into ObservationDates"
-                            "(atelNumFK, obDate) "
-                            "values (%s, %s)")
+                         "(atelNumFK, obDate) "
+                         "values (%s, %s)")
         cur: MySQLCursor = cn.cursor()
         for date in report.observation_dates:
             try:
@@ -195,13 +195,14 @@ def add_report(report: ImportedReport):
                 cur.close()
             
 
-        #Convert and add coordinates.
+        # Convert and add coordinates.
         coords_query = ("insert into ReportCoords"
-                         "(atelNumFK, ra, declination) "
-                         "values (%s, %s)")
+                        "(atelNumFK, ra, declination) "
+                        "values (%s, %s)")
         cur: MySQLCursor = cn.cursor()
         for coord in report.coordinates:
             try:
+                #TODO - check correct coord format
                 coords_data = (report.atel_num, round(coord.ra.hourangle.item(), 10), round(coord.dec.deg.item(), 10))
                 cur.execute(coords_query, coords_data)
             except mysql.connector.Error as e:
@@ -210,7 +211,33 @@ def add_report(report: ImportedReport):
                 cn.commit()
                 cur.close()
 
-        #TODO: Add referenced reports/by.
+        # Add referenced reports
+        ref_report_query = ("insert into ReportRefs"
+                        "(atelNumFK, refReportFK) "
+                        "values (%s, %s)")
+        cur: MySQLCursor = cn.cursor()
+        for other_report in report.referenced_reports:
+            try:
+                ref_report_data = (report.atel_num, other_report)
+                cur.execute(ref_report_query, ref_report_data)
+            except mysql.connector.Error as e:
+                raise e
+            finally:
+                cn.commit()
+                cur.close()
+
+        # Add referenced by
+        cur: MySQLCursor = cn.cursor()
+        for other_report in report.referenced_by:
+            try:
+                ref_by_data = (other_report, report.atel_num)
+                cur.execute(ref_report_query, ref_by_data)
+            except mysql.connector.Error as e:
+                raise e
+            finally:
+                cn.commit()
+                cur.close()
+
     except mysql.connector.Error as e:
         raise e
     finally:
