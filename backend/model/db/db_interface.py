@@ -493,14 +493,14 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    if (filters is None):
-        return [] #stubbed until object search is implemented
-
     if (filters or object_name):
         cn = _connect()
         cur:MySQLCursor = cn.cursor()
 
-        query, data = _build_report_name_query(filters, date_range, object_name)
+        try:
+            query, data = _build_report_name_query(filters, date_range, object_name)
+        except (ObjectNotFoundError): # if object name is not a valid alias/id, return empty list.
+            return []
 
         reports = []
 

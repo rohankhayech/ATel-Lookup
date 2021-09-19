@@ -433,6 +433,63 @@ class TestObjects(unittest.TestCase):
         self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports right join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data, ("test_main_id", df.start_date, df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
 
+    def testFindByObject(self):
+        report = ImportedReport(20001, "db_test_report", "db_test_authors_text","db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"], objects=["test_main_id"])
+        report2 = ImportedReport(20000, "db_test_report", "db_test_authors_text", "db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"])
+
+        db.add_report(report2)
+        db.add_report(report)
+
+        try:
+            #test search main id
+            results = db.find_reports_by_object(object_name="test_main_id")
+            result = results[0]
+            self.assertEqual(report, result)
+
+            #test search alias
+            results = db.find_reports_by_object(object_name="test-alias-1")
+            result = results[0]
+            self.assertEqual(report, result)
+
+            #test search invalid object
+            results = db.find_reports_by_object(object_name="test-alias-3")
+            self.assertEqual(results, [])
+
+            #test full query
+            results = db.find_reports_by_object(
+                SearchFilters(
+                    term="B",
+                    keywords=["star", "radio"],
+                    keyword_mode=KeywordMode.ALL),
+                DateFilter(
+                    start_date=datetime(2021, 8, 11),
+                    end_date=datetime(2021, 8, 13)
+                ),
+                object_name="test_main_id")
+            result = results[0]
+            self.assertEqual(report, result)
+
+            #test full query - invalid object
+            results = db.find_reports_by_object(
+                SearchFilters(
+                    term="B",
+                    keywords=["star", "radio"],
+                    keyword_mode=KeywordMode.ALL),
+                DateFilter(
+                    start_date=datetime(2021, 8, 11),
+                    end_date=datetime(2021, 8, 13)
+                ),
+                object_name="test-alias-3")
+            self.assertEqual(results,[])
+
+        finally:
+            #delete report
+            cn = db._connect()
+            cur: MySQLCursor = cn.cursor()
+            cur.execute("delete from Reports where atelNum = 20001 or atelNum = 20000")
+            cur.close()
+            cn.commit()
+            cn.close()
 
     def tearDown(self):
         cn = db._connect()
