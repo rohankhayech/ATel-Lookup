@@ -578,7 +578,8 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
             cur.close()
             cn.close()
 
-        return reports
+        # Populate each returned report with their referenced report and return the list of results.
+        return _populate_referenced_reports(reports)
     else: # If no parameters given, return empty list.
         return []
 
@@ -863,6 +864,34 @@ def _build_join_clause(object_name:str = None)->tuple[str,tuple]:
         join_data = ()
 
     return join_clause, join_data
+
+def _populate_referenced_reports(reports:list[ReportResult])->list[ReportResult]:
+    """
+    Populates the referenced reports fields of each returned report in the given list from the database.
+
+    Args:
+        reports (list[ReportResult]): A list of reports returned from the database.
+
+    Returns:
+        list[ReportResult]: The same list of reports with the referenced reports field populated from the database.
+    """
+    cn = _connect()
+
+    query = ("select refReportFK "
+             "from ReportRefs "
+             "where atelNumFK = %s;")
+
+    for report in reports:
+        cur:MySQLCursor = cn.cursor()
+        try:
+            cur.execute(query,(report.atel_num,))
+            results = cur.fetchall()
+            for result in results:
+                report.add_referenced_report(int(result[0]))
+        finally:
+            cur.close()
+
+    return reports
 
 def _get_object_id(alias:str)->str:
     """
