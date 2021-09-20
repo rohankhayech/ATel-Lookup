@@ -211,7 +211,7 @@ def search() -> json:
     list_result = [], []
     report_dicts = []
 
-    term_in = None
+    term_in = ""
     search_mode_in = None
     search_data_in = None
     keywords_in = None
@@ -223,7 +223,7 @@ def search() -> json:
     ra_deg = 0.0
     dec_deg = 0.0
 
-    term_in = request.json.get("term", None)
+    term_in = request.json.get("term", "")
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
     keywords_in = request.json.get("keywords", None)
@@ -244,7 +244,7 @@ def search() -> json:
         search_data_in == None
         and keywords_in == None
         and keyword_mode_in == None
-        and term_in == None
+        and term_in == ""
     ):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
@@ -306,7 +306,7 @@ def search() -> json:
         elif keyword_mode_in == "none":
             keyword_mode_enum = KeywordMode.NONE
 
-    if term_in == None and keywords_in == None:
+    if term_in == "" and keywords_in == None:
         search_filters = None
     else:
         search_filters = SearchFilters(
