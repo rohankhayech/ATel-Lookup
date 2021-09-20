@@ -16,6 +16,8 @@ import { Telegram } from '../telegram.interface';
 export class TimelineComponent implements OnInit, OnChanges {
   @Input() public telegrams: Telegram[] | undefined = [];
 
+  private loaded = false;
+
   constructor() {
     const resize$ = fromEvent(window, 'resize');
     resize$.subscribe(() => this.drawChart());
@@ -23,14 +25,23 @@ export class TimelineComponent implements OnInit, OnChanges {
 
   ngOnInit() {
     google.charts.load('current', { packages: ['timeline'] });
-    google.charts.setOnLoadCallback(() => this.drawChart());
+    google.charts.setOnLoadCallback(() => this.initialiseChart());
   }
 
   ngOnChanges() {
     this.drawChart();
   }
 
+  private initialiseChart() {
+    this.loaded = true;
+    this.drawChart();
+  }
+
   private drawChart() {
+    if (!this.loaded) {
+      return;
+    }
+
     var container = document.getElementById('timeline') as Element;
     var chart = new google.visualization.Timeline(container);
     var dataTable = new google.visualization.DataTable();
