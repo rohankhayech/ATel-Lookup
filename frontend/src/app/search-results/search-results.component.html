@@ -1,4 +1,4 @@
-<div>
+<div *ngIf="result">
   <div>
     <!-- Timeline -->
     <app-timeline
@@ -18,13 +18,19 @@
 
     <div>
       <!-- Network Graph -->
-      <h3>Related Reports</h3>
-      <app-network-graph
-        *ngIf="result"
-        [nodes]="result.nodes"
-        [links]="result.links"
-        (selectionChange)="scrollToTelegram($event)"
-      ></app-network-graph>
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Related Reports</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <app-network-graph
+            [nodes]="result.nodes"
+            [links]="result.links"
+            (selectionChange)="scrollToTelegram($event)"
+          ></app-network-graph>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
 </div>
