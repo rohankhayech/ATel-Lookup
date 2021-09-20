@@ -37,7 +37,7 @@ export class NetworkGraphComponent implements OnChanges {
 
   // TODO: allow for dynamic width/height
   private width = 1000;
-  private height = 400;
+  private height = 200;
 
   constructor() {}
 

@@ -41,7 +41,7 @@ export class SearchService {
 
     for (const source of nodes) {
       for (const target of nodes) {
-        if (Math.random() > 0.4) {
+        if (Math.random() > 0.8) {
           const link = { source: source.id, target: target.id };
           links.push(link);
         }
