@@ -274,7 +274,7 @@ class TestObjects(unittest.TestCase):
         cur.execute("select * from Objects where objectID like 'test_main_id'")
         result = cur.fetchone()
         self.assertEqual(result[0], "test_main_id")
-        self.assertAlmostEqual(float(result[1]), self.ex_coords.ra.hourangle.item(),10)
+        self.assertAlmostEqual(float(result[1]), self.ex_coords.ra.deg.item(),10)
         self.assertAlmostEqual(float(result[2]), self.ex_coords.dec.deg.item(),10)
 
         cur.execute("select * from Aliases where objectIDFK like 'test_main_id'")
@@ -346,7 +346,7 @@ class TestObjects(unittest.TestCase):
 
     def testGetObjectCoords(self):
         coords = db.get_object_coords("test-alias-1")
-        self.assertAlmostEqual(coords.ra.deg.item(), self.ex_coords.ra.hourangle.item())
+        self.assertAlmostEqual(coords.ra.deg.item(), self.ex_coords.ra.deg.item())
         self.assertAlmostEqual(coords.dec.deg.item(), self.ex_coords.dec.deg.item())
 
         with self.assertRaises(db.ObjectNotFoundError):

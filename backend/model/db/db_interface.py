@@ -232,10 +232,7 @@ def get_all_aliases() -> list[AliasResult]:
         cur.close()
         cn.close()
 
-    if len(aliases) == 0:
-        return None
-    else:
-        return aliases
+    return aliases
 
 
 def get_next_atel_num() -> int:
@@ -341,7 +338,7 @@ def add_object(object_id: str, coords: SkyCoord, aliases: list[str]=[]):
                 " (objectID, ra, declination)" 
                 " values (%s, %s, %s)")
 
-        data = (object_id, round(coords.ra.hourangle.item(), 10), round(coords.dec.deg.item(),10))
+        data = (object_id, round(coords.ra.deg, 10), round(coords.dec.deg, 10))
 
         # execute query and handle errors
         try:
