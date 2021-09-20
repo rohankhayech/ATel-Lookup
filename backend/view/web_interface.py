@@ -125,21 +125,27 @@ def valid_radius(rad: str) -> bool:
     return bool_response 
 
 
-def valid_keyword_mode(keyword_mode: KeywordMode) -> bool: 
+def parse_keyword_mode(keyword_mode: str) -> KeywordMode: 
     '''To check that the user has selected either “none”, “any” or “all” as a 
     keyword mode for the search. These options are in the form of an enumeration. 
 
     Args:
-        keyword_mode (enum): an enum of type KeywordMode
+        keyword_mode (str): an string representing 
     
     Returns:
-        bool: A Boolean representing if a valid keyword mode has been chosen
+        KeywordMode: enum representing a keywordmode
 
     '''
+    keyword_mode_enum_out = KeywordMode.ANY
+    
+    if keyword_mode == "all":
+        keyword_mode_enum_out = KeywordMode.ALL
+    elif keyword_mode == "any":
+        keyword_mode_enum_out = KeywordMode.ANY
+    elif keyword_mode == "none":
+        keyword_mode_enum_out = KeywordMode.NONE
 
-    # This function seems redundant now, will confirm and then remove
-
-    return True 
+    return keyword_mode_enum_out 
 
 
 def valid_atel_num(atel_num: int) -> bool:

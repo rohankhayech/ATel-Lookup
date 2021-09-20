@@ -299,12 +299,10 @@ def search() -> json:
 
     keyword_mode_enum = KeywordMode.ANY
     if keyword_mode_in != None:
-        if keyword_mode_in == "all":
-            keyword_mode_enum = KeywordMode.ALL
-        elif keyword_mode_in == "any":
-            keyword_mode_enum = KeywordMode.ANY
-        elif keyword_mode_in == "none":
-            keyword_mode_enum = KeywordMode.NONE
+        if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none":
+            parse_keyword_mode(keyword_mode_in)
+        else:
+            flag = 0
 
     if term_in == "" and keywords_in == None:
         search_filters = None
