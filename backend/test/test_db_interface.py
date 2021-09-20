@@ -157,11 +157,12 @@ class TestReports(unittest.TestCase):
             results = cur.fetchall()
             self.assertIn((20002,),results)
 
-            #
+            # test linking objects
             cur.execute("select objectIDFK from ObjectRefs where atelNumFK = 19999")
             results = cur.fetchall()
             self.assertIn(("test_main_id",),results)
 
+            #test linking coords
             cur.execute("select ra, declination from ReportCoords where atelNumFK = 19999")
             results = cur.fetchall()
             result = results[0]
