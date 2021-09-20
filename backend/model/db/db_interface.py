@@ -162,60 +162,61 @@ def add_report(report: ImportedReport):
                 raise e
         finally:
             cn.commit()
-            cur.close()
             
         # Add object relations
         object_ref_query = ("insert into ObjectRefs"
                             "(atelNumFK, objectIDFK) "
                             "values (%s, %s)")
-        cur: MySQLCursor = cn.cursor()
         for object_id in report.objects:
             try:  
                 object_ref_data = (report.atel_num, object_id)
                 cur.execute(object_ref_query, object_ref_data)
             except mysql.connector.Error as e:
-                raise e
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
             finally:
                 cn.commit()
-                cur.close()
 
         # Add observation dates
         ob_date_query = ("insert into ObservationDates"
                          "(atelNumFK, obDate) "
                          "values (%s, %s)")
-        cur: MySQLCursor = cn.cursor()
         for date in report.observation_dates:
             try:
                 ob_date_data = (report.atel_num, date)
                 cur.execute(ob_date_query, ob_date_data)
             except mysql.connector.Error as e:
-                raise e
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
             finally:
                 cn.commit()
-                cur.close()
             
 
         # Convert and add coordinates.
         coords_query = ("insert into ReportCoords"
                         "(atelNumFK, ra, declination) "
-                        "values (%s, %s)")
-        cur: MySQLCursor = cn.cursor()
+                        "values (%s, %s, %s)")
         for coord in report.coordinates:
             try:
                 #TODO - check correct coord format
-                coords_data = (report.atel_num, round(coord.ra.hourangle.item(), 10), round(coord.dec.deg.item(), 10))
+                coords_data = (report.atel_num, round(coord.ra.deg, 10), round(coord.dec.deg, 10))
                 cur.execute(coords_query, coords_data)
             except mysql.connector.Error as e:
-                raise e
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate coordinates
+                else:
+                    raise e
             finally:
                 cn.commit()
-                cur.close()
 
         # Add referenced reports
         ref_report_query = ("insert into ReportRefs"
                         "(atelNum, refReport) "
                         "values (%s, %s)")
-        cur: MySQLCursor = cn.cursor()
         for other_report in report.referenced_reports:
             try:
                 ref_report_data = (report.atel_num, other_report)
@@ -227,10 +228,8 @@ def add_report(report: ImportedReport):
                     raise e
             finally:
                 cn.commit()
-                cur.close()
 
         # Add referenced by
-        cur: MySQLCursor = cn.cursor()
         for other_report in report.referenced_by:
             try:
                 ref_by_data = (other_report, report.atel_num)
@@ -242,11 +241,11 @@ def add_report(report: ImportedReport):
                     raise e
             finally:
                 cn.commit()
-                cur.close()
 
     except mysql.connector.Error as e:
         raise e
     finally:
+        cur.close()
         cn.close()
 
 
