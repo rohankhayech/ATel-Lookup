@@ -78,7 +78,7 @@ export class SearchService {
     return {
       id: telegram.atel_num,
       title: telegram.title,
-      date: telegram.submission_date,
+      date: new Date(telegram.submission_date),
       authors: telegram.authors,
       body: telegram.body,
       referenced: telegram.referenced_reports,
