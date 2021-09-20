@@ -1,7 +1,10 @@
 <div>
   <div>
     <!-- Timeline -->
-    <app-timeline [telegrams]="result?.telegrams"></app-timeline>
+    <app-timeline
+      [telegrams]="result?.telegrams"
+      (selectionChange)="scrollToTelegram($event)"
+    ></app-timeline>
   </div>
 
   <div class="grid">

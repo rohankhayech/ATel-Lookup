@@ -1,9 +1,10 @@
 import {
   Component,
-  HostListener,
+  EventEmitter,
   Input,
   OnChanges,
   OnInit,
+  Output,
 } from '@angular/core';
 import { fromEvent } from 'rxjs';
 import { Telegram } from '../telegram.interface';
@@ -14,6 +15,8 @@ import { Telegram } from '../telegram.interface';
   styleUrls: ['./timeline.component.scss'],
 })
 export class TimelineComponent implements OnInit, OnChanges {
+  @Output() public selectionChange = new EventEmitter<number>();
+
   @Input() public telegrams: Telegram[] | undefined = [];
 
   private loaded = false;
@@ -54,6 +57,7 @@ export class TimelineComponent implements OnInit, OnChanges {
 
       rows.push([
         'Report',
+        telegram.id,
         telegram.authors,
         tooltip,
         telegram.date,
@@ -62,6 +66,7 @@ export class TimelineComponent implements OnInit, OnChanges {
     }
 
     dataTable.addColumn({ type: 'string', id: 'Type' });
+    dataTable.addColumn({ type: 'number', role: 'id' });
     dataTable.addColumn({ type: 'string', id: 'Name' });
     dataTable.addColumn({ type: 'string', role: 'tooltip' });
     dataTable.addColumn({ type: 'date', id: 'Start' });
@@ -71,6 +76,12 @@ export class TimelineComponent implements OnInit, OnChanges {
     var options = {
       timeline: { groupByRowLabel: true },
     };
+
+    google.visualization.events.addListener(chart, 'select', () => {
+      const selection = chart.getSelection();
+      const id = dataTable.getValue(selection[0].row!, 1);
+      this.selectionChange.emit(id);
+    });
 
     chart.draw(dataTable, options);
   }
