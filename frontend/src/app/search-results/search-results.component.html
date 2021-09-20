@@ -1,20 +1,30 @@
-<!-- Timeline -->
-<app-timeline [telegrams]="result?.telegrams"></app-timeline>
+<div>
+  <div>
+    <!-- Timeline -->
+    <app-timeline [telegrams]="result?.telegrams"></app-timeline>
+  </div>
 
-<!-- Network Graph -->
-<h3>Related Reports</h3>
-<app-network-graph
-  *ngIf="result"
-  [nodes]="result.nodes"
-  [links]="result.links"
-  (selectionChange)="scrollToTelegram($event)"
-></app-network-graph>
+  <div class="grid">
+    <div>
+      <!-- Reports -->
+      <app-telegram-card
+        *ngFor="let telegram of result?.telegrams"
+        [telegram]="telegram"
+      ></app-telegram-card>
+    </div>
 
-<!-- Reports -->
-<app-telegram-card
-  *ngFor="let telegram of result?.telegrams"
-  [telegram]="telegram"
-></app-telegram-card>
+    <div>
+      <!-- Network Graph -->
+      <h3>Related Reports</h3>
+      <app-network-graph
+        *ngIf="result"
+        [nodes]="result.nodes"
+        [links]="result.links"
+        (selectionChange)="scrollToTelegram($event)"
+      ></app-network-graph>
+    </div>
+  </div>
+</div>
 
 <!-- Floating Button -->
 <button
