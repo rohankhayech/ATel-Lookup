@@ -26,7 +26,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 
-from model.ds.search_filters import SearchFilters
+from model.ds.search_filters import SearchFilters, DateFilter
 from model.ds.report_types import ReportResult
 from model.constants import FIXED_KEYWORDS
 from typing import Tuple
@@ -86,6 +86,7 @@ Author:
     Greg Lahaye
 """
 
+
 @jwt.user_identity_loader
 def user_identity_lookup(user):
     return user
@@ -142,6 +143,7 @@ Web Interface Endpoints
 Author:
     Tully Slattery
 """
+
 
 @app.route("/import", methods=["POST"])
 def imports() -> json:
@@ -238,7 +240,12 @@ def search() -> json:
         end_date_obj = parse_date_input(end_date_in)
     
 
-    if search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None: # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
+    if (
+        search_data_in == None
+        and keywords_in == None
+        and keyword_mode_in == None
+        and term_in == None
+    ):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
         if start_date_obj > datetime.now() and end_date_obj > datetime.now():
@@ -247,14 +254,20 @@ def search() -> json:
     if search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
         print(search_mode_in)
-    elif keyword_mode_in != "none" and keyword_mode_in != "all" and keyword_mode_in != "any" and keyword_mode_in != None:
+    elif (
+        keyword_mode_in != "none"
+        and keyword_mode_in != "all"
+        and keyword_mode_in != "any"
+        and keyword_mode_in != None
+    ):
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
         if start_date_obj > end_date_obj or end_date_obj < start_date_obj:
             flag = 0
-    
 
-    if search_mode_in == "coords": # if the search mode is "coords" need to make sure there is three values given
+    if (
+        search_mode_in == "coords"
+    ):  # if the search mode is "coords" need to make sure there is three values given
         if len(search_data_in) == 3:
             ra = search_data_in[0]
             dec = search_data_in[1]
@@ -296,16 +309,27 @@ def search() -> json:
     if term_in == None and keywords_in == None:
         search_filters = None
     else:
-        search_filters = SearchFilters(term_in, keywords_in, keyword_mode_enum, start_date_obj, end_date_obj) # creating the search filters object 
+        search_filters = SearchFilters(
+            term_in, keywords_in, keyword_mode_enum
+        )  # creating the search filters object
+
+    if start_date_in == None and end_date_in == None:
+        date_filter = None
+    else:
+        date_filter = DateFilter(start_date_obj, end_date_obj)
 
     if flag == 1:
         if search_mode_in == "name":
             try:
-                reports = search_reports_by_name(search_filters, search_data_in)
+                reports = search_reports_by_name(
+                    search_filters, date_filter, search_data_in
+                )
             except ValueError as e:
                 flag = 0
         elif search_mode_in == "coords":
-            reports = search_reports_by_coords(search_filters, sky_coord, radius)
+            reports = search_reports_by_coords(
+                search_filters, date_filter, sky_coord, radius
+            )
 
     if flag == 1:
         list_result = create_nodes_list(reports)
