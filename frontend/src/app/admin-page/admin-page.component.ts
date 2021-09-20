@@ -1,4 +1,7 @@
 import { Component } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { ImportService } from '../import.service';
 
 @Component({
@@ -9,13 +12,45 @@ import { ImportService } from '../import.service';
 export class AdminPageComponent {
   public id = 0;
 
-  constructor(private importService: ImportService) {}
+  public loadingAuto = false;
+  public loadingManual = false;
+
+  constructor(
+    private importService: ImportService,
+    private snackBar: MatSnackBar
+  ) {}
 
   importAll() {
-    this.importService.importAll().subscribe();
+    return this.importService.importAll().pipe(
+      tap(() =>
+        this.snackBar.open('ATels successfully imported', 'Close', {
+          duration: 8000,
+        })
+      ),
+      catchError((error) => {
+        this.snackBar.open('Failed to import ATels', 'Close', {
+          duration: 8000,
+        });
+
+        return throwError(error);
+      })
+    );
   }
 
   import() {
-    this.importService.import(this.id).subscribe();
+    return this.importService.import(this.id).pipe(
+      tap(() =>
+        this.snackBar.open('ATel successfully imported', 'Close', {
+          duration: 8000,
+        })
+      ),
+      catchError((error) => {
+        this.snackBar.open('Failed to import ATel', 'Close', {
+          duration: 8000,
+        });
+
+        return throwError(error);
+      })
+    );
   }
 }
