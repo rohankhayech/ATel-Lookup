@@ -35,10 +35,6 @@ export class NetworkGraphComponent implements OnChanges {
 
   private svg?: Selection<SVGSVGElement, unknown, HTMLElement, any>;
 
-  // TODO: allow for dynamic width/height
-  private width = 1000;
-  private height = 200;
-
   constructor() {}
 
   ngOnChanges() {
@@ -48,6 +44,16 @@ export class NetworkGraphComponent implements OnChanges {
   generate() {
     this.clear();
 
+    this.svg = d3
+      .select('#network-graph')
+      .append('svg')
+      .attr('width', '100%')
+      .attr('height', '100%');
+
+    const rect = this.svg.node()!.getBoundingClientRect();
+    const width = rect?.width;
+    const height = rect?.height;
+
     const simulation = d3
       .forceSimulation<Node>(this.nodes)
       .force(
@@ -55,12 +61,7 @@ export class NetworkGraphComponent implements OnChanges {
         d3.forceLink<Node, Link>(this.links).id((d) => d.id)
       )
       .force('charge', d3.forceManyBody())
-      .force('center', d3.forceCenter(this.width / 2, this.height / 2));
-
-    this.svg = d3
-      .select('#network-graph')
-      .append('svg')
-      .attr('viewBox', [0, 0, this.width, this.height] as any);
+      .force('center', d3.forceCenter(width / 2, height / 2));
 
     const link = this.svg
       .append('g')
