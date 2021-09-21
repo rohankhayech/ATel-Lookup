@@ -46,6 +46,21 @@ from controller.search import query_simbad as qs
 UPDATE_OBJECT_DAYS: int = 60 
 
 
+#####################
+# Private functions #
+#####################
+
+
+def _sort_reports(reports: list[ReportResult]):
+    ''' Sort a list of ReportResult objects in reverse chronological order. 
+        In-place sort.
+
+    Args:
+        reports (list[ReportResult]): the reports
+    '''
+    reports.sort(key=lambda x: x.submission_date, reverse=True)
+
+
 ####################
 # Public functions #
 ####################
@@ -110,7 +125,8 @@ def search_reports_by_coords(search_filters: SearchFilters,
         if report not in reports: 
             reports.append(report)
 
-    return reports 
+    _sort_reports(reports)
+    return reports
 
 
 def search_reports_by_name(
@@ -179,6 +195,7 @@ def search_reports_by_name(
                 if not additional_report in reports:
                     reports.append(additional_report)
 
+    _sort_reports(reports)
     return reports
 
 
