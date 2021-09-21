@@ -32,7 +32,7 @@ from model.db.db_interface import _connect
 
 # Constants
 
-_LATEST_SCHEMA_VERSION: int = 2
+_LATEST_SCHEMA_VERSION: int = 4
 """ 
 Version number of the latest database schema.
 This must be increased every time the schema is upgraded.
@@ -138,6 +138,12 @@ def _create_db():
     user_table = _read_table("AdminUsers")
     reports_table = _read_table("Reports")
     metadata_table = _read_table("Metadata")
+    objects_table = _read_table("Objects")
+    object_refs_table = _read_table("ObjectRefs")
+    aliases_table = _read_table("Aliases")
+    report_refs_table = _read_table("ReportRefs")
+    report_coords_table = _read_table("ReportCoords")
+    ob_dates_table = _read_table("ObservationDates")
 
     # Add keywords to reports schema
     sep = "', '"
@@ -149,6 +155,12 @@ def _create_db():
         cur.execute(user_table)
         cur.execute(reports_table)
         cur.execute(metadata_table)
+        cur.execute(objects_table)
+        cur.execute(object_refs_table)
+        cur.execute(aliases_table)
+        cur.execute(report_refs_table)
+        cur.execute(report_coords_table)
+        cur.execute(ob_dates_table)
 
         #Add single metadata entry
         cur.execute(
@@ -179,6 +191,12 @@ def _upgrade_db(old_schema_version: int):
     user_table = _read_table_upgrade("AdminUsers")
     reports_table = _read_table_upgrade("Reports")
     metadata_table = _read_table_upgrade("Metadata")
+    objects_table = _read_table_upgrade("Objects")
+    object_refs_table = _read_table_upgrade("ObjectRefs")
+    aliases_table = _read_table_upgrade("Aliases")
+    report_refs_table = _read_table_upgrade("ReportRefs")
+    report_coords_table = _read_table_upgrade("ReportCoords")
+    ob_dates_table = _read_table_upgrade("ObservationDates")
 
     metadata_query = ("update Metadata "
                       "set schemaVersion = %s;")
@@ -188,6 +206,12 @@ def _upgrade_db(old_schema_version: int):
         cur.execute(user_table)
         cur.execute(reports_table)
         cur.execute(metadata_table)
+        cur.execute(objects_table)
+        cur.execute(object_refs_table)
+        cur.execute(aliases_table)
+        cur.execute(report_refs_table)
+        cur.execute(report_coords_table)
+        cur.execute(ob_dates_table)
 
         #Update version
         cur.execute(metadata_query, (_LATEST_SCHEMA_VERSION,))
@@ -229,8 +253,7 @@ def _get_schema_version() -> int:
 
         ver = result[0]
     except mysql.connector.Error as e:
-        # If metadata field does not exist, but db does, schema version is 1.
-        return 1
+        raise e
     finally:
         cur.close()
         cn.close()
@@ -252,7 +275,13 @@ def _reset_db():
     try:
         cur.execute("drop table AdminUsers;")
         cur.execute("drop table Metadata;")
+        cur.execute("drop table ObjectRefs;")
+        cur.execute("drop table Aliases;")
+        cur.execute("drop table ObservationDates;")
+        cur.execute("drop table ReportCoords;")
+        cur.execute("drop table ReportRefs;")
         cur.execute("drop table Reports;")
+        cur.execute("drop table Objects;")
     except mysql.connector.Error as err:
         print(err.msg)
     finally:
