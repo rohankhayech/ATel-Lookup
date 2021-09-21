@@ -36,6 +36,7 @@
             *ngSwitchCase="SearchMode.Name"
             appearance="fill"
             class="wide"
+            style="margin: 0 5px"
           >
             <mat-label>Object Name</mat-label>
             <input
@@ -46,8 +47,12 @@
             />
           </mat-form-field>
 
-          <ng-container *ngSwitchCase="SearchMode.Coordinate">
-            <mat-form-field appearance="fill" class="wide">
+          <div *ngSwitchCase="SearchMode.Coordinate" fxLayout="row">
+            <mat-form-field
+              appearance="fill"
+              class="wide"
+              style="margin: 0 5px"
+            >
               <mat-label>Right Ascension</mat-label>
               <input
                 matInput
@@ -57,7 +62,11 @@
               />
             </mat-form-field>
 
-            <mat-form-field appearance="fill" class="wide">
+            <mat-form-field
+              appearance="fill"
+              class="wide"
+              style="margin: 0 5px"
+            >
               <mat-label>Declination</mat-label>
               <input
                 matInput
@@ -67,7 +76,11 @@
               />
             </mat-form-field>
 
-            <mat-form-field appearance="fill" class="wide">
+            <mat-form-field
+              appearance="fill"
+              class="wide"
+              style="margin: 0 5px"
+            >
               <mat-label>Radius</mat-label>
               <input
                 matInput
@@ -76,7 +89,7 @@
                 placeholder="def 10.0000"
               />
             </mat-form-field>
-          </ng-container>
+          </div>
         </ng-container>
       </section>
 
@@ -107,14 +120,10 @@
       </section>
 
       <section class="section">
-        <p>Filter by submission date:</p>
+        <strong>Filter by submission date:</strong>
 
         <div fxLayout="row">
-          <mat-form-field
-            appearance="fill"
-            class="wide"
-            style="margin: 0 8px 0 3px"
-          >
+          <mat-form-field appearance="fill" class="wide" style="margin: 0 5px">
             <mat-label>Start Date</mat-label>
             <input
               matInput
@@ -129,11 +138,7 @@
             <mat-datepicker #startPicker></mat-datepicker>
           </mat-form-field>
 
-          <mat-form-field
-            appearance="fill"
-            class="wide"
-            style="margin: 0 3px 0 8px"
-          >
+          <mat-form-field appearance="fill" class="wide" style="margin: 0 5px">
             <mat-label>End Date</mat-label>
             <input
               matInput
