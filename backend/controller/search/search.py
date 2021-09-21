@@ -159,7 +159,11 @@ def search_reports_by_name(
                 # There is a result from the SIMBAD search. 
                 # Add the object to the local database.
                 main_id, coordinates, aliases = query_result
-                db.add_object(main_id, coordinates, aliases)
+                try:
+                    db.add_object(main_id, coordinates, aliases)
+                # TODO: Change base exception to ExistingObjectError once implemented by db. 
+                except Exception:
+                    db.add_aliases(main_id, name) 
 
     # After update checking and external search, query the local database 
     # for all reports. 
