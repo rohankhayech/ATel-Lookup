@@ -43,6 +43,12 @@ ANGLE_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?h(?:0*[1-6]\d|0*\d)(
                  'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?'
 ]
 
+# Used to convert coordinates to SkyCoord objects
+COORD_FORMATS = [['\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'],
+                 ['(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?h(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', '\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?d(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s'],
+                 ['(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?', '\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?']
+]
+
 # Regexes for extracting dates which could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
 DATE_REGEXES = ['(?:[0-3]\d|[1-9])\s(?:january|february|march|april|may|june|july|august|september|october|november|december)\s[1-2]\d\d\d(?:;?\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd mmmm yyyy (01 February 1999)
                 '(?:[0-3]\d|[1-9])\s(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\s[1-2]\d\d\d(?:;?\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd mmm yyyy (01 Feb 1999)
