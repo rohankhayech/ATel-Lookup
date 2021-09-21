@@ -23,11 +23,11 @@ License Terms and Copyright:
 
 import re
 
-#from model.db.db_interface import ObjectNotFoundError
+from model.db.db_interface import ObjectNotFoundError
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
 from model.db.db_interface import add_object, add_aliases, get_all_aliases
-#from controller.search.query_simbad import query_simbad_by_coords
+from controller.search.query_simbad import query_simbad_by_coords
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -365,8 +365,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                     elif(i == 2):
                         skycoord_obj = SkyCoord(float(ra.group()), float(dec.group()), unit=('deg', 'deg'))
                     
-                    # Commented out until relevant functions has been implement
-                    '''try:
+                    try:
                         # Queries SIMBAD by coordinate to get object IDs and its aliases
                         query_result = query_simbad_by_coords(skycoord_obj)
 
@@ -378,7 +377,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                                 except ObjectNotFoundError:
                                     add_object(key, skycoord_obj, value)
                     except Exception:
-                        pass'''
+                        pass
 
                     # Adds converted coordinate to list
                     formatted_coords.append(skycoord_obj)
