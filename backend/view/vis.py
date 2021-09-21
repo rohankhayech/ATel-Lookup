@@ -42,7 +42,7 @@ def create_nodes_list(reports_list: list[ReportResult]
 
     Args:
         reports_list (list[ReportResult]): A list of ReportResult objects
-        returned from a successful search. 
+            returned from a successful search. 
 
     Returns:
         NodesList: the nodes list for the graph. The list
@@ -51,16 +51,16 @@ def create_nodes_list(reports_list: list[ReportResult]
         EdgesList: the edge list. An edge is represented by a pair
             of ATel numbers. 
     '''
-    nodes = NodesList
-    edges = EdgesList
+    nodes = []
+    edges = []
 
     # Iterate through all reports. 
     for report in reports_list:
         # If a report contains any referenced reports, include it in the nodes list. 
         if len(report.referenced_reports) > 0:
-            nodes.append(report.atel_num, report.submission_date)
+            nodes.append(tuple[report.atel_num, report.submission_date])
             # Create edges between each referenced report. 
             for related_report in report.referenced_reports:
-                edges.append(report.atel_num, related_report)
+                edges.append(tuple[report.atel_num, related_report])
 
     return nodes, edges
