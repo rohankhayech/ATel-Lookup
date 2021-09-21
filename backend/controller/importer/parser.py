@@ -304,7 +304,21 @@ def extract_coords(text: str) -> list[str]:
     Returns:
         list[str]: List of coordinates found.
     """
-    return []
+
+    coordinates = []
+
+    coord_regexes = DECIMAL_DEG_REGEXES + ANGLE_REGEXES
+
+    # Finds all coordinates that are in the above coordinate formats in the title and body of ATel report
+    for regex in coord_regexes:
+        # Attempts to find all coordinates that are in a certain coordinate format in the title and body text using regex
+        coord_regex = re.compile(regex)
+        coords_found = coord_regex.findall(f' {text.lower()} ')
+
+        # Adds coordinates found to list
+        coordinates = coordinates + coords_found
+
+    return list(dict.fromkeys(coordinates))
 
 def parse_coords(coords: list[str]) -> list[SkyCoord]:
     """
