@@ -163,17 +163,13 @@ def search_reports_by_name(
                     db.add_object(main_id, coordinates, aliases)
                 # TODO: Change base exception to ExistingObjectError once implemented by db. 
                 except Exception:
-                    db.add_aliases(main_id, name) 
+                    db.add_aliases(main_id, [name]) 
 
     # After update checking and external search, query the local database 
     # for all reports. 
 
     # Get the base reports from the database. 
     reports = db.find_reports_by_object(search_filters, date_filter, name)
-
-    # TODO: Remove None-type checks when db list change is merged. 
-    if reports is None: 
-        reports = []
 
     if coordinates is not None:
         by_coord_range = db.find_reports_in_coord_range(search_filters, date_filter, coordinates, DEFAULT_RADIUS)
