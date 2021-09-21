@@ -23,9 +23,11 @@ License Terms and Copyright:
 
 import re
 
+#from model.db.db_interface import ObjectNotFoundError
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
-from model.db.db_interface import get_all_aliases
+from model.db.db_interface import add_object, add_aliases, get_all_aliases
+#from controller.search.query_simbad import query_simbad_by_coords
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -355,11 +357,31 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                 dec = dec_regex.search(dec_found.group())
 
                 try:
-                    # Adds converted coordinate to list
+                    skycoord_obj = None
+                    
+                    # Converts coordinate to SkyCoord object
                     if((i == 0) or (i == 1)):
-                        formatted_coords.append(SkyCoord(str(ra.group()), str(dec.group()), unit=('hourangle', 'deg')))
+                        skycoord_obj = SkyCoord(str(ra.group()), str(dec.group()), unit=('hourangle', 'deg'))
                     elif(i == 2):
-                        formatted_coords.append(SkyCoord(float(ra.group()), float(dec.group()), unit=('deg', 'deg')))
+                        skycoord_obj = SkyCoord(float(ra.group()), float(dec.group()), unit=('deg', 'deg'))
+                    
+                    # Commented out until relevant functions has been implement
+                    '''try:
+                        # Queries SIMBAD by coordinate to get object IDs and its aliases
+                        query_result = query_simbad_by_coords(skycoord_obj)
+
+                        if(query_result != dict()):
+                            # Adds object IDs and its aliases into the database
+                            for key, value in query_result.items():
+                                try:
+                                    add_aliases(key, value)
+                                except ObjectNotFoundError:
+                                    add_object(key, skycoord_obj, value)
+                    except Exception:
+                        pass'''
+
+                    # Adds converted coordinate to list
+                    formatted_coords.append(skycoord_obj)
                 except ValueError:
                     pass
 
