@@ -123,61 +123,65 @@ DATE_FORMATS = ['%d %B %Y; %H:%M:%S', # dd mmmm yyyy; hh:mm:ss
 ]
 
 # Regexes for extracting keywords
-KEYWORD_REGEXES = ["radio",
-                  "millimeter",
-                  "sub-millimeter",
-                  "far-infra-red",
-                  "infra-red",
-                  "optical",
-                  "ultra-violet",
-                  "x-ray",
-                  "gamma ray",
-                  "> gev",
-                  "tev",
-                  "vhe",
-                  "uhe",
-                  "neutrinos",
-                  "a comment",
-                  "agn",
-                  "asteroid\(binary\)",
-                  "asteroid",
-                  "binary",
-                  "black hole",
-                  "blazar",
-                  "cataclysmic variable",
-                  "comet",
-                  "cosmic rays",
-                  "direct collapse event",
-                  "exoplanet",
-                  "fast radio burst",
-                  "gamma-ray burst",
-                  "globular cluster",
-                  "gravitational lensing",
-                  "gravitational waves",
-                  "magnetar",
-                  "meteor",
-                  "microlensing event",
-                  "near-earth object",
-                  "neutron star",
-                  "nova",
-                  "planet\(minor\)",
-                  "planet",
-                  "potentially hazardous asteroid",
-                  "pre-main-sequence star",
-                  "pulsar",
-                  "quasar",
-                  "request for observations",
-                  "soft gamma-ray repeater",
-                  "solar system object",
-                  "star",
-                  "supernova remnant",
-                  "supernovae",
-                  "the sun",
-                  "tidal disruption event",
-                  "transient",
-                  "variables",
-                  "young stellar object"
+KEYWORD_REGEXES = ['radio',
+                  'millimeter',
+                  'sub-millimeter',
+                  'far-infra-red',
+                  'infra-red',
+                  'optical',
+                  'ultra-violet',
+                  'x-ray',
+                  'gamma ray',
+                  '> gev',
+                  'tev',
+                  'vhe',
+                  'uhe',
+                  'neutrinos',
+                  'a comment',
+                  'agn',
+                  'asteroid\(binary\)',
+                  'asteroid',
+                  'binary',
+                  'black hole',
+                  'blazar',
+                  'cataclysmic variable',
+                  'comet',
+                  'cosmic rays',
+                  'direct collapse event',
+                  'exoplanet',
+                  'fast radio burst',
+                  'gamma-ray burst',
+                  'globular cluster',
+                  'gravitational lensing',
+                  'gravitational waves',
+                  'magnetar',
+                  'meteor',
+                  'microlensing event',
+                  'near-earth object',
+                  'neutron star',
+                  'nova',
+                  'planet\(minor\)',
+                  'planet',
+                  'potentially hazardous asteroid',
+                  'pre-main-sequence star',
+                  'pulsar',
+                  'quasar',
+                  'request for observations',
+                  'soft gamma-ray repeater',
+                  'solar system object',
+                  'star',
+                  'supernova remnant',
+                  'supernovae',
+                  'the sun',
+                  'tidal disruption event',
+                  'transient',
+                  'variables',
+                  'young stellar object'
 ]
+
+# Custom exception
+class MissingReportElementError(Exception):
+    pass
 
 # Parser functions
 def parse_report(atel_num: int, html_string: str) -> ImportedReport:
@@ -192,43 +196,98 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
         ImportedReport: Object containing all extracted data from the ATel report.
 
     Raises:
-        MissingReportElementException: Thrown when important data could not be extracted or are missing from the report.
+        MissingReportElementError: Thrown when important data could not be extracted or are missing from the report.
     """
 
     # Parses HTML into a tree
     soup = BeautifulSoup(html_string, 'html.parser')
 
-    # Extracts title and authors of ATel report
-    title = soup.find('h1', {'class': 'title'}).get_text(strip=True)
-    authors = soup.find('strong').get_text(strip=True)
-    body = ''
+    # Extracts title of ATel report
+    title = ''
+
+    if(soup.find('h1', {'class': 'title'}) is not None):
+        title = str(soup.find('h1', {'class': 'title'}).get_text(strip=True))
+    else:
+        raise MissingReportElementError(f'Title is missing in ATel #{str(atel_num)}')
+    
+    # Extracts authors of ATel report
+    authors = ''
+
+    if(soup.find('strong') is not None):
+        authors = str(soup.find('strong').get_text(strip=True))
+    else:
+        raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
 
     # Finds all possible paragraphs in the HTML
+    body = ''
     texts = soup.find_all('p', {'class': None, 'align': None})
 
-    # Filters out non body text elements and formats the body text
+    # Filters out non-body text elements and formats the body text
     for text in texts:
         if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
             if('\n' in text.get_text()):
-                body += text.get_text()
+                body += str(text.get_text())
             else:
-                body += text.get_text() + '\n'
+                body += f'{text.get_text()}\n'
 
+    if(body == ''):
+        raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
+    
     # Extracts submission date of ATel report
     elements = soup.find_all('strong')
     submission_date = elements[1].get_text(strip=True)
 
     # Formats submission date
-    formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
+    formatted_submission_date = None
 
-    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, observation_dates=parse_dates(extract_dates(f'{title} {body.strip()}')), keywords=extract_keywords(body.strip()), objects=extract_known_aliases(f'{title} {body.strip()}'))
+    try:
+        formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
+    except ValueError:
+        raise MissingReportElementError(f'Submission date is missing in ATel #{str(atel_num)}')
 
-def extract_coords(body_text: str) -> list[str]:
+    # Extracts the number of any ATel reports that referenced the ATel report
+    referenced_by = []
+
+    if(soup.find('div', {'id': 'references'}) is not None):
+        referenced_by = soup.find('div', {'id': 'references'}).get_text()
+        referenced_by = re.findall('\d+', referenced_by)
+    
+    referenced_by = list(dict.fromkeys([int(referenced_by_num) for referenced_by_num in referenced_by]))
+
+    # Extracts any links that are in the ATel report
+    referenced_reports = []
+    div_element = soup.find('div', {'id': 'telegram'})
+    links = div_element.find_all('a', href=True)
+    url_string = 'https://www.astronomerstelegram.org/?read='
+
+    # Extracts the number of any ATel reports referenced
+    for link in links:
+        if((link['href'].find(url_string) != -1) and (link['href'] != url_string) and (link.get_text() != 'Previous') and (link.get_text() != 'Next')):
+            num = re.search('\d+', link['href'])
+            referenced_reports.append(int(num.group()))
+
+    # Filters out referenced by ATel numbers
+    for referenced_by_num in referenced_by:
+        referenced_reports.remove(referenced_by_num)
+
+    referenced_reports = list(dict.fromkeys(referenced_reports))
+
+    # Extracts subjects for keywords extractor
+    subjects = ''
+
+    if(soup.find('p', {'class': 'subjects'}) is not None):
+        subjects = soup.find('p', {'class': 'subjects'}).get_text()
+
+    text = f'{title} {body.strip()}'
+
+    return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, referenced_reports, parse_dates(extract_dates(text)), extract_keywords(f'{title} {subjects} {body.strip()}'), extract_known_aliases(text), parse_coords(extract_coords(text)), referenced_by)
+
+def extract_coords(text: str) -> list[str]:
     """
-    Finds all coordinates in the body text of ATel report.
+    Finds all coordinates in the title and body of ATel report.
 
     Args:
-        body_text (str): Body text of ATel report.
+        text (str): Title and body of ATel report.
 
     Returns:
         list[str]: List of coordinates found.
@@ -240,7 +299,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
     Parses coordinates that were found into appropriate format so that they can be used to query SIMBAD.
 
     Args:
-        coords (list[str]): List of coordinates found in the body text of ATel report.
+        coords (list[str]): List of coordinates found in the title and body of ATel report.
 
     Returns:
         list[SkyCoord]: List of formatted coordinates.
@@ -279,7 +338,7 @@ def parse_dates(dates: list[str]) -> list[datetime]:
     Parses dates that were found into datetime objects so that they can be inserted easily to the database.
 
     Args:
-        dates (list[str]): List of dates found in the body text of ATel report.
+        dates (list[str]): List of dates found in the title and body of ATel report.
 
     Returns:
         list[datetime]: List of datetime objects representing dates.
@@ -325,7 +384,7 @@ def extract_known_aliases(text: str) -> list[str]:
 
         # Adds object ID to list if its associated alias is found in the title and body text
         if(alias_found is not None):
-            object_IDs.append(alias.object_ID.lower())
+            object_IDs.append(str(alias.object_ID.lower()))
         else:
             # Regex for object ID associated to alias
             regex = f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]'
@@ -336,16 +395,16 @@ def extract_known_aliases(text: str) -> list[str]:
 
             # Adds object ID to list if it is found in the title and body text
             if(object_ID_found is not None):
-                object_IDs.append(alias.object_ID.lower())
+                object_IDs.append(str(alias.object_ID.lower()))
 
     return list(dict.fromkeys(object_IDs))
 
-def extract_keywords(body_text: str) -> list[str]:
+def extract_keywords(text: str) -> list[str]:
     """
-    Finds all keywords in the body text of ATel report.
+    Finds all keywords in the title, subjects section and body of ATel report.
 
     Args:
-        body_text (str): Body text of ATel report.
+        text (str): Title, subjects section and body of ATel report.
 
     Returns:
         list[str]: List of keywords found.
@@ -354,18 +413,18 @@ def extract_keywords(body_text: str) -> list[str]:
     i = 0
     keywords = []
 
-    # Finds all keywords in the body text of ATel report
+    # Finds all keywords in the title, subjects section and body of ATel report
     for keyword in KEYWORD_REGEXES:
         # Ensures that only full words will be identified as keywords
         regex = f'[^a-z]{keyword}[^a-z]'
 
-        # Attempts to find keyword in the body text using regex
+        # Attempts to find keyword in the title, subjects section and body text using regex
         keyword_regex = re.compile(regex)
-        keyword_found = keyword_regex.search(f' {body_text.lower()} ')
+        keyword_found = keyword_regex.search(f' {text.lower()} ')
 
-        # Adds keyword to list if it is found in the body text
+        # Adds keyword to list if it is found in the title, subjects section and body text
         if(keyword_found is not None):
-            keywords.append(FIXED_KEYWORDS[i])
+            keywords.append(str(FIXED_KEYWORDS[i]))
 
         i = i + 1
 
