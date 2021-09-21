@@ -835,14 +835,16 @@ def _build_report_coords_query(filters: SearchFilters = None, date_range: DateFi
     select_clause, from_clause = _build_report_base_query()
 
     if (filter_coords):
+        select_coords_clause = ", ra, declination "
         join_clause = _build_coords_join_clause()
     else:
+        select_coords_clause = ""
         join_clause = ""
 
     where_clause, where_data = _build_where_clause(filters, date_range)
 
     # Build final query and compile data
-    query = select_clause + ", ra, declination " + from_clause + join_clause + where_clause
+    query = select_clause + select_coords_clause + from_clause + join_clause + where_clause
     data = where_data
 
     return query, data
