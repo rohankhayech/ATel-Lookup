@@ -31,22 +31,19 @@ from bs4 import BeautifulSoup
 from datetime import datetime
 from astropy.coordinates import SkyCoord
 
-# Regexes for extracting coordinates in decimal degrees
-DECIMAL_DEG_REGEXES = ['ra:\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?',
-                       'ra\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'
-]
-
-# Regexes for extracting coordinates in hms/dms
-ANGLE_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?h(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec:\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?d(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s',
-                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?h(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?d(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s',
-                 'ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec:\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?',
-                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?'
+# Regexes for extracting coordinates
+COORD_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec:\s\+?(?:0*[1-3]\d\d|0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
+                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec\s\+?(?:0*[1-3]\d\d|0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
+                 'ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec:\s\+?(?:0*[1-3]\d\d|0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
+                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec\s\+?(?:0*[1-3]\d\d|0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
+                 'ra:\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?', # decimal degrees
+                 'ra\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?' # decimal degrees
 ]
 
 # Used to convert coordinates to SkyCoord objects
-COORD_FORMATS = [['\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'],
-                 ['(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?h(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', '\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?d(?:0*[1-6]\d|0*\d)(?:\.\d+)?m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s'],
-                 ['(?:\+|-)?(?:0*[1-2]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?', '\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?:(?:0*[1-6]\d|0*\d)(?:\.\d+)?']
+COORD_FORMATS = [['(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', '\+?(?:0*[1-3]\d\d|0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s'], # hms/dms
+                 ['(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', '\+?(?:0*[1-3]\d\d|0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?'], # hms/dms
+                 ['\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'] # decimal degrees
 ]
 
 # Regexes for extracting dates which could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
@@ -311,20 +308,18 @@ def extract_coords(text: str) -> list[str]:
         list[str]: List of coordinates found.
     """
 
-    coordinates = []
-
-    coord_regexes = DECIMAL_DEG_REGEXES + ANGLE_REGEXES
+    coords = []
 
     # Finds all coordinates that are in the above coordinate formats in the title and body of ATel report
-    for regex in coord_regexes:
+    for regex in COORD_REGEXES:
         # Attempts to find all coordinates that are in a certain coordinate format in the title and body text using regex
         coord_regex = re.compile(regex)
         coords_found = coord_regex.findall(f' {text.lower()} ')
 
         # Adds coordinates found to list
-        coordinates = coordinates + coords_found
+        coords = coords + coords_found
 
-    return list(dict.fromkeys(coordinates))
+    return list(dict.fromkeys(coords))
 
 def parse_coords(coords: list[str]) -> list[SkyCoord]:
     """
@@ -336,7 +331,41 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
     Returns:
         list[SkyCoord]: List of formatted coordinates.
     """
-    return []
+
+    formatted_coords = []
+
+    # Converts each extracted coordinate to SkyCoord object
+    for coord in coords:
+        for i in range(len(COORD_FORMATS)):
+            coord_format = COORD_FORMATS[i]
+
+            # Attempts to extract RA and DEC in a certain coordinate format
+            ra_regex = re.compile(f'ra:?\s{coord_format[0]}')
+            dec_regex = re.compile(f'dec:?\s{coord_format[1]}')
+
+            ra_found = ra_regex.search(coord)
+            dec_found = dec_regex.search(coord)
+
+            # Extracts coordinates if they are in the coordinate format
+            if((ra_found is not None) and (dec_found is not None)):
+                ra_regex = re.compile(coord_format[0])
+                dec_regex = re.compile(coord_format[1])
+
+                ra = ra_regex.search(ra_found.group())
+                dec = dec_regex.search(dec_found.group())
+
+                try:
+                    # Adds converted coordinate to list
+                    if((i == 0) or (i == 1)):
+                        formatted_coords.append(SkyCoord(str(ra.group()), str(dec.group()), unit=('hourangle', 'deg')))
+                    elif(i == 2):
+                        formatted_coords.append(SkyCoord(float(ra.group()), float(dec.group()), unit=('deg', 'deg')))
+                except ValueError:
+                    pass
+
+                break
+
+    return formatted_coords
 
 def extract_dates(text: str) -> list[str]:
     """
