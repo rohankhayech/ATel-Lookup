@@ -34,6 +34,7 @@ import { TelegramCardComponent } from './telegram-card/telegram-card.component';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ProgressBarDirective } from './progress-bar.directive';
+import { FlexLayoutModule } from '@angular/flex-layout';
 
 @NgModule({
   declarations: [
@@ -53,6 +54,7 @@ import { ProgressBarDirective } from './progress-bar.directive';
     BrowserAnimationsModule,
     FormsModule,
     HttpClientModule,
+    FlexLayoutModule,
     MatSnackBarModule,
     MatToolbarModule,
     MatFormFieldModule,

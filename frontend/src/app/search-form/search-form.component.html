@@ -109,35 +109,45 @@
       <section class="section">
         <p>Filter by submission date:</p>
 
-        <mat-form-field appearance="fill" class="wide">
-          <mat-label>Start Date</mat-label>
-          <input
-            matInput
-            [(ngModel)]="start"
-            [matDatepicker]="startPicker"
-            name="startPicker"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="startPicker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #startPicker></mat-datepicker>
-        </mat-form-field>
+        <div fxLayout="row">
+          <mat-form-field
+            appearance="fill"
+            class="wide"
+            style="margin: 0 8px 0 3px"
+          >
+            <mat-label>Start Date</mat-label>
+            <input
+              matInput
+              [(ngModel)]="start"
+              [matDatepicker]="startPicker"
+              name="startPicker"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="startPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
 
-        <mat-form-field appearance="fill" class="wide">
-          <mat-label>End Date</mat-label>
-          <input
-            matInput
-            [(ngModel)]="end"
-            [matDatepicker]="endPicker"
-            name="endPicker"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="endPicker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #endPicker></mat-datepicker>
-        </mat-form-field>
+          <mat-form-field
+            appearance="fill"
+            class="wide"
+            style="margin: 0 3px 0 8px"
+          >
+            <mat-label>End Date</mat-label>
+            <input
+              matInput
+              [(ngModel)]="end"
+              [matDatepicker]="endPicker"
+              name="endPicker"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="endPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
       </section>
 
       <button
