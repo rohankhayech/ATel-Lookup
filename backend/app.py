@@ -352,7 +352,7 @@ Application Main Line
   
 """
 # Initialise the database
-init_db() 
+init_db()
 
 if __name__ == "__main__":
     # Run the application

@@ -43,6 +43,9 @@ class TestInitTables(unittest.TestCase):
         _verifyTable(self,"Objects")
         _verifyTable(self,"Aliases")
         _verifyTable(self,"ObjectRefs")
+        _verifyTable(self, "ReportRefs")
+        _verifyTable(self, "ReportCoords")
+        _verifyTable(self, "ObservationDates")
 
 def _verifyTable(self:TestInitTables, table_name):
     cn = db._connect()
@@ -119,20 +122,58 @@ class TestReports(unittest.TestCase):
         _set_last_updated_date(old_date)
 
     def testReports(self):
-        report = ImportedReport(20000,"db_test_report","A","B",datetime(2021,8,12), keywords=["star","radio"])
+        self.ex_coords = SkyCoord("13h36m50s", "30d20m20s", frame="icrs", unit=("hourangle", "deg"))
 
-        db.add_report(report)
+        #example reports
+        report1 = ImportedReport(19999,"db_test_report1","A","B",datetime(2021,8,12),objects=["test_main_id","test_main_id"],referenced_reports=[19998],referenced_by=[20000],keywords=["star","radio"],coordinates=[self.ex_coords])
+        report2 = ImportedReport(20000,"db_test_report2","A","B",datetime(2021,8,12),referenced_reports=[19999],referenced_by=[20001],keywords=["star","radio"])
+        report3 = ImportedReport(20001,"db_test_report3","A","B",datetime(2021,8,12),referenced_reports=[20000],referenced_by=[20002],keywords=["star","radio"])
+
+        #add test object to link
+        
+        db.add_object("test_main_id", self.ex_coords)
+
+        #add reports
+        db.add_report(report1)
+        db.add_report(report2)
+        db.add_report(report3)
+
         try:
+            #test reports exist and returned fields are stored
             results = db.find_reports_by_object(SearchFilters(term="db_test_report"))
-            result = results[0]
 
-            self.assertEqual(report,result)
-            self.assertTrue(db.report_exists(20000))
-        finally:
-            #delete report
             cn = db._connect()
-            cur:MySQLCursor = cn.cursor()
-            cur.execute("delete from Reports where atelNum = 20000")
+            cur: MySQLCursor = cn.cursor()
+            
+            self.assertIn(report1,results)
+            self.assertTrue(db.report_exists(19999))
+            self.assertIn(report2, results)
+            self.assertTrue(db.report_exists(20000))
+            self.assertIn(report3, results)
+            self.assertTrue(db.report_exists(20001))
+
+            # test referenced by
+            cur.execute("select atelNum from ReportRefs where refReport = 20001")
+            results = cur.fetchall()
+            self.assertIn((20002,),results)
+
+            # test linking objects
+            cur.execute("select objectIDFK from ObjectRefs where atelNumFK = 19999")
+            results = cur.fetchall()
+            self.assertIn(("test_main_id",),results)
+
+            #test linking coords
+            cur.execute("select ra, declination from ReportCoords where atelNumFK = 19999")
+            results = cur.fetchall()
+            result = results[0]
+            self.assertAlmostEqual(float(result[0]), self.ex_coords.ra.deg, 10)
+            self.assertAlmostEqual(float(result[1]), self.ex_coords.dec.deg, 10)
+
+        finally:
+            # clean up test data
+            cur.execute("delete from Reports where atelNum between 19999 and 20001")
+            cur.execute("delete from ReportRefs where atelNum between 19998 and 20002")
+            cur.execute("delete from Objects where objectID = 'test_main_id'")
             cur.close()
             cn.commit()
             cn.close()
@@ -274,8 +315,8 @@ class TestObjects(unittest.TestCase):
         cur.execute("select * from Objects where objectID like 'test_main_id'")
         result = cur.fetchone()
         self.assertEqual(result[0], "test_main_id")
-        self.assertAlmostEqual(float(result[1]), self.ex_coords.ra.deg.item(),10)
-        self.assertAlmostEqual(float(result[2]), self.ex_coords.dec.deg.item(),10)
+        self.assertAlmostEqual(float(result[1]), self.ex_coords.ra.deg,10)
+        self.assertAlmostEqual(float(result[2]), self.ex_coords.dec.deg,10)
 
         cur.execute("select * from Aliases where objectIDFK like 'test_main_id'")
         results = cur.fetchall()
@@ -346,8 +387,8 @@ class TestObjects(unittest.TestCase):
 
     def testGetObjectCoords(self):
         coords = db.get_object_coords("test-alias-1")
-        self.assertAlmostEqual(coords.ra.deg.item(), self.ex_coords.ra.deg.item())
-        self.assertAlmostEqual(coords.dec.deg.item(), self.ex_coords.dec.deg.item())
+        self.assertAlmostEqual(coords.ra.deg, self.ex_coords.ra.deg)
+        self.assertAlmostEqual(coords.dec.deg, self.ex_coords.dec.deg)
 
         with self.assertRaises(db.ObjectNotFoundError):
             db.get_object_coords("test-other-alias")

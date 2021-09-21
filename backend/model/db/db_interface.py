@@ -162,30 +162,90 @@ def add_report(report: ImportedReport):
                 raise e
         finally:
             cn.commit()
-            cur.close()
             
         # Add object relations
         object_ref_query = ("insert into ObjectRefs"
                             "(atelNumFK, objectIDFK) "
                             "values (%s, %s)")
-        cur: MySQLCursor = cn.cursor()
         for object_id in report.objects:
             try:  
                 object_ref_data = (report.atel_num, object_id)
                 cur.execute(object_ref_query, object_ref_data)
-                
             except mysql.connector.Error as e:
-                raise e
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
             finally:
                 cn.commit()
-                cur.close()
 
-            #TODO: Add observation dates.
-            #TODO: Convert and add coordinates.
-            #TODO: Add referenced reports/by.
+        # Add observation dates
+        ob_date_query = ("insert into ObservationDates"
+                         "(atelNumFK, obDate) "
+                         "values (%s, %s)")
+        for date in report.observation_dates:
+            try:
+                ob_date_data = (report.atel_num, date)
+                cur.execute(ob_date_query, ob_date_data)
+            except mysql.connector.Error as e:
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
+            finally:
+                cn.commit()
+            
+
+        # Convert and add coordinates.
+        coords_query = ("insert into ReportCoords"
+                        "(atelNumFK, ra, declination) "
+                        "values (%s, %s, %s)")
+        for coord in report.coordinates:
+            try:
+                #TODO - check correct coord format
+                coords_data = (report.atel_num, round(coord.ra.deg, 10), round(coord.dec.deg, 10))
+                cur.execute(coords_query, coords_data)
+            except mysql.connector.Error as e:
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate coordinates
+                else:
+                    raise e
+            finally:
+                cn.commit()
+
+        # Add referenced reports
+        ref_report_query = ("insert into ReportRefs"
+                        "(atelNum, refReport) "
+                        "values (%s, %s)")
+        for other_report in report.referenced_reports:
+            try:
+                ref_report_data = (report.atel_num, other_report)
+                cur.execute(ref_report_query, ref_report_data)
+            except mysql.connector.Error as e:
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
+            finally:
+                cn.commit()
+
+        # Add referenced by
+        for other_report in report.referenced_by:
+            try:
+                ref_by_data = (other_report, report.atel_num)
+                cur.execute(ref_report_query, ref_by_data)
+            except mysql.connector.Error as e:
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate references
+                else:
+                    raise e
+            finally:
+                cn.commit()
+
     except mysql.connector.Error as e:
         raise e
     finally:
+        cur.close()
         cn.close()
 
 
@@ -520,7 +580,8 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
             cur.close()
             cn.close()
 
-        return reports
+        # Populate each returned report with their referenced report and return the list of results.
+        return _populate_referenced_reports(reports)
     else: # If no parameters given, return empty list.
         return []
 
@@ -805,6 +866,36 @@ def _build_join_clause(object_name:str = None)->tuple[str,tuple]:
         join_data = ()
 
     return join_clause, join_data
+
+def _populate_referenced_reports(reports:list[ReportResult])->list[ReportResult]:
+    """
+    Populates the referenced reports fields of each returned report in the given list from the database.
+
+    Args:
+        reports (list[ReportResult]): A list of reports returned from the database.
+
+    Returns:
+        list[ReportResult]: The same list of reports with the referenced reports field populated from the database.
+    """
+    cn = _connect()
+
+    query = ("select refReport "
+             "from ReportRefs "
+             "where atelNum = %s;")
+
+    for report in reports:
+        cur:MySQLCursor = cn.cursor()
+        try:
+            cur.execute(query,(report.atel_num,))
+            results = cur.fetchall()
+            ref_reports = []
+            for result in results:
+                ref_reports.append(int(result[0]))
+            report.referenced_reports = ref_reports
+        finally:
+            cur.close()
+
+    return reports
 
 def _get_object_id(alias:str)->str:
     """
