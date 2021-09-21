@@ -560,7 +560,7 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
         except (ObjectNotFoundError): # if object name is not a valid alias/id, return empty list.
             return []
 
-        reports = set()
+        reports = []
 
         try:
             cur.execute(query, data)
@@ -574,7 +574,8 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
 
                 #create result object and add to list
                 report = ReportResult(atel_num,title,authors,body,submission_date)
-                reports.add(report)
+                if (report not in reports):
+                    reports.append(report)
         except mysql.connector.Error as e:
             raise e
         finally:
@@ -586,7 +587,7 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
     else: # If no parameters given, return empty list.
         return []
 
-def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, coords:SkyCoord, radius:float)->list[ReportResult]:
+def find_reports_in_coord_range(filters:SearchFilters=None, date_range:DateFilter=None, coords:SkyCoord=None, radius:float=None)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -610,7 +611,7 @@ def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, c
 
         query, data = _build_report_coords_query(filters, date_range, filter_coords)
 
-        reports = set()
+        reports = []
 
         try:
             cur.execute(query, data)
@@ -621,16 +622,25 @@ def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, c
                 authors = row[2]
                 body = row[3]
                 submission_date = row[4]
-                ra = row[5]
-                dec = row[6]
-                report_coords = SkyCoord(ra, dec, frame='icrs', unit=('deg', 'deg'))
 
-                # Check coordinates are in range
-                separation:Angle = SkyCoord.separation(coords, report_coords)
-                if (separation.arcsecond < radius):
+                if (filter_coords):
+                    ra = row[5]
+                    dec = row[6]
+                    report_coords = SkyCoord(ra, dec, frame='icrs', unit=('deg', 'deg'))
+
+                    # Check coordinates are in range
+                    separation:Angle = SkyCoord.separation(coords, report_coords)
+                    if (separation.arcsecond <= radius):
+                        # create result object and add to list
+                        report = ReportResult(atel_num, title, authors, body, submission_date)
+                        if (report not in reports):
+                            reports.append(report)
+                    # else skip this result
+                else:
                     # create result object and add to list
                     report = ReportResult(atel_num, title, authors, body, submission_date)
-                    reports.add(report)
+                    if (report not in reports):
+                        reports.append(report)
 
         except mysql.connector.Error as e:
             raise e
