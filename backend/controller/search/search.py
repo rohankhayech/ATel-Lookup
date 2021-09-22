@@ -46,6 +46,21 @@ from controller.search import query_simbad as qs
 UPDATE_OBJECT_DAYS: int = 60 
 
 
+#####################
+# Private functions #
+#####################
+
+
+def _sort_reports(reports: list[ReportResult]):
+    ''' Sort a list of ReportResult objects in reverse chronological order. 
+        In-place sort.
+
+    Args:
+        reports (list[ReportResult]): the reports
+    '''
+    reports.sort(key=lambda x: x.submission_date, reverse=True)
+
+
 ####################
 # Public functions #
 ####################
@@ -110,7 +125,8 @@ def search_reports_by_coords(search_filters: SearchFilters,
         if report not in reports: 
             reports.append(report)
 
-    return reports 
+    _sort_reports(reports)
+    return reports
 
 
 def search_reports_by_name(
@@ -159,17 +175,16 @@ def search_reports_by_name(
                 # There is a result from the SIMBAD search. 
                 # Add the object to the local database.
                 main_id, coordinates, aliases = query_result
-                db.add_object(main_id, coordinates, aliases)
+                try:
+                    db.add_object(main_id, coordinates, aliases)
+                except db.ExistingObjectError:
+                    db.add_aliases(main_id, [name]) 
 
     # After update checking and external search, query the local database 
     # for all reports. 
 
     # Get the base reports from the database. 
     reports = db.find_reports_by_object(search_filters, date_filter, name)
-
-    # TODO: Remove None-type checks when db list change is merged. 
-    if reports is None: 
-        reports = []
 
     if coordinates is not None:
         by_coord_range = db.find_reports_in_coord_range(search_filters, date_filter, coordinates, DEFAULT_RADIUS)
@@ -179,6 +194,7 @@ def search_reports_by_name(
                 if not additional_report in reports:
                     reports.append(additional_report)
 
+    _sort_reports(reports)
     return reports
 
 

@@ -129,15 +129,19 @@ class TestImporterFunctions(unittest.TestCase):
 # Parser functions
 class TestParserFunctions(unittest.TestCase):
     # Tests parse_report function
+    @mock.patch('controller.importer.parser.parse_coords')
+    @mock.patch('controller.importer.parser.extract_coords')
     @mock.patch('controller.importer.parser.extract_known_aliases')
     @mock.patch('controller.importer.parser.extract_keywords')
     @mock.patch('controller.importer.parser.parse_dates')
     @mock.patch('controller.importer.parser.extract_dates')
-    def test_html_parser(self, mock_extract_dates, mock_parse_dates, mock_extract_keywords, mock_extract_known_aliases):
+    def test_html_parser(self, mock_extract_dates, mock_parse_dates, mock_extract_keywords, mock_extract_known_aliases, mock_extract_coords, mock_parse_coords):
         mock_extract_dates.return_value = []
         mock_parse_dates.return_value = []
         mock_extract_keywords.return_value = []
         mock_extract_known_aliases.return_value = []
+        mock_extract_coords.return_value = []
+        mock_parse_coords.return_value = []
 
         # Parses HTML of ATel #1000
         f = open(os.path.join('test', 'res', 'atel1000.html'), 'r')
@@ -155,7 +159,7 @@ class TestParserFunctions(unittest.TestCase):
         self.assertEqual(imported_report.body, body)
         self.assertEqual(imported_report.submission_date, datetime(year=2007, month=2, day=11, hour=9, minute=48))
 
-        self.assertCountEqual(imported_report.referenced_reports, [])
+        self.assertCountEqual(imported_report.referenced_reports, [980, 986])
         self.assertCountEqual(imported_report.observation_dates, [])
         self.assertCountEqual(imported_report.keywords, [])
         self.assertCountEqual(imported_report.objects, [])
@@ -184,6 +188,52 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.objects, [])
         self.assertCountEqual(imported_report.coordinates, [])
         self.assertCountEqual(imported_report.referenced_by, [])
+
+        # Parses HTML of ATel #12000
+        f = open(os.path.join('test', 'res', 'atel12000.html'), 'r')
+        imported_report = parse_report(12000, f.read())
+        f.close()
+
+        # Retrieves ATel #12000 body text
+        f = open(os.path.join('test', 'res', 'atel12000_body.txt'), 'r')
+        body = f.read()
+        f.close()
+
+        self.assertEqual(imported_report.atel_num, 12000)
+        self.assertEqual(imported_report.title, 'INTEGRAL detects a rebrightening of the accreting millisecond X-ray pulsar IGR J17591-2342')
+        self.assertEqual(imported_report.authors, 'C. Sanchez-Fernandez (ESAC, ESA), C. Ferrigno, J. Chenevez, E. Kuulkers, R. Wijnands, A. Bazzano, P. Jonker, M. Del Santo, on behalf of the INTEGRAL Galactic bulge monitoring team')
+        self.assertEqual(imported_report.body, body)
+        self.assertEqual(imported_report.submission_date, datetime(year=2018, month=9, day=1, hour=11, minute=24))
+        
+        self.assertCountEqual(imported_report.referenced_reports, [11941, 11981, 11957])
+        self.assertCountEqual(imported_report.observation_dates, [])
+        self.assertCountEqual(imported_report.keywords, [])
+        self.assertCountEqual(imported_report.objects, [])
+        self.assertCountEqual(imported_report.coordinates, [])
+        self.assertCountEqual(imported_report.referenced_by, [12004])
+
+        # Parses HTML of ATel #14000
+        f = open(os.path.join('test', 'res', 'atel14000.html'), 'r')
+        imported_report = parse_report(14000, f.read())
+        f.close()
+
+        # Retrieves ATel #14000 body text
+        f = open(os.path.join('test', 'res', 'atel14000_body.txt'), 'r')
+        body = f.read()
+        f.close()
+
+        self.assertEqual(imported_report.atel_num, 14000)
+        self.assertEqual(imported_report.title, 'Optical polarization of AT2019wey')
+        self.assertEqual(imported_report.authors, 'F. Bouzelou(Univ. of Crete, Greece), S. Kiehlmann (IA FORTH & Univ. of Crete, Greece), L. Markopoulioti (Univ. of Crete, Greece)')
+        self.assertEqual(imported_report.body, body)
+        self.assertEqual(imported_report.submission_date, datetime(year=2020, month=9, day=8, hour=19, minute=5))
+        
+        self.assertCountEqual(imported_report.referenced_reports, [13571, 13576, 13932, 13921, 13948, 13957, 13976, 13984])
+        self.assertCountEqual(imported_report.observation_dates, [])
+        self.assertCountEqual(imported_report.keywords, [])
+        self.assertCountEqual(imported_report.objects, [])
+        self.assertCountEqual(imported_report.coordinates, [])
+        self.assertCountEqual(imported_report.referenced_by, [14003, 14100, 14168])
 
     # Tests extract_dates function
     def test_dates_extractor(self):
@@ -305,9 +355,10 @@ class TestCustomExceptions(unittest.TestCase):
             import_report(1)
 
     # Tests that ImportFailError is being raised
+    @mock.patch('controller.importer.importer.parse_report')
     @mock.patch('controller.importer.importer.download_report')
     @mock.patch('controller.importer.importer.report_exists')
-    def test_import_fail_error(self, mock_report_exists, mock_download_report):
+    def test_import_fail_error(self, mock_report_exists, mock_download_report, mock_parse_report):
         mock_report_exists.return_value = False
 
         mock_download_report.side_effect = NetworkError
@@ -315,6 +366,11 @@ class TestCustomExceptions(unittest.TestCase):
             import_report(1)
 
         mock_download_report.side_effect = DownloadFailError
+        with self.assertRaises(ImportFailError):
+            import_report(1)
+
+        mock_download_report.return_value = 'Test'
+        mock_parse_report.side_effect = MissingReportElementError
         with self.assertRaises(ImportFailError):
             import_report(1)
 
@@ -335,6 +391,20 @@ class TestCustomExceptions(unittest.TestCase):
         mock_render.side_effect = TimeoutError
         with self.assertRaises(DownloadFailError):
             download_report(1)
+
+    # Tests that MissingReportElementError is being raised
+    def test_missing_report_element_error(self):
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<Test></Test>')
+
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'></h1>')
+
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong>')
+        
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><p>Test</p><strong></strong>')
 
 if __name__ == "__main__":
     unittest.main()
