@@ -24,6 +24,7 @@ License Terms and Copyright:
 """
 
 
+from model.db.db_interface import ExistingObjectError
 from controller.search.search import UPDATE_OBJECT_DAYS
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
@@ -280,8 +281,7 @@ class TestSearchByName(TestSearch):
         mock.db.object_exists = MagicMock(return_value=(False, None))
         mock.check_object_updates = MagicMock() 
         mock.qs.query_simbad_by_name = MagicMock(return_value=("mainid", self.sample_coords, ["alias1", "alias2"])) 
-        # TODO: Change base exception to db.ExistingObjectError when merged. 
-        mock.db.add_object = MagicMock(side_effect=Exception)
+        mock.db.add_object = MagicMock(side_effect=ExistingObjectError)
         mock.db.add_aliases = MagicMock()
         mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])

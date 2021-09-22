@@ -177,8 +177,7 @@ def search_reports_by_name(
                 main_id, coordinates, aliases = query_result
                 try:
                     db.add_object(main_id, coordinates, aliases)
-                # TODO: Change base exception to ExistingObjectError once implemented by db. 
-                except Exception:
+                except db.ExistingObjectError:
                     db.add_aliases(main_id, [name]) 
 
     # After update checking and external search, query the local database 
