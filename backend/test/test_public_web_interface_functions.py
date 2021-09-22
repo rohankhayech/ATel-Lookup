@@ -183,6 +183,18 @@ test_search_no_keywords = {
     "end_date": "2021-06-22"
 }
 
+test_search_bad_keyword_mode = {
+    "term": "supermassive",
+    "search_mode": "name",
+    "search_data": "Basinski",
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "badmode",
+    "start_date": "2021-01-22",
+    "end_date": "2021-06-22"
+}
+
+
+
 
      
 class TestWebInterfaceImports(ut.TestCase):
@@ -314,6 +326,9 @@ class TestWebInterfaceSearch(ut.TestCase):
         response = self.app.post('/search', json = test_search_no_keywords)
         self.assertEqual(response.json.get("flag"), 1)
 
+    def test_search_bad_keyword_mode(self):
+            response = self.app.post('/search', json = test_search_bad_keyword_mode)
+            self.assertEqual(response.json.get("flag"), 0)
 
     #Testing Mocking Tests - none of this is implemented/working yet
     # return_value=({

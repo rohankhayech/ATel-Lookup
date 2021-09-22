@@ -241,7 +241,6 @@ def search() -> json:
 
     if search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
-        print(search_mode_in)
     elif (
         keyword_mode_in != "none"
         and keyword_mode_in != "all"
