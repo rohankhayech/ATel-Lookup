@@ -146,29 +146,30 @@ def imports() -> json:
 
     """
     # print("REQUEST.JSON PRINTOUT -> ", request.json)
+    # set initial flag
     flag = 1
 
+    # retrieve json imports
     import_mode_in = request.json.get("import_mode", None)
     atel_num_in = request.json.get("atel_num", None)
 
-    if import_mode_in != "manual" and import_mode_in != "auto":  # import mode not named correctly
+    if import_mode_in != "manual" and import_mode_in != "auto":  # check if import mode not named correctly
         flag = 0
-    elif import_mode_in == "manual" and valid_atel_num(atel_num_in) == False:  # import mode set to manual but atel number was not provided
+    elif import_mode_in == "manual" and valid_atel_num(atel_num_in) == False:  # check if import mode set to manual but correct atel number was not provided
         flag = 0
 
-    if flag == 1:
+    if flag == 1: # if all tests have passed so far
         try:
             if import_mode_in == "manual":
-                import_report(atel_num_in) 
+                import_report(atel_num_in) # call manual import
             elif import_mode_in == "auto":
-                import_all_reports()
+                import_all_reports() # call automatic import
         except ReportAlreadyExistsError as e:
             flag = 0
         except ReportNotFoundError as e:
             flag = 0
         except ImportFailError as e:
             flag = 0
-        pass
 
     return jsonify({"flag": flag})
 
@@ -189,7 +190,7 @@ def search() -> json:
         edges_list: a list of edges for the visualisation graph.
 
     """
-
+    # variable defining
     flag = 1  # set initial flag to success
     reports = []
     list_result = [], []
@@ -207,6 +208,7 @@ def search() -> json:
     ra_deg = 0.0
     dec_deg = 0.0
 
+    # retrieving json imports
     term_in = request.json.get("term", "")
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
@@ -215,6 +217,7 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
+    # turning dates into date objects
     if start_date_in != None:
         start_date_obj = parse_date_input(start_date_in)
     if end_date_in != None:
