@@ -23,43 +23,42 @@ License Terms and Copyright:
 """
 
 
-from datetime import datetime 
+from datetime import datetime
 from model.ds.report_types import ReportResult
 
 
-# Type aliasing for the list data structures. 
+# Type aliasing for the list data structures.
 NodesList = list[tuple[int, datetime]]
 EdgesList = list[tuple[int, int]]
 
 
-def create_nodes_list(reports_list: list[ReportResult]
-) -> tuple[NodesList, EdgesList]:
-    ''' Constructs the data structures required to graph relations between
+def create_nodes_list(reports_list: list[ReportResult]) -> tuple[NodesList, EdgesList]:
+    """Constructs the data structures required to graph relations between
         ATel reports. The data is structured like a standard graph, involving
-        a list of nodes and edges. Reports are considered related by their 
+        a list of nodes and edges. Reports are considered related by their
         referenced reports (a field that is included in the ReportResult
         data type).
 
     Args:
         reports_list (list[ReportResult]): A list of ReportResult objects
-            returned from a successful search. 
+            returned from a successful search.
 
     Returns:
         NodesList: the nodes list for the graph. The list
-            contains a tuple representing an integer for the ATel number and a 
-            datetime field for the report's observation date. 
+            contains a tuple representing an integer for the ATel number and a
+            datetime field for the report's observation date.
         EdgesList: the edge list. An edge is represented by a pair
-            of ATel numbers. 
-    '''
+            of ATel numbers.
+    """
     nodes = []
     edges = []
 
-    # Iterate through all reports. 
+    # Iterate through all reports.
     for report in reports_list:
-        # If a report contains any referenced reports, include it in the nodes list. 
+        # If a report contains any referenced reports, include it in the nodes list.
         if len(report.referenced_reports) > 0:
-            nodes.append(tuple((report.atel_num, report.submission_date)))
-            # Create edges between each referenced report. 
+            nodes.append(report.atel_num)
+            # Create edges between each referenced report.
             for related_report in report.referenced_reports:
                 edges.append(tuple((report.atel_num, related_report)))
 

@@ -3,6 +3,6 @@ import { Node, Link } from './network-graph/network-graph.component';
 
 export interface SearchResponse {
   report_list: ApiTelegram[];
-  node_list: Node[];
+  node_list: number[];
   edge_list: number[][];
 }

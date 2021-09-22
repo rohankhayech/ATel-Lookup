@@ -28,7 +28,9 @@ export class SearchService {
       .pipe(
         switchMap((response): Observable<SearchResult> => {
           const telegrams = response.report_list.map(this.deserializeTelegram);
-          const nodes = telegrams;
+          const nodes = telegrams.filter((telegram) =>
+            response.node_list.includes(telegram.id)
+          );
           const links = response.edge_list
             .map(this.deserializeLink)
             .filter((link) => this.existingNodeFilter(nodes, link));

@@ -82,7 +82,7 @@ export class NetworkGraphComponent implements OnChanges {
       .on('click', this.click.bind(this))
       .call((simulation: any) => this.drag(simulation));
 
-    node.append('title').text((d) => d.id);
+    node.append('title').text((d) => d.title);
 
     simulation.on('tick', () => {
       link
