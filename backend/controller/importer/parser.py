@@ -23,10 +23,9 @@ License Terms and Copyright:
 
 import re
 
-from model.db.db_interface import ObjectNotFoundError
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
-from model.db.db_interface import add_object, add_aliases, get_all_aliases
+from model.db.db_interface import ObjectNotFoundError, add_object, add_aliases, get_all_aliases
 from controller.search.query_simbad import query_simbad_by_coords
 
 from bs4 import BeautifulSoup

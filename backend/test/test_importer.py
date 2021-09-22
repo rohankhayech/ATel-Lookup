@@ -26,7 +26,7 @@ import unittest
 
 from model.ds.alias_result import AliasResult
 from model.ds.report_types import ImportedReport
-from model.db.db_interface import ExistingReportError
+from model.db.db_interface import ObjectNotFoundError, ExistingReportError
 from controller.importer.importer import *
 from controller.importer.parser import *
 
@@ -34,6 +34,7 @@ from unittest import mock
 from unittest.mock import call
 from bs4 import BeautifulSoup
 from datetime import datetime
+from astropy.coordinates import SkyCoord
 from requests.exceptions import ConnectionError, HTTPError
 from pyppeteer.errors import TimeoutError
 
@@ -234,6 +235,27 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.objects, [])
         self.assertCountEqual(imported_report.coordinates, [])
         self.assertCountEqual(imported_report.referenced_by, [14003, 14100, 14168])
+
+    # Tests extract_coords function
+    def test_coords_extractor(self):
+        self.assertCountEqual(extract_coords('There is no coordinates'), [])
+        self.assertCountEqual(extract_coords('RA: 1111, DEC: +80.2, RB: +17.5, DEC: -55.4 and RA -33.5 DEC 65.0'), [])
+        self.assertCountEqual(extract_coords('RA: 10.0, DEC: 20.0 and RA: 224, DEC: -25.8'), ['ra: 10.0, dec: 20.0', 'ra: 224, dec: -25.8'])
+        self.assertCountEqual(extract_coords('RA 42.5, DEC -15 and RA +75.5, DEC +44.3'), ['ra 42.5, dec -15', 'ra +75.5, dec +44.3'])
+        self.assertCountEqual(extract_coords('RA: +16 DEC: -33.56 and RA: 0.05 DEC: +85.3'), ['ra: +16 dec: -33.56', 'ra: 0.05 dec: +85.3'])
+        self.assertCountEqual(extract_coords('RA +355.48 DEC 89.9 and RA +64 DEC 75'), ['ra +355.48 dec 89.9', 'ra +64 dec 75'])
+        self.assertCountEqual(extract_coords('RA: +22h45m32.3s, DEC: 354d55m17s and RA: +17h30m20s, DEC: +174d30m15.5s'), ['ra: +22h45m32.3s, dec: 354d55m17s', 'ra: +17h30m20s, dec: +174d30m15.5s'])
+        self.assertCountEqual(extract_coords('RA 13h26m59s, DEC +178d06m33.4s and RA 08h49m06.4s, DEC 99d017m59s'), ['ra 13h26m59s, dec +178d06m33.4s', 'ra 08h49m06.4s, dec 99d017m59s'])
+        self.assertCountEqual(extract_coords('RA: -06h59m17.4s DEC: +350d49m55.4s and RA: -19h02m55s DEC: +296d49m10.88s'), ['ra: -06h59m17.4s dec: +350d49m55.4s', 'ra: -19h02m55s dec: +296d49m10.88s'])
+        self.assertCountEqual(extract_coords('RA -20h17m17.4s DEC 53d53m17s and RA 13h17m9.3s DEC 100d37m44s'), ['ra -20h17m17.4s dec 53d53m17s', 'ra 13h17m9.3s dec 100d37m44s'])
+        self.assertCountEqual(extract_coords('RA: +17:33:44.6, DEC: 16:55:43 and RA: +024:17:8, DEC: +349:55:17.6'), ['ra: +17:33:44.6, dec: 16:55:43', 'ra: +024:17:8, dec: +349:55:17.6'])
+        self.assertCountEqual(extract_coords('RA -08:017:17, DEC +119:03:55 and RA 10:10:10.10, DEC 195:17:45'), ['ra -08:017:17, dec +119:03:55', 'ra 10:10:10.10, dec 195:17:45'])
+        self.assertCountEqual(extract_coords('RA: -19:50:07 DEC: 195:16:13.4 and RA: -05:2:5.4 DEC: +184:45:48'), ['ra: -19:50:07 dec: 195:16:13.4', 'ra: -05:2:5.4 dec: +184:45:48'])
+        self.assertCountEqual(extract_coords('RA +16:31:58.3, DEC 200:0053:33.2 and RA -17:29:54, DEC +14:56:0.4'), ['ra +16:31:58.3, dec 200:0053:33.2', 'ra -17:29:54, dec +14:56:0.4'])
+
+    # Tests parse_coords function
+    def test_coords_parser(self):
+        pass
 
     # Tests extract_dates function
     def test_dates_extractor(self):
