@@ -31,12 +31,10 @@ from model.ds.report_types import ReportResult
 from model.constants import FIXED_KEYWORDS
 from typing import Tuple
 
-import flask
-import mysql.connector
 import json
 import jwt
 from datetime import datetime
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import os
 
@@ -49,13 +47,11 @@ from view.vis import *
 import re
 
 
-from flask import Flask, jsonify, request
 from flask_jwt_extended import (
     JWTManager,
     current_user,
     jwt_required,
 )
-import requests
 
 from model.db.db_interface import UserNotFoundError
 from model.db.db_init import init_db
@@ -219,34 +215,21 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
-    if keywords_in == []:
-        keywords_in = None
-
     if start_date_in != None:
         start_date_obj = parse_date_input(start_date_in)
     if end_date_in != None:
         end_date_obj = parse_date_input(end_date_in)
     
+    if keywords_in == []:
+        keywords_in = None
 
-    if (
-        search_data_in == None
-        and keywords_in == None
-        and keyword_mode_in == None
-        and term_in == ""
-    ):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
+    if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == ""):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
         if start_date_obj > datetime.now() and end_date_obj > datetime.now():
             flag = 0
 
     if search_mode_in != "coords" and search_mode_in != "name":
-        flag = 0
-    elif (
-        keyword_mode_in != "none"
-        and keyword_mode_in != "all"
-        and keyword_mode_in != "any"
-        and keyword_mode_in != None
-    ):
         flag = 0
     elif start_date_obj != None and end_date_obj != None:
         if start_date_obj > end_date_obj or end_date_obj < start_date_obj:
@@ -279,7 +262,7 @@ def search() -> json:
         except ValueError as e:
             flag = 0
 
-    if keyword_mode_in != None:
+    if keyword_mode_in != None and (keywords_in != None or keywords_in != ""):
         for x in keywords_in:
             if x not in FIXED_KEYWORDS:
                 flag = 0

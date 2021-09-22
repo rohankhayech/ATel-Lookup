@@ -139,7 +139,6 @@ def parse_keyword_mode(keyword_mode: str) -> KeywordMode:
         KeywordMode: enum representing a keywordmode
 
     '''
-    keyword_mode_enum_out = KeywordMode.ANY
     
     if keyword_mode == "all":
         keyword_mode_enum_out = KeywordMode.ALL
