@@ -371,20 +371,23 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
 
                         if(query_result != dict()):
                             for key, value in query_result.items():
-                                # Checks whether object ID exist in the database
-                                exists, last_updated = object_exists(key) 
+                                try:
+                                    # Checks whether object ID exist in the database
+                                    exists, last_updated = object_exists(key) 
 
-                                # Adds new aliases associated to the object ID into the database if object ID exist and updating is needed
-                                if(exists):
-                                    check_object_updates(key, last_updated)
-                                else:
-                                    # Queries SIMBAD by name to get the object ID and its coordinates
-                                    name_query_result = query_simbad_by_name(key, False)
+                                    # Adds new aliases associated to the object ID into the database if object ID exist and updating is needed
+                                    if(exists):
+                                        check_object_updates(key, last_updated)
+                                    else:
+                                        # Queries SIMBAD by name to get the object ID and its coordinates
+                                        name_query_result = query_simbad_by_name(key, False)
 
-                                    if(name_query_result is not None):
-                                        # Adds object ID and its aliases into the database
-                                        name, coords, _ = name_query_result
-                                        add_object(name, coords, value)
+                                        if(name_query_result is not None):
+                                            # Adds object ID and its aliases into the database
+                                            name, coords, _ = name_query_result
+                                            add_object(name, coords, value)
+                                except Exception:
+                                    pass
                     except Exception:
                         pass
 
