@@ -193,7 +193,15 @@ test_search_bad_keyword_mode = {
     "end_date": "2021-06-22"
 }
 
-
+test_search_basic_coords_alt = {
+    "term": "supermassive",
+    "search_mode": "coords",
+    "search_data": ["13:36:50", "30:10:35", 3.4],
+    "keywords": ["radio"],
+    "keyword_mode": "none",
+    "start_date": "2005-03-15",
+    "end_date": "2010-09-12"
+}
 
 
      
@@ -328,6 +336,11 @@ class TestWebInterfaceSearch(ut.TestCase):
     def test_search_bad_keyword_mode(self):
             response = self.app.post('/search', json = test_search_bad_keyword_mode)
             self.assertEqual(response.json.get("flag"), 0)
+
+    def test_search_basic_coords_alt(self):
+            response = self.app.post('/search', json = test_search_basic_coords_alt)
+            self.assertEqual(response.json.get("flag"), 1)
+
 
     #Testing Mocking Tests - none of this is implemented/working yet
     # return_value=({

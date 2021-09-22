@@ -80,7 +80,12 @@ def valid_ra(ra: str) -> bool:
     '''
     bool_response = True
 
-    string_split = re.split('h|m|s',ra)
+    if ("h" in ra):
+        string_split = re.split('h|m|s',ra)
+    elif (":" in ra):
+        string_split = ra.split(':')
+    else:
+        bool_response = False
     
     h_value = int(string_split[0])
     m_value = int(string_split[1])
@@ -109,7 +114,12 @@ def valid_dec(dec: str) -> bool:
     '''
     bool_response = True
 
-    string_split = re.split('d|m|s',dec)
+    if ("d" in dec):
+        string_split = re.split('d|m|s',dec)
+    elif (":" in dec):
+        string_split = dec.split(':')
+    else:
+        bool_response = False
 
     d_value = int(string_split[0])
     m_value = int(string_split[1])
