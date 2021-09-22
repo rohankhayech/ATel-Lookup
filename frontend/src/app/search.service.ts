@@ -11,7 +11,7 @@ import { Observable, of } from 'rxjs';
 import { SearchResponse } from './search-response';
 import { Moment } from 'moment';
 import { SearchResult } from './search-result';
-import { Link, Node } from './network-graph/network-graph.component';
+import { Link } from './network-graph/network-graph.component';
 
 @Injectable({
   providedIn: 'root',
@@ -28,27 +28,13 @@ export class SearchService {
       .pipe(
         switchMap((response): Observable<SearchResult> => {
           const telegrams = response.report_list.map(this.deserializeTelegram);
-          const nodes = response.node_list ?? telegrams; // TODO: remove mock logic
-          const links = response.edge_list ?? this.createLinks(nodes); // TODO: remove mock logic
+          const nodes = telegrams;
+          const links = response.edge_list
+            .map(this.deserializeLink)
+            .filter((link) => this.existingNodeFilter(nodes, link));
           return of({ telegrams, nodes, links });
         })
       );
-  }
-
-  // TODO: remove mock method
-  createLinks(nodes: Node[]) {
-    const links: Link[] = [];
-
-    for (const source of nodes) {
-      for (const target of nodes) {
-        if (Math.random() > 0.95) {
-          const link = { source: source.id, target: target.id };
-          links.push(link);
-        }
-      }
-    }
-
-    return links;
   }
 
   serializeParameters(parameters: Parameters): ApiParameters {
@@ -83,6 +69,21 @@ export class SearchService {
       body: telegram.body,
       referenced: telegram.referenced_reports,
     };
+  }
+
+  deserializeLink(link: number[]) {
+    return {
+      source: link[0],
+      target: link[1],
+    };
+  }
+
+  existingNodeFilter(nodes: Telegram[], link: Link) {
+    // ensure both source and target are in nodes list
+    return (
+      nodes.some((j) => j.id === link.source) &&
+      nodes.some((j) => j.id === link.target)
+    );
   }
 
   pad(n: number) {

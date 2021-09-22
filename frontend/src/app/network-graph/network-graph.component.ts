@@ -13,10 +13,9 @@ import {
   SimulationLinkDatum,
   SimulationNodeDatum,
 } from 'd3';
+import { Telegram } from '../telegram.interface';
 
-export interface Node extends SimulationNodeDatum {
-  id: string;
-}
+export interface Node extends SimulationNodeDatum, Telegram {}
 
 export interface Link extends SimulationLinkDatum<Node> {}
 

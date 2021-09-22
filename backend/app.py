@@ -322,7 +322,12 @@ def search() -> json:
             )
 
     return jsonify(
-        {"flag": flag, "report_list": report_dicts, "nodes_list": list_result}
+        {
+            "flag": flag,
+            "report_list": report_dicts,
+            "node_list": list_result[0],
+            "edge_list": list_result[1],
+        }
     )
 
 
