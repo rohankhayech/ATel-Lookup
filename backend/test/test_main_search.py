@@ -24,6 +24,7 @@ License Terms and Copyright:
 """
 
 
+from model.db.db_interface import ExistingObjectError
 from controller.search.search import UPDATE_OBJECT_DAYS
 from model.constants import DEFAULT_RADIUS
 from model.ds.report_types import ReportResult
@@ -268,6 +269,38 @@ class TestSearchByName(TestSearch):
         '''
         with self.assertRaises(ValueError):
             search.search_reports_by_name(None, None, None)
+
+
+    def test_non_alias(self):
+        '''
+        Case 7: Object in the database exists with MAIN_ID, but SIMBAD returns a
+        result matching the non-alias. 
+        '''
+        mock = search 
+
+        mock.db.object_exists = MagicMock(return_value=(False, None))
+        mock.check_object_updates = MagicMock() 
+        mock.qs.query_simbad_by_name = MagicMock(return_value=("mainid", self.sample_coords, ["alias1", "alias2"])) 
+        mock.db.add_object = MagicMock(side_effect=ExistingObjectError)
+        mock.db.add_aliases = MagicMock()
+        mock.db.get_object_coords = MagicMock(return_value=self.sample_coords)
+        mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
+        mock.db.find_reports_in_coord_range = MagicMock(return_value=[])
+
+        result = mock.search_reports_by_name(self.filters, None, "nonalias")
+
+        mock.db.object_exists.assert_called_with("nonalias")
+        mock.check_object_updates.assert_not_called()
+        mock.db.get_object_coords.assert_not_called()
+        mock.qs.query_simbad_by_name.assert_called_with("nonalias", True)
+        mock.db.add_object.assert_called_with("mainid", self.sample_coords, ["alias1", "alias2"])
+        mock.db.add_aliases.assert_called_with("mainid", ["nonalias"])
+        mock.db.find_reports_by_object.assert_called_with(self.filters, None, "nonalias")
+        mock.db.find_reports_in_coord_range.assert_called_with(self.filters, None, self.sample_coords, DEFAULT_RADIUS)
+
+        self.assertIsNotNone(result)
+        self.assertNotEqual(result, [])
+        self.assertEqual(result, [self.sample_report])
 
 
 #######################################
