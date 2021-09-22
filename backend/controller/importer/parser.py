@@ -25,8 +25,9 @@ import re
 
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
-from model.db.db_interface import ObjectNotFoundError, add_object, add_aliases, get_all_aliases
-from controller.search.query_simbad import query_simbad_by_coords
+from model.db.db_interface import object_exists, add_object, get_all_aliases
+from controller.search.query_simbad import query_simbad_by_coords, query_simbad_by_name
+from controller.search.search import check_object_updates
 
 from bs4 import BeautifulSoup
 from datetime import datetime
@@ -369,12 +370,21 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                         query_result = query_simbad_by_coords(skycoord_obj)
 
                         if(query_result != dict()):
-                            # Adds object IDs and its aliases into the database
                             for key, value in query_result.items():
-                                try:
-                                    add_aliases(key, value)
-                                except ObjectNotFoundError:
-                                    add_object(key, skycoord_obj, value)
+                                # Checks whether object ID exist in the database
+                                exists, last_updated = object_exists(key) 
+
+                                # Adds new aliases associated to the object ID into the database if object ID exist and updating is needed
+                                if(exists):
+                                    check_object_updates(key, last_updated)
+                                else:
+                                    # Queries SIMBAD by name to get the object ID and its coordinates
+                                    name_query_result = query_simbad_by_name(key, False)
+
+                                    if(name_query_result is not None):
+                                        # Adds object ID and its aliases into the database
+                                        name, coords = name_query_result
+                                        add_object(name, coords, value)
                     except Exception:
                         pass
 
