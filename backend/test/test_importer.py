@@ -26,7 +26,7 @@ import unittest
 
 from model.ds.alias_result import AliasResult
 from model.ds.report_types import ImportedReport
-from model.db.db_interface import ObjectNotFoundError, ExistingReportError
+from model.db.db_interface import ExistingReportError
 from controller.importer.importer import *
 from controller.importer.parser import *
 
@@ -255,9 +255,11 @@ class TestParserFunctions(unittest.TestCase):
 
     # Tests parse_coords function
     @mock.patch('controller.importer.parser.add_object')
-    @mock.patch('controller.importer.parser.add_aliases')
+    @mock.patch('controller.importer.parser.query_simbad_by_name')
+    @mock.patch('controller.importer.parser.check_object_updates')
+    @mock.patch('controller.importer.parser.object_exists')
     @mock.patch('controller.importer.parser.query_simbad_by_coords')
-    def test_coords_parser(self, mock_query_simbad_by_coords, mock_add_aliases, mock_add_object):
+    def test_coords_parser(self, mock_query_simbad_by_coords, mock_object_exists, mock_check_object_updates, mock_query_simbad_by_name, mock_add_object):
         mock_query_simbad_by_coords.return_value = dict()
 
         # Tests without querying SIMBAD
@@ -276,21 +278,34 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(parse_coords(['ra: -19:50:07 dec: -18:16:13.4', 'ra: -05:2:5.4 dec: 39:45:48']), [SkyCoord('-19:50:07', '-18:16:13.4', unit=('hourangle', 'deg')), SkyCoord('-05:2:5.4', '39:45:48', unit=('hourangle', 'deg'))])
         self.assertCountEqual(parse_coords(['ra +16:31:58.3, dec 75:0053:33.2', 'ra -17:29:54, dec +14:56:0.4']), [SkyCoord('+16:31:58.3', '75:0053:33.2', unit=('hourangle', 'deg')), SkyCoord('-17:29:54', '+14:56:0.4', unit=('hourangle', 'deg'))])
 
-        expected_simbad_calls = [call(SkyCoord(50.0, 60.0, unit=('deg', 'deg'))), call(SkyCoord(120.0, 30.0, unit=('deg', 'deg')))]
-        expected_aliases_calls = [call('main object 1', ['alias 1', 'alias 2']), call('main object 2', ['alias 3', 'alias 4']), call('main object 3', ['alias 5', 'alias 6']), call('main object 4', ['alias 7', 'alias 8'])]
-        expected_object_calls = [call('main object 2', SkyCoord(50.0, 60.0, unit=('deg', 'deg')), ['alias 3', 'alias 4']), call('main object 3', SkyCoord(120.0, 30.0, unit=('deg', 'deg')), ['alias 5', 'alias 6'])]
+        expected_query_simbad_by_coords_calls = [call(SkyCoord(50.0, 60.0, unit=('deg', 'deg'))),
+                                                 call(SkyCoord(120.0, 30.0, unit=('deg', 'deg')))
+        ]
 
+        expected_object_exists_calls = [call('main object 1'), call('main object 2'), call('main object 3'), call('main object 4')]
+        
+        expected_check_object_updates_calls = [call('main object 1', datetime(1999, 1, 1)),
+                                               call('main object 2', datetime(1999, 1, 1)),
+                                               call('main object 4', datetime(1999, 1, 1))
+        ]
+
+        expected_query_simbad_by_name_call = [call('main object 3', False)]
+        expected_add_object_call = [call('main object 3', SkyCoord(10.0, 10.0, unit=('deg', 'deg')), ['alias 5', 'alias 6'])]
+        
         mock_query_simbad_by_coords.side_effect = [dict([('main object 1', ['alias 1', 'alias 2']), ('main object 2', ['alias 3', 'alias 4'])]),
                                                    dict([('main object 3', ['alias 5', 'alias 6']), ('main object 4', ['alias 7', 'alias 8'])])
         ]
 
-        mock_add_aliases.side_effect = [None, ObjectNotFoundError, ObjectNotFoundError, None]
+        mock_object_exists.side_effect = [(True, datetime(1999, 1, 1)), (True, datetime(1999, 1, 1)), (False, None), (True, datetime(1999, 1, 1))]
+        mock_query_simbad_by_name.side_effect = [('main object 3', SkyCoord(10.0, 10.0, unit=('deg', 'deg')), [])]
 
         # Tests with querying SIMBAD
         self.assertCountEqual(parse_coords(['ra: 50.0, dec: 60.0', 'ra: 120.0, dec: 30.0']), [SkyCoord(50.0, 60.0, unit=('deg', 'deg')), SkyCoord(120.0, 30.0, unit=('deg', 'deg'))])
-        mock_query_simbad_by_coords.assert_has_calls(expected_simbad_calls)
-        mock_add_aliases.assert_has_calls(expected_aliases_calls)
-        mock_add_object.assert_has_calls(expected_object_calls)
+        mock_query_simbad_by_coords.assert_has_calls(expected_query_simbad_by_coords_calls)
+        mock_object_exists.assert_has_calls(expected_object_exists_calls)
+        mock_check_object_updates.assert_has_calls(expected_check_object_updates_calls)
+        mock_query_simbad_by_name.assert_has_calls(expected_query_simbad_by_name_call)
+        mock_add_object.assert_has_calls(expected_add_object_call)
 
     # Tests extract_dates function
     def test_dates_extractor(self):
