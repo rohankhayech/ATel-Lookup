@@ -214,9 +214,9 @@ class TestWebInterfaceImports(ut.TestCase):
 
     def test_auto_with_atel_num(self): 
         pass
-        # response = self.app.post('/import', json = test_auto_with_atel_num) # currently not working 4pm 17/09/2021
-        # self.assertEqual(response.json.get("flag"), 1) # currently not working 4pm 17/09/2021
-        #Should succeed as the atel number is not needed with the auto import
+        # response = self.app.post('/import', json = test_auto_with_atel_num) # currently not working 8pm 22/09/2021 - ValueError: Body must be <= 4000 characters.
+        # self.assertEqual(response.json.get("flag"), 1) 
+        # Should succeed as the atel number is not needed with the auto import
 
     def test_bad_import_mode_name_fail(self): 
         response = self.app.post('/import', json = test_bad_import_mode_name_fail)
@@ -225,9 +225,9 @@ class TestWebInterfaceImports(ut.TestCase):
 
     def test_auto_success_no_atel_given(self): 
         pass
-        # response = self.app.post('/import', json = test_auto_success_no_atel_given) # currently not working 4pm 17/09/2021
-        # self.assertEqual(response.json.get("flag"), 1) # currently not working 4pm 17/09/2021
-        #Should succeed as auto import mode does not need an atel number
+        # response = self.app.post('/import', json = test_auto_success_no_atel_given) # currently not working 8pm 22/09/2021 - ValueError: Body must be <= 4000 characters.
+        # self.assertEqual(response.json.get("flag"), 1) 
+        # Should succeed as auto import mode does not need an atel number
 
     def test_report_not_found_error(self):
         response = self.app.post('/import', json = test_report_not_found_error)
@@ -316,27 +316,27 @@ class TestWebInterfaceSearch(ut.TestCase):
 
 
     #Testing Mocking Tests - none of this is implemented/working yet
-    return_value=({
-            "atel_num": 11876,
-            "title": "title",
-            "authors": "a",
-            "body": "b",
-            "submission_date": "2021-01-01 00: 00: 00",
-            "referenced_reports": [1400, 1650]
-        })
+    # return_value=({
+    #         "atel_num": 11876,
+    #         "title": "title",
+    #         "authors": "a",
+    #         "body": "b",
+    #         "submission_date": "2021-01-01 00: 00: 00",
+    #         "referenced_reports": [1400, 1650]
+    #     })
 
-    @patch('app.search.search_reports_by_name', side_effect = return_value)
-    def first_test(self):
-        mock = app.search
-        mock.search_reports_by_name = MagicMock(return_value=({
-            "atel_num": 11876,
-            "title": "title",
-            "authors": "a",
-            "body": "b",
-            "submission_date": "2021-01-01 00: 00: 00",
-            "referenced_reports": [1400, 1650]
-        }))
-        response = self.app.post('/search', json = test_search_basic)
+    # @patch('app.search.search_reports_by_name', side_effect = return_value)
+    # def first_test(self):
+    #     mock = app.search
+    #     mock.search_reports_by_name = MagicMock(return_value=({
+    #         "atel_num": 11876,
+    #         "title": "title",
+    #         "authors": "a",
+    #         "body": "b",
+    #         "submission_date": "2021-01-01 00: 00: 00",
+    #         "referenced_reports": [1400, 1650]
+    #     }))
+    #     response = self.app.post('/search', json = test_search_basic)
        
 
 # Run suite. 

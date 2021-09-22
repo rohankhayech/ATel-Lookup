@@ -153,7 +153,7 @@ def parse_keyword_mode(keyword_mode: str) -> KeywordMode:
     return keyword_mode_enum_out 
 
 
-def valid_atel_num(atel_num) -> bool:
+def valid_atel_num(atel_num: int) -> bool:
     '''Checks whether the supplied number is a possible ATel number. 
 
     Args:
@@ -165,7 +165,10 @@ def valid_atel_num(atel_num) -> bool:
     '''
     bool_response = True
 
-    if atel_num <= 0 or atel_num == None:
+    if atel_num == None:
+        bool_response = False
+
+    if bool_response == True and atel_num <= 0:
         bool_response = False
 
     return bool_response 
