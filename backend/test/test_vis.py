@@ -85,7 +85,7 @@ class TestVis(ut.TestCase):
         Case 2: Reports are related and nodes are constructed. 
         '''
         nodes_result, edges_result = vis.create_nodes_list(self.reports_related)
-        self.assertFalse(len(self.reports_unrelated) == 0)
+        self.assertFalse(len(self.reports_related) == 0)
         self.assertNotEqual(nodes_result, [])
         self.assertNotEqual(edges_result, [])
         for edge in edges_result:
