@@ -59,7 +59,7 @@ export class NetworkGraphComponent implements OnChanges {
         'link',
         d3.forceLink<Node, Link>(this.links).id((d) => d.id)
       )
-      .force('charge', d3.forceManyBody())
+      .force('charge', d3.forceManyBody().strength(-5))
       .force('center', d3.forceCenter(width / 2, height / 2));
 
     const link = this.svg
