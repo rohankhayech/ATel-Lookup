@@ -157,13 +157,9 @@ def imports() -> json:
 
     if import_mode_in != "manual" and import_mode_in != "auto":  # import mode not named correctly
         flag = 0
-    elif import_mode_in == "manual" and atel_num_in is None:  # import mode set to manual but atel number was not provided
+    elif import_mode_in == "manual" and valid_atel_num(atel_num_in) == False:  # import mode set to manual but atel number was not provided
         flag = 0
-    elif import_mode_in == "manual" and atel_num_in <= 0:  # atel number not valid
-        flag = 0
-    elif valid_atel_num(atel_num_in) == False:
-        flag = 0
-
+        
     if flag == 1:
         try:
             if import_mode_in == "manual":
