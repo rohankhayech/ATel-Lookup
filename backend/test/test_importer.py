@@ -30,8 +30,8 @@ from model.db.db_interface import ObjectNotFoundError, ExistingReportError
 from controller.importer.importer import *
 from controller.importer.parser import *
 
-from unittest import mock
 from unittest.mock import call
+from unittest import mock
 from bs4 import BeautifulSoup
 from datetime import datetime
 from astropy.coordinates import SkyCoord
@@ -244,18 +244,53 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_coords('RA 42.5, DEC -15 and RA +75.5, DEC +44.3'), ['ra 42.5, dec -15', 'ra +75.5, dec +44.3'])
         self.assertCountEqual(extract_coords('RA: +16 DEC: -33.56 and RA: 0.05 DEC: +85.3'), ['ra: +16 dec: -33.56', 'ra: 0.05 dec: +85.3'])
         self.assertCountEqual(extract_coords('RA +355.48 DEC 89.9 and RA +64 DEC 75'), ['ra +355.48 dec 89.9', 'ra +64 dec 75'])
-        self.assertCountEqual(extract_coords('RA: +22h45m32.3s, DEC: 354d55m17s and RA: +17h30m20s, DEC: +174d30m15.5s'), ['ra: +22h45m32.3s, dec: 354d55m17s', 'ra: +17h30m20s, dec: +174d30m15.5s'])
-        self.assertCountEqual(extract_coords('RA 13h26m59s, DEC +178d06m33.4s and RA 08h49m06.4s, DEC 99d017m59s'), ['ra 13h26m59s, dec +178d06m33.4s', 'ra 08h49m06.4s, dec 99d017m59s'])
-        self.assertCountEqual(extract_coords('RA: -06h59m17.4s DEC: +350d49m55.4s and RA: -19h02m55s DEC: +296d49m10.88s'), ['ra: -06h59m17.4s dec: +350d49m55.4s', 'ra: -19h02m55s dec: +296d49m10.88s'])
-        self.assertCountEqual(extract_coords('RA -20h17m17.4s DEC 53d53m17s and RA 13h17m9.3s DEC 100d37m44s'), ['ra -20h17m17.4s dec 53d53m17s', 'ra 13h17m9.3s dec 100d37m44s'])
-        self.assertCountEqual(extract_coords('RA: +17:33:44.6, DEC: 16:55:43 and RA: +024:17:8, DEC: +349:55:17.6'), ['ra: +17:33:44.6, dec: 16:55:43', 'ra: +024:17:8, dec: +349:55:17.6'])
-        self.assertCountEqual(extract_coords('RA -08:017:17, DEC +119:03:55 and RA 10:10:10.10, DEC 195:17:45'), ['ra -08:017:17, dec +119:03:55', 'ra 10:10:10.10, dec 195:17:45'])
-        self.assertCountEqual(extract_coords('RA: -19:50:07 DEC: 195:16:13.4 and RA: -05:2:5.4 DEC: +184:45:48'), ['ra: -19:50:07 dec: 195:16:13.4', 'ra: -05:2:5.4 dec: +184:45:48'])
-        self.assertCountEqual(extract_coords('RA +16:31:58.3, DEC 200:0053:33.2 and RA -17:29:54, DEC +14:56:0.4'), ['ra +16:31:58.3, dec 200:0053:33.2', 'ra -17:29:54, dec +14:56:0.4'])
+        self.assertCountEqual(extract_coords('RA: +22h45m32.3s, DEC: -77d55m17s and RA: +17h30m20s, DEC: +63d30m15.5s'), ['ra: +22h45m32.3s, dec: -77d55m17s', 'ra: +17h30m20s, dec: +63d30m15.5s'])
+        self.assertCountEqual(extract_coords('RA 13h26m59s, DEC +32d06m33.4s and RA 08h49m06.4s, DEC 066d017m59s'), ['ra 13h26m59s, dec +32d06m33.4s', 'ra 08h49m06.4s, dec 066d017m59s'])
+        self.assertCountEqual(extract_coords('RA: -06h59m17.4s DEC: -84d49m55.4s and RA: -19h02m55s DEC: +32d49m10.88s'), ['ra: -06h59m17.4s dec: -84d49m55.4s', 'ra: -19h02m55s dec: +32d49m10.88s'])
+        self.assertCountEqual(extract_coords('RA -20h17m17.4s DEC 53d53m17s and RA 13h17m9.3s DEC 88d37m44s'), ['ra -20h17m17.4s dec 53d53m17s', 'ra 13h17m9.3s dec 88d37m44s'])
+        self.assertCountEqual(extract_coords('RA: +17:33:44.6, DEC: 16:55:43 and RA: +023:17:8, DEC: +07:55:17.6'), ['ra: +17:33:44.6, dec: 16:55:43', 'ra: +023:17:8, dec: +07:55:17.6'])
+        self.assertCountEqual(extract_coords('RA -08:017:17, DEC -55:03:55 and RA 10:10:10.10, DEC 60:17:45'), ['ra -08:017:17, dec -55:03:55', 'ra 10:10:10.10, dec 60:17:45'])
+        self.assertCountEqual(extract_coords('RA: -19:50:07 DEC: -18:16:13.4 and RA: -05:2:5.4 DEC: +39:45:48'), ['ra: -19:50:07 dec: -18:16:13.4', 'ra: -05:2:5.4 dec: +39:45:48'])
+        self.assertCountEqual(extract_coords('RA +16:31:58.3, DEC 75:0053:33.2 and RA -17:29:54, DEC +14:56:0.4'), ['ra +16:31:58.3, dec 75:0053:33.2', 'ra -17:29:54, dec +14:56:0.4'])
 
     # Tests parse_coords function
-    def test_coords_parser(self):
-        pass
+    @mock.patch('controller.importer.parser.add_object')
+    @mock.patch('controller.importer.parser.add_aliases')
+    @mock.patch('controller.importer.parser.query_simbad_by_coords')
+    def test_coords_parser(self, mock_query_simbad_by_coords, mock_add_aliases, mock_add_object):
+        mock_query_simbad_by_coords.return_value = dict()
+
+        # Tests without querying SIMBAD
+        self.assertCountEqual(parse_coords([]), [])
+        self.assertCountEqual(parse_coords(['No coordinates', 'ra: 15:33:44, dec: 95:42:16']), [])
+        self.assertCountEqual(parse_coords(['ra: 10.0, dec: 20.0', 'ra: 224, dec: -25.8']), [SkyCoord(10.0, 20.0, unit=('deg', 'deg')), SkyCoord(224.0, -25.8, unit=('deg', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra 42.5, dec -15', 'ra +75.5, dec +44.3']), [SkyCoord(42.5, -15.0, unit=('deg', 'deg')), SkyCoord(75.5, 44.3, unit=('deg', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra: +16 dec: -33.56', 'ra: 0.05 dec: +85.3']), [SkyCoord(16.0, -33.56, unit=('deg', 'deg')), SkyCoord(0.05, 85.3, unit=('deg', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra +355.48 dec 89.9', 'ra +64 dec 75']), [SkyCoord(355.48, 89.9, unit=('deg', 'deg')), SkyCoord(64.0, 75.0, unit=('deg', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra: +22h45m32.3s, dec: -77d55m17s', 'ra: +17h30m20s, dec: +63d30m15.5s']), [SkyCoord('+22h45m32.3s', '-77d55m17s', unit=('hourangle', 'deg')), SkyCoord('+17h30m20s', '+63d30m15.5s', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra 13h26m59s, dec +32d06m33.4s', 'ra 08h49m06.4s, dec 066d017m59s']), [SkyCoord('13h26m59s', '+32d06m33.4s', unit=('hourangle', 'deg')), SkyCoord('08h49m06.4s', '066d017m59s', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra: -06h59m17.4s dec: -84d49m55.4s', 'ra: -19h02m55s dec: +32d49m10.88s']), [SkyCoord('-06h59m17.4s', '-84d49m55.4s', unit=('hourangle', 'deg')), SkyCoord('-19h02m55s', '+32d49m10.88s', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra -20h17m17.4s dec 53d53m17s', 'ra 13h17m9.3s dec 88d37m44s']), [SkyCoord('-20h17m17.4s', '53d53m17s', unit=('hourangle', 'deg')), SkyCoord('13h17m9.3s', '88d37m44s', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra: +17:33:44.6, dec: 16:55:43', 'ra: +023:17:8, dec: +07:55:17.6']), [SkyCoord('+17:33:44.6', '16:55:43', unit=('hourangle', 'deg')), SkyCoord('+023:17:8', '+07:55:17.6', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra -08:017:17, dec -55:03:55', 'ra 10:10:10.10, dec 60:17:45']), [SkyCoord('-08:017:17', '-55:03:55', unit=('hourangle', 'deg')), SkyCoord('10:10:10.10', '60:17:45', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra: -19:50:07 dec: -18:16:13.4', 'ra: -05:2:5.4 dec: 39:45:48']), [SkyCoord('-19:50:07', '-18:16:13.4', unit=('hourangle', 'deg')), SkyCoord('-05:2:5.4', '39:45:48', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra +16:31:58.3, dec 75:0053:33.2', 'ra -17:29:54, dec +14:56:0.4']), [SkyCoord('+16:31:58.3', '75:0053:33.2', unit=('hourangle', 'deg')), SkyCoord('-17:29:54', '+14:56:0.4', unit=('hourangle', 'deg'))])
+
+        expected_simbad_calls = [call(SkyCoord(50.0, 60.0, unit=('deg', 'deg'))), call(SkyCoord(120.0, 30.0, unit=('deg', 'deg')))]
+        expected_aliases_calls = [call('main object 1', ['alias 1', 'alias 2']), call('main object 2', ['alias 3', 'alias 4']), call('main object 3', ['alias 5', 'alias 6']), call('main object 4', ['alias 7', 'alias 8'])]
+        expected_object_calls = [call('main object 2', SkyCoord(50.0, 60.0, unit=('deg', 'deg')), ['alias 3', 'alias 4']), call('main object 3', SkyCoord(120.0, 30.0, unit=('deg', 'deg')), ['alias 5', 'alias 6'])]
+
+        mock_query_simbad_by_coords.side_effect = [dict([('main object 1', ['alias 1', 'alias 2']), ('main object 2', ['alias 3', 'alias 4'])]),
+                                                   dict([('main object 3', ['alias 5', 'alias 6']), ('main object 4', ['alias 7', 'alias 8'])])
+        ]
+
+        mock_add_aliases.side_effect = [None, ObjectNotFoundError, ObjectNotFoundError, None]
+
+        # Tests with querying SIMBAD
+        self.assertCountEqual(parse_coords(['ra: 50.0, dec: 60.0', 'ra: 120.0, dec: 30.0']), [SkyCoord(50.0, 60.0, unit=('deg', 'deg')), SkyCoord(120.0, 30.0, unit=('deg', 'deg'))])
+        mock_query_simbad_by_coords.assert_has_calls(expected_simbad_calls)
+        mock_add_aliases.assert_has_calls(expected_aliases_calls)
+        mock_add_object.assert_has_calls(expected_object_calls)
 
     # Tests extract_dates function
     def test_dates_extractor(self):
