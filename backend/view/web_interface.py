@@ -23,11 +23,10 @@ License Terms and Copyright:
 
 from datetime import datetime
 from astropy.coordinates import SkyCoord
-import json
 from typing import Tuple
 from model.ds.search_filters import KeywordMode
 from enum import Enum
-import enum
+import re
 
 class InvalidKeywordError(Exception):
     pass
@@ -56,7 +55,6 @@ def parse_search_coords(ra: float, dec: float) -> SkyCoord:
     Args:
         ra (str): RA coords
         dec (str): Declination coords
-        radius (str): Radius value
     
     Returns:
         SkyCoord: A SkyCoord object representing the parsed coordinates. 
@@ -64,8 +62,7 @@ def parse_search_coords(ra: float, dec: float) -> SkyCoord:
     '''
     sky_coord_out = None
 
-    if valid_ra(ra) == True and valid_dec(dec) == True:
-        sky_coord_out = SkyCoord(ra, dec, frame="icrs", unit=("deg", "deg"))
+    sky_coord_out = SkyCoord(ra, dec, frame="icrs", unit=("hourangle", "deg"))
 
     return sky_coord_out 
 
@@ -82,8 +79,18 @@ def valid_ra(ra: str) -> bool:
 
     '''
     bool_response = True
-    ra_float = float(ra)
-    if ra_float > 360 or ra_float < 0:
+
+    string_split = re.split('h|m|s',ra)
+    
+    h_value = int(string_split[0])
+    m_value = int(string_split[1])
+    s_value = float(string_split[2])
+
+    if h_value < -24 and h_value > 24:
+        bool_response = False
+    elif m_value < 0 and m_value > 60:
+        bool_response = False
+    elif s_value < 0.0 and s_value > 60.0:
         bool_response = False
 
     return bool_response 
@@ -101,9 +108,18 @@ def valid_dec(dec: str) -> bool:
 
     '''
     bool_response = True
-    dec_float = float(dec)
 
-    if dec_float > 90.0 or dec_float < -90.0:
+    string_split = re.split('d|m|s',dec)
+
+    d_value = int(string_split[0])
+    m_value = int(string_split[1])
+    s_value = float(string_split[2])
+
+    if d_value < 0 and d_value > 360:
+        bool_response = False
+    elif m_value < 0 and m_value > 60:
+        bool_response = False
+    elif s_value < 0.0 and s_value > 60.0:
         bool_response = False
 
     return bool_response 

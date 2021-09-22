@@ -139,7 +139,7 @@ test_search_dates_backwards = {
 test_search_bad_ra_value = {
     "term": "supermassive",
     "search_mode": "coords",
-    "search_data": [124.51, -22.022, 3.4],
+    "search_data": ["136m50s", "30d10m35s", 3.4],
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2001-01-22",
@@ -172,7 +172,7 @@ test_object_coords_only_name = {
 
 test_object_coords_only_coords = {
     "search_mode": "coords",
-    "search_data": [88.51, 300.022, 3.4]
+    "search_data": ["13h36m50s", "30d10m35s", 3.4]
 }
 
 test_search_no_keywords = {
