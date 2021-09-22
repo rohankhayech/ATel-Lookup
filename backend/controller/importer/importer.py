@@ -22,7 +22,7 @@ License Terms and Copyright:
 """
 
 from model.db.db_interface import ExistingReportError, report_exists, add_report, get_next_atel_num, set_next_atel_num
-from controller.importer.parser import parse_report
+from controller.importer.parser import MissingReportElementError, parse_report
 
 from requests_html import HTMLSession
 from bs4 import BeautifulSoup
@@ -77,6 +77,9 @@ def import_report(atel_num: int):
     except NetworkError as err:
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
     except DownloadFailError as err:
+        raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
+    # Raises error when ATel report import fails due to a missing report element
+    except MissingReportElementError as err:
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
     # Raises error when ATel report is already imported into the database
     except ExistingReportError:
