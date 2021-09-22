@@ -223,20 +223,24 @@ def search() -> json:
     if end_date_in != None:
         end_date_obj = parse_date_input(end_date_in)
     
+    # set keywords_in to None if empty
     if keywords_in == []:
         keywords_in = None
 
+
     if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == ""):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
-    elif start_date_obj != None and end_date_obj != None:
-        if start_date_obj > datetime.now() and end_date_obj > datetime.now():
+    elif start_date_obj != None and end_date_obj != None: # if dates exist
+        if start_date_obj > datetime.now() and end_date_obj > datetime.now(): # failure if either date is in the future
             flag = 0
 
+    # if search mode is not valid
     if search_mode_in != "coords" and search_mode_in != "name":
         flag = 0
-    elif start_date_obj != None and end_date_obj != None:
-        if start_date_obj > end_date_obj or end_date_obj < start_date_obj:
+    elif start_date_obj != None and end_date_obj != None: 
+        if start_date_obj > end_date_obj or end_date_obj < start_date_obj: # failure if start date is ahead of end date, and vice versa
             flag = 0
+
 
     if (search_mode_in == "coords"):  # if the search mode is "coords" need to make sure there is three values given
         if len(search_data_in) == 3:
@@ -252,29 +256,19 @@ def search() -> json:
             except ValueError as e:
                 flag = 0
 
-            # temp_string_split_ra = re.split('h|m|s',ra)
-            # ra_deg = 15*float(temp_string_split_ra[0]) + 15*(float(temp_string_split_ra[1])/60) + 15*(float(temp_string_split_ra[2])/3600)
-            # if valid_ra(ra_deg) == False:
-            #     flag = 0
-
-            # temp_string_split_dec = re.split('d|m|s',dec)
-            # dec_deg = float(temp_string_split_dec[0]) + float(temp_string_split_dec[1])/60 + float(temp_string_split_dec[2])/3600
-            # if valid_dec(dec_deg) == False:
-            #     flag = 0
-
         else:
             flag = 0  # if search data is not fit for coords, set flag to failure
 
-    if keyword_mode_in != None and (keywords_in != None or keywords_in != ""):
+    if keyword_mode_in != None and (keywords_in != None or keywords_in != ""): # as long as keyword mode is set, and there is data in keywords_in
         for x in keywords_in:
-            if x not in FIXED_KEYWORDS:
+            if x not in FIXED_KEYWORDS: # checking if the keywords are part of the fixed keyword list
                 flag = 0
 
     keyword_mode_enum = KeywordMode.ANY
     if keyword_mode_in != None:
         try:
-            if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none":
-                parse_keyword_mode(keyword_mode_in)
+            if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none": 
+                keyword_mode_enum = parse_keyword_mode(keyword_mode_in)
             else:
                 flag = 0
         except InvalidKeywordError as e:
