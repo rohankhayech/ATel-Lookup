@@ -268,24 +268,26 @@ def search() -> json:
     if keyword_mode_in != None:
         try:
             if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none": 
-                keyword_mode_enum = parse_keyword_mode(keyword_mode_in)
+                keyword_mode_enum = parse_keyword_mode(keyword_mode_in) # turns keyword_mode_in to the enum version
             else:
                 flag = 0
         except InvalidKeywordError as e:
             flag = 0
 
-    if term_in == "" and keywords_in == None:
+
+    if term_in == "" and keywords_in == None: # set search filters to None if the term is blank and no keywords were provided
         search_filters = None
     else:
         search_filters = SearchFilters(
             term_in, keywords_in, keyword_mode_enum
         )  # creating the search filters object
 
-    if start_date_in == None and end_date_in == None:
+    if start_date_in == None and end_date_in == None: # set the date filters to None if no dates have been provided
         date_filter = None
     else:
         date_filter = DateFilter(start_date_obj, end_date_obj)
 
+    # calling search_reports functions
     if flag == 1:
         if search_mode_in == "name":
             try:
@@ -297,6 +299,7 @@ def search() -> json:
         elif search_mode_in == "coords":
             reports = search_reports_by_coords(search_filters, date_filter, sky_coord, radius)
 
+    # calling visualisation function
     if flag == 1:
         list_result = create_nodes_list(reports)
         for report in reports:

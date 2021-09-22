@@ -80,18 +80,20 @@ def valid_ra(ra: str) -> bool:
     '''
     bool_response = True
 
-    if ("h" in ra and "m" in ra and "s" in ra):
+    if ("h" in ra and "m" in ra and "s" in ra): # for the hms format of coords
         string_split = re.split('h|m|s',ra)
-    elif (":" in ra):
+    elif (":" in ra): # for the xx:xx:xx format of coords
         string_split = ra.split(':')
     else:
         bool_response = False
     
-    if bool_response == True:
-        h_value = int(string_split[0])
+    # making the split variables the correct data types
+    if bool_response == True: 
+        h_value = int(string_split[0]) 
         m_value = int(string_split[1])
         s_value = float(string_split[2])
 
+    # checking validity of values with their min max ranges
     if bool_response == True:
         if h_value < -24 and h_value > 24:
             bool_response = False
@@ -116,18 +118,20 @@ def valid_dec(dec: str) -> bool:
     '''
     bool_response = True
 
-    if ("d" in dec and "m" in dec and "s" in dec):
+    if ("d" in dec and "m" in dec and "s" in dec): # for the hms format of coords
         string_split = re.split('d|m|s',dec)
-    elif (":" in dec):
+    elif (":" in dec): # for the xx:xx:xx format of coords
         string_split = dec.split(':')
     else:
         bool_response = False
 
+    # making the split variables the correct data types
     if bool_response == True:
         d_value = int(string_split[0])
         m_value = int(string_split[1])
         s_value = float(string_split[2])
 
+    # checking validity of values with their min max ranges
     if bool_response == True:
         if d_value < 0 and d_value > 360:
             bool_response = False
@@ -152,6 +156,7 @@ def valid_radius(rad: str) -> bool:
     bool_response = True
     rad_float = float(rad)
 
+    # checking validity of the radius with its min max ranges
     if rad_float > 20.0 or rad_float < 0.0:
         bool_response = False
 
@@ -169,7 +174,7 @@ def parse_keyword_mode(keyword_mode: str) -> KeywordMode:
         KeywordMode: enum representing a keywordmode
 
     '''
-    
+    # creating enum version of keyword_mode_in
     if keyword_mode == "all":
         keyword_mode_enum_out = KeywordMode.ALL
     elif keyword_mode == "any":
