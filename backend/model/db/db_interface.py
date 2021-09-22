@@ -28,6 +28,7 @@ from math import trunc
 import os
 
 from astropy.coordinates import SkyCoord
+from astropy.coordinates.angles import Angle
 import mysql.connector
 from mysql.connector import errorcode
 from mysql.connector.connection import MySQLConnection
@@ -573,7 +574,8 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
 
                 #create result object and add to list
                 report = ReportResult(atel_num,title,authors,body,submission_date)
-                reports.append(report)
+                if (report not in reports):
+                    reports.append(report)
         except mysql.connector.Error as e:
             raise e
         finally:
@@ -581,11 +583,11 @@ def find_reports_by_object(filters: SearchFilters = None, date_range: DateFilter
             cn.close()
 
         # Populate each returned report with their referenced report and return the list of results.
-        return _populate_referenced_reports(reports)
+        return _populate_referenced_reports(list(reports))
     else: # If no parameters given, return empty list.
         return []
 
-def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, coords:SkyCoord, radius:float)->list[ReportResult]:
+def find_reports_in_coord_range(filters:SearchFilters=None, date_range:DateFilter=None, coords:SkyCoord=None, radius:float=None)->list[ReportResult]:
     """
     Queries the local database for reports matching the specified search filters and related to the specified object if given.
 
@@ -593,12 +595,63 @@ def find_reports_in_coord_range(filters:SearchFilters, date_range: DateFilter, c
         filters (SearchFilters): The search criteria to filter the report query with.
         date_range (DateFilter, optional): The date range to filter the report query by. Defaults to None.
         coords (SkyCoord): The coordinates to search around.
-        radius (float): The radius defining the range around the specified coordinates to search.
+        radius (float): The radius defining the range around the specified coordinates to search, in arcseconds.
 
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    return [] # stub
+    if (bool(coords) ^ bool(radius)):
+        raise TypeError("Must specify both coords and radius, or neither.")
+
+    filter_coords = bool(coords) and bool(radius)
+
+    if (filters or filter_coords):
+        cn = _connect()
+        cur: MySQLCursor = cn.cursor()
+
+        query, data = _build_report_coords_query(filters, date_range, filter_coords)
+
+        reports = []
+
+        try:
+            cur.execute(query, data)
+            for row in cur.fetchall():
+                # extract data
+                atel_num = row[0]
+                title = row[1]
+                authors = row[2]
+                body = row[3]
+                submission_date = row[4]
+
+                if (filter_coords):
+                    ra = row[5]
+                    dec = row[6]
+                    report_coords = SkyCoord(ra, dec, frame='icrs', unit=('deg', 'deg'))
+
+                    # Check coordinates are in range
+                    separation:Angle = SkyCoord.separation(coords, report_coords)
+                    if (separation.arcsecond <= radius):
+                        # create result object and add to list
+                        report = ReportResult(atel_num, title, authors, body, submission_date)
+                        if (report not in reports):
+                            reports.append(report)
+                    # else skip this result
+                else:
+                    # create result object and add to list
+                    report = ReportResult(atel_num, title, authors, body, submission_date)
+                    if (report not in reports):
+                        reports.append(report)
+
+        except mysql.connector.Error as e:
+            raise e
+        finally:
+            cur.close()
+            cn.close()
+
+        # Populate each returned report with their referenced report and return the list of results.
+        return _populate_referenced_reports(list(reports))
+    else:  # If no parameters given, return empty list.
+        return []
 
     #TODO: Check in coord range.
 
@@ -733,19 +786,20 @@ def _record_exists(table_name:str,primary_key:str,id:str)->bool:
     else:
         return False
 
-def _build_report_base_query()->str:
+def _build_report_base_query()->tuple[str,str]:
     """
     Builds the base query SQL query to select reports.
 
     Returns:
-        str: The SQL query.
+        select_clause: The select clause of the SQL query.
+        from_clause: The from clause of the SQL query.
     """
 
     # Define base Select from Reports query
-    base_query = ("select atelNum, title, authors, body, submissionDate "
-                  "from Reports ")
+    select_clause  = "select atelNum, title, authors, body, submissionDate "
+    from_clause = "from Reports "
 
-    return base_query
+    return select_clause, from_clause
 
 
 def _build_report_name_query(filters: SearchFilters = None, date_range: DateFilter = None, object_name: str = None):
@@ -762,13 +816,46 @@ def _build_report_name_query(filters: SearchFilters = None, date_range: DateFilt
     """
 
     #Build query clauses.
-    base_query = _build_report_base_query()
-    join_clause, join_data = _build_join_clause(object_name)
+    select_clause, from_clause = _build_report_base_query()
+    join_clause, join_data = _build_name_join_clause(object_name)
     where_clause, where_data = _build_where_clause(filters, date_range)
 
     # Build final query and compile data
-    query = base_query + join_clause + where_clause
+    query = select_clause + from_clause + join_clause + where_clause
     data = join_data + where_data
+
+    return query, data
+
+
+def _build_report_coords_query(filters: SearchFilters = None, date_range: DateFilter = None, filter_coords:bool = False):
+    """
+    Builds the SQL query to select reports based on the specified search filters and/or coords.
+
+    Args:
+        filters (SearchFilters, optional): A valid search filters object to build the query with.
+        date_filters (DateFilters, optional): A valid search filters object to build the query with. Defaults to None.
+        filter_coords (bool): Whether to include the join clause which filters for reports that have linked coords.
+
+    Returns:
+        str: The SQL where clause.
+        tuple: The data to inject into the query on execution. 
+    """
+
+    #Build query clauses.
+    select_clause, from_clause = _build_report_base_query()
+
+    if (filter_coords):
+        select_coords_clause = ", ra, declination "
+        join_clause = _build_coords_join_clause()
+    else:
+        select_coords_clause = ""
+        join_clause = ""
+
+    where_clause, where_data = _build_where_clause(filters, date_range)
+
+    # Build final query and compile data
+    query = select_clause + select_coords_clause + from_clause + join_clause + where_clause
+    data = where_data
 
     return query, data
 
@@ -838,7 +925,7 @@ def _build_where_clause(filters: SearchFilters = None, date_range: DateFilter = 
 
     return where_clause, data
 
-def _build_join_clause(object_name:str = None)->tuple[str,tuple]:
+def _build_name_join_clause(object_name:str = None)->tuple[str,tuple]:
     """
     Builds the join clause of the SQL query to select reports linked to the specified object.
 
@@ -866,6 +953,20 @@ def _build_join_clause(object_name:str = None)->tuple[str,tuple]:
         join_data = ()
 
     return join_clause, join_data
+
+
+def _build_coords_join_clause() -> str:
+    """
+    Builds the join clause of the SQL query to select reports with associated coordinates.
+
+    Returns:
+        str: The SQL join clause.
+
+    """
+    join_clause = ("inner join ReportCoords "
+                   "on Reports.atelNum = ReportCoords.atelNumFK ")
+
+    return join_clause
 
 def _populate_referenced_reports(reports:list[ReportResult])->list[ReportResult]:
     """
