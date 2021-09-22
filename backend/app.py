@@ -159,7 +159,7 @@ def imports() -> json:
         flag = 0
     elif import_mode_in == "manual" and valid_atel_num(atel_num_in) == False:  # import mode set to manual but atel number was not provided
         flag = 0
-        
+
     if flag == 1:
         try:
             if import_mode_in == "manual":
@@ -287,9 +287,12 @@ def search() -> json:
 
     keyword_mode_enum = KeywordMode.ANY
     if keyword_mode_in != None:
-        if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none":
-            parse_keyword_mode(keyword_mode_in)
-        else:
+        try:
+            if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none":
+                parse_keyword_mode(keyword_mode_in)
+            else:
+                flag = 0
+        except InvalidKeywordError as e:
             flag = 0
 
     if term_in == "" and keywords_in == None:

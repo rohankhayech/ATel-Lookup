@@ -29,6 +29,9 @@ from model.ds.search_filters import KeywordMode
 from enum import Enum
 import enum
 
+class InvalidKeywordError(Exception):
+    pass
+
 
 def parse_date_input(date_string: str) -> datetime:
     '''This function transforms an imported date string into a Python datetime object 
@@ -144,6 +147,8 @@ def parse_keyword_mode(keyword_mode: str) -> KeywordMode:
         keyword_mode_enum_out = KeywordMode.ANY
     elif keyword_mode == "none":
         keyword_mode_enum_out = KeywordMode.NONE
+    else:
+        raise InvalidKeywordError()
 
     return keyword_mode_enum_out 
 
