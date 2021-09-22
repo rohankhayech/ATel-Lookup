@@ -308,10 +308,9 @@ class TestWebInterfaceSearch(ut.TestCase):
         # if end date is before start date or vice versa, test should fail
     
     def test_search_bad_ra_value(self):
-        pass
-        # response = self.app.post('/search', json = test_search_bad_ra_value) # Outdated test needs to updated
-        # self.assertEqual(response.json.get("flag"), 0)
-        # Latitude angle(s) must be within -90 deg <= angle <= 90 deg
+        response = self.app.post('/search', json = test_search_bad_ra_value) # Outdated test needs to updated
+        self.assertEqual(response.json.get("flag"), 0)
+        # Testing bad ra value, giving the program ra = 136m50s
 
     def test_search_bad_keyword(self):
         response = self.app.post('/search', json = test_search_bad_keyword)
