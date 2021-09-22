@@ -80,23 +80,25 @@ def valid_ra(ra: str) -> bool:
     '''
     bool_response = True
 
-    if ("h" in ra):
+    if ("h" in ra and "m" in ra and "s" in ra):
         string_split = re.split('h|m|s',ra)
     elif (":" in ra):
         string_split = ra.split(':')
     else:
         bool_response = False
     
-    h_value = int(string_split[0])
-    m_value = int(string_split[1])
-    s_value = float(string_split[2])
+    if bool_response == True:
+        h_value = int(string_split[0])
+        m_value = int(string_split[1])
+        s_value = float(string_split[2])
 
-    if h_value < -24 and h_value > 24:
-        bool_response = False
-    elif m_value < 0 and m_value > 60:
-        bool_response = False
-    elif s_value < 0.0 and s_value > 60.0:
-        bool_response = False
+    if bool_response == True:
+        if h_value < -24 and h_value > 24:
+            bool_response = False
+        elif m_value < 0 and m_value > 60:
+            bool_response = False
+        elif s_value < 0.0 and s_value > 60.0:
+            bool_response = False
 
     return bool_response 
 
@@ -114,23 +116,25 @@ def valid_dec(dec: str) -> bool:
     '''
     bool_response = True
 
-    if ("d" in dec):
+    if ("d" in dec and "m" in dec and "s" in dec):
         string_split = re.split('d|m|s',dec)
     elif (":" in dec):
         string_split = dec.split(':')
     else:
         bool_response = False
 
-    d_value = int(string_split[0])
-    m_value = int(string_split[1])
-    s_value = float(string_split[2])
+    if bool_response == True:
+        d_value = int(string_split[0])
+        m_value = int(string_split[1])
+        s_value = float(string_split[2])
 
-    if d_value < 0 and d_value > 360:
-        bool_response = False
-    elif m_value < 0 and m_value > 60:
-        bool_response = False
-    elif s_value < 0.0 and s_value > 60.0:
-        bool_response = False
+    if bool_response == True:
+        if d_value < 0 and d_value > 360:
+            bool_response = False
+        elif m_value < 0 and m_value > 60:
+            bool_response = False
+        elif s_value < 0.0 and s_value > 60.0:
+            bool_response = False
 
     return bool_response 
 
