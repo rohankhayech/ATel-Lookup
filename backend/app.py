@@ -217,6 +217,24 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
+    if search_mode_in == "":
+        search_mode_in = None
+
+    if search_data_in == "":
+        search_data_in = None
+
+    if keywords_in == "":
+        keywords_in = None
+
+    if keyword_mode_in == "":
+        keyword_mode_in = None
+
+    if start_date_in == "":
+        start_date_in = None
+
+    if end_date_in == "":
+        end_date_in = None
+
     # turning dates into date objects
     if start_date_in != None:
         start_date_obj = parse_date_input(start_date_in)

@@ -97,13 +97,13 @@ test_search_basic = {
 }
 
 test_search_basic_coords = {
-    "term": "supermassive",
+    "term": "",
     "search_mode": "coords",
-    "search_data": ["13h36m50s", "30d10m35s", 3.4],
-    "keywords": ["radio"],
-    "keyword_mode": "none",
-    "start_date": "2005-03-15",
-    "end_date": "2010-09-12"
+    "search_data": ["10:10:10", "30:10:35", 10.0],
+    "keywords": [""],
+    "keyword_mode": "",
+    "start_date": "",
+    "end_date": ""
 }
 
 test_search_bad_date = {
