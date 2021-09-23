@@ -2,6 +2,7 @@
   <div>
     <!-- Timeline -->
     <app-timeline
+      *ngIf="(result?.telegrams?.length ?? 0) >= 3"
       [telegrams]="result?.telegrams"
       (selectionChange)="scrollToTelegram($event)"
     ></app-timeline>
@@ -25,10 +26,15 @@
 
         <mat-card-content>
           <app-network-graph
+            *ngIf="result?.nodes?.length; else noRelatedReportsTemplate"
             [nodes]="result.nodes"
             [links]="result.links"
             (selectionChange)="scrollToTelegram($event)"
           ></app-network-graph>
+
+          <ng-template #noRelatedReportsTemplate>
+            <p style="padding: 5px 20px">No related reports</p>
+          </ng-template>
         </mat-card-content>
       </mat-card>
     </div>
