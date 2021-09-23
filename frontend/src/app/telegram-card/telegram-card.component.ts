@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, ElementRef, Input } from '@angular/core';
 import { environment } from 'src/environments/environment';
 import { Telegram } from '../telegram.interface';
 
@@ -10,8 +10,14 @@ import { Telegram } from '../telegram.interface';
 export class TelegramCardComponent {
   @Input() public telegram?: Telegram;
 
+  constructor(private elementRef: ElementRef) {}
+
   public get url() {
     return `${environment.astronomersTelegramUrl}/?read=${this.telegram?.id}`;
+  }
+
+  scroll() {
+    this.elementRef.nativeElement.scrollIntoView({ behavior: 'smooth' });
   }
 
   visit() {

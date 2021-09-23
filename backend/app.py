@@ -68,9 +68,6 @@ CORS(app)
 
 app.config["JWT_SECRET_KEY"] = os.environ["JWT_SECRET_KEY"]
 
-# Initialise the database
-init_db()
-
 
 @app.route("/")
 def index():
@@ -129,11 +126,6 @@ def get_user():
         string: The email address of the current user
     """
     return current_user
-
-
-if __name__ == "__main__":
-    app.run()
-
 
 """
 Web Interface Endpoints
@@ -290,7 +282,7 @@ def search() -> json:
         elif keyword_mode_in == "none":
             keyword_mode_enum = KeywordMode.NONE
 
-    if term_in == None and keywords_in == None:
+    if not term_in and not keywords_in:
         search_filters = None
     else:
         search_filters = SearchFilters(
@@ -330,7 +322,12 @@ def search() -> json:
             )
 
     return jsonify(
-        {"flag": flag, "report_list": report_dicts, "nodes_list": list_result}
+        {
+            "flag": flag,
+            "report_list": report_dicts,
+            "node_list": list_result[0],
+            "edge_list": list_result[1],
+        }
     )
 
 
@@ -354,3 +351,14 @@ def load_metadata() -> json:
     return jsonify(
         {"keywords": keywords, "lastUpdated": last_updated, "reportCount": report_count}
     )
+
+"""
+Application Main Line  
+  
+"""
+# Initialise the database
+init_db()
+
+if __name__ == "__main__":
+    # Run the application
+    app.run()

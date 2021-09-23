@@ -35,6 +35,8 @@ import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ProgressBarDirective } from './progress-bar.directive';
 import { FlexLayoutModule } from '@angular/flex-layout';
+import { TimelineComponent } from './timeline/timeline.component';
+import { NetworkGraphComponent } from './network-graph/network-graph.component';
 
 @NgModule({
   declarations: [
@@ -47,6 +49,8 @@ import { FlexLayoutModule } from '@angular/flex-layout';
     SearchFormComponent,
     TelegramCardComponent,
     ProgressBarDirective,
+    TimelineComponent,
+    NetworkGraphComponent,
   ],
   imports: [
     BrowserModule,
