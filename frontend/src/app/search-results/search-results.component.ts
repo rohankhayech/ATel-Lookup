@@ -13,6 +13,15 @@ export class SearchResultsComponent {
   @ViewChildren(TelegramCardComponent)
   cards?: QueryList<TelegramCardComponent>;
 
+  public readonly pageSize = 10;
+
+  public page = 0;
+
+  get view() {
+    const index = this.page * this.pageSize;
+    return this.result?.telegrams?.slice(index, index + this.pageSize);
+  }
+
   top() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -23,5 +32,10 @@ export class SearchResultsComponent {
         card.scroll();
       }
     });
+  }
+
+  updatePage(page: number) {
+    this.page = page;
+    this.cards?.first.scroll();
   }
 }
