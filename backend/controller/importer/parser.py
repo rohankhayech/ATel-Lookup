@@ -384,8 +384,8 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
 
                                         if(name_query_result is not None):
                                             # Adds object ID and its aliases into the database
-                                            name, coords, _ = name_query_result
-                                            add_object(name, coords, value)
+                                            name, coordinates, _ = name_query_result
+                                            add_object(name, coordinates, value)
                                 except Exception:
                                     pass
                     except Exception:

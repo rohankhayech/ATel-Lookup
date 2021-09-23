@@ -74,9 +74,9 @@ export class SearchFormComponent implements OnInit {
     }
 
     const coordinates: Coordinates = {
-      ra: +this.ra,
-      declination: +this.declination,
-      radius: +this.radius,
+      ra: this.ra,
+      declination: this.declination,
+      radius: this.radius,
     };
 
     const parameters: Parameters = {
