@@ -22,6 +22,7 @@ License Terms and Copyright:
 """
 import unittest
 from datetime import datetime
+from astropy import coordinates
 
 import mysql.connector
 from mysql.connector.cursor import MySQLCursor
@@ -179,7 +180,7 @@ class TestReports(unittest.TestCase):
             cn.close()
 
     def testBuildBaseQuery(self):
-        self.assertEqual(db._build_report_base_query(), "select atelNum, title, authors, body, submissionDate from Reports ")
+        self.assertEqual(db._build_report_base_query(), ("select atelNum, title, authors, body, submissionDate ","from Reports "))
 
     def testBuildWhereClause(self):
         #Test full query
@@ -429,25 +430,30 @@ class TestObjects(unittest.TestCase):
         cur.close()
         cn.close()
 
-    def testBuildJoinClause(self):
+    def testBuildNameJoinClause(self):
         #using main id
-        query, data = db._build_join_clause("test_main_id") 
+        query, data = db._build_name_join_clause("test_main_id") 
         self.assertEqual(query, "inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
         self.assertTupleEqual(data, ("test_main_id",))
 
         # using alias
-        query, data = db._build_join_clause("test-alias-1")
+        query, data = db._build_name_join_clause("test-alias-1")
         self.assertEqual(query, "inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s ")
         self.assertTupleEqual(data, ("test_main_id",))
         
         # using none
-        query, data = db._build_join_clause(None)
+        query, data = db._build_name_join_clause(None)
         self.assertEqual(query, "")
         self.assertTupleEqual(data, ())
 
         # using invalid alias
         with self.assertRaises(db.ObjectNotFoundError):
-            db._build_join_clause("db-test-invalid-alias")
+            db._build_name_join_clause("db-test-invalid-alias")
+
+    def testBuildCoordJoinClause(self):
+        #using main id
+        query = db._build_coords_join_clause()
+        self.assertEqual(query, "inner join ReportCoords on Reports.atelNum = ReportCoords.atelNumFK ")
 
     def testBuildReportNameQuery(self):
         self.maxDiff = None
@@ -475,9 +481,39 @@ class TestObjects(unittest.TestCase):
         self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data, ("test_main_id", df.start_date, df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
 
+    def testBuildReportCoordsQuery(self):
+        self.maxDiff = None
+
+        sf = SearchFilters("term", ["star", "planet"], KeywordMode.ANY)
+        df = DateFilter(datetime(2021, 8, 16), datetime(2021, 8, 17))
+
+        # Test empty query
+        query, data = db._build_report_coords_query()
+        self.assertEqual(
+            query, "select atelNum, title, authors, body, submissionDate from Reports ")
+        self.assertTupleEqual(data, ())
+
+        # Test only coords
+        query, data = db._build_report_coords_query(filter_coords=True)
+        self.assertEqual(
+            query, "select atelNum, title, authors, body, submissionDate , ra, declination from Reports inner join ReportCoords on Reports.atelNum = ReportCoords.atelNumFK ")
+        self.assertTupleEqual(data, ())
+
+        # Test only filters
+        query, data = db._build_report_coords_query(sf, df)
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data, (df.start_date, df.end_date,
+                              sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
+
+        # Test full query
+        query, data = db._build_report_coords_query(sf, df, filter_coords=True)
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate , ra, declination from Reports inner join ReportCoords on Reports.atelNum = ReportCoords.atelNumFK where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data, (df.start_date,
+                              df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
+
     def testFindByObject(self):
-        report = ImportedReport(20001, "db_test_report", "db_test_authors_text","db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"], objects=["test_main_id"])
-        report2 = ImportedReport(20000, "db_test_report", "db_test_authors_text", "db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"])
+        report = ImportedReport(99999, "db_test_report", "db_test_authors_text","db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"], objects=["test_main_id"])
+        report2 = ImportedReport(99998, "db_test_report", "db_test_authors_text", "db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"])
 
         db.add_report(report2)
         db.add_report(report)
@@ -528,7 +564,77 @@ class TestObjects(unittest.TestCase):
             #delete report
             cn = db._connect()
             cur: MySQLCursor = cn.cursor()
-            cur.execute("delete from Reports where atelNum = 20001 or atelNum = 20000")
+            cur.execute("delete from Reports where atelNum = 99999 or atelNum = 99998")
+            cur.close()
+            cn.commit()
+            cn.close()
+
+    def testInCoordRange(self):
+        ex_coords = SkyCoord("13h36m50s", "30d20m20s",frame="icrs", unit=("hourangle", "deg"))
+        coords_in_range = SkyCoord("13h36m50s", "30d20m39s",frame="icrs", unit=("hourangle", "deg"))
+        coords_outside_range = SkyCoord("13h36m50s", "30d20m41s",frame="icrs", unit=("hourangle", "deg"))
+
+        report = ImportedReport(99999, "db_test_report", "db_test_authors_text", "db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"], coordinates=[coords_in_range])
+        report2 = ImportedReport(99998, "db_test_report", "db_test_authors_text", "db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"], coordinates=[coords_outside_range])
+        report3 = ImportedReport(99997, "db_test_report", "db_test_authors_text", "db_test_body_text", datetime(
+            2021, 8, 12), keywords=[])
+
+        db.add_report(report3)
+        db.add_report(report2)
+        db.add_report(report)
+
+        try:
+            #test search coords
+            results = db.find_reports_in_coord_range(coords=ex_coords,radius=20)
+            self.assertIn(report, results)
+            self.assertNotIn(report2, results)
+            self.assertNotIn(report3, results)
+
+            #test full query
+            results = db.find_reports_in_coord_range(
+                SearchFilters(
+                    term="db_test_report",
+                    keywords=["star", "radio"],
+                    keyword_mode=KeywordMode.ALL
+                ),
+                DateFilter(
+                    start_date=datetime(2021, 8, 11),
+                    end_date=datetime(2021, 8, 13)
+                ),
+                coords = ex_coords,
+                radius = 20
+            )
+            self.assertIn(report, results)
+            self.assertNotIn(report2, results)
+            self.assertNotIn(report3, results)
+
+            #test only filters
+            results = db.find_reports_in_coord_range(
+                SearchFilters(
+                    term="db_test_report",
+                    keywords=["star", "radio"],
+                    keyword_mode=KeywordMode.NONE),
+                DateFilter(
+                    start_date=datetime(2021, 8, 11),
+                    end_date=datetime(2021, 8, 13)
+                )
+            )
+            self.assertNotIn(report2, results)
+            self.assertNotIn(report, results)
+            self.assertIn(report3, results)
+
+            # test invalid args
+            with self.assertRaises(TypeError):
+                db.find_reports_in_coord_range(coords=ex_coords)
+            with self.assertRaises(TypeError):
+                db.find_reports_in_coord_range(radius=20)
+
+        finally:
+            #delete report
+            cn = db._connect()
+            cur: MySQLCursor = cn.cursor()
+            cur.execute(
+                "delete from Reports where atelNum between 99997 and 99999")
             cur.close()
             cn.commit()
             cn.close()
