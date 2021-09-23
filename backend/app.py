@@ -259,7 +259,7 @@ def search() -> json:
         else:
             flag = 0  # if search data is not fit for coords, set flag to failure
 
-    if keyword_mode_in != None and (keywords_in != None or keywords_in != ""): # as long as keyword mode is set, and there is data in keywords_in
+    if keyword_mode_in != None and (keywords_in != None and keywords_in != ""): # as long as keyword mode is set, and there is data in keywords_in
         for x in keywords_in:
             if x not in FIXED_KEYWORDS: # checking if the keywords are part of the fixed keyword list
                 flag = 0
