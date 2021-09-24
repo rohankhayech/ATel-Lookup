@@ -14,10 +14,11 @@
         >This will import all new reports from ATel #0 to the latest
         posted</strong
       >
+
       <button
         mat-raised-button
         color="primary"
-        (click)="importAll()"
+        [appProgressBar]="importAll.bind(this)"
         class="wide uppercase"
       >
         Import All
@@ -42,7 +43,7 @@
 
       <button
         mat-raised-button
-        (click)="import()"
+        [appProgressBar]="import.bind(this)"
         color="primary"
         class="wide uppercase"
       >

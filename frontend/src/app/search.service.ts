@@ -7,9 +7,11 @@ import { ApiParameters } from './api-parameters.interface';
 import { Telegram } from './telegram.interface';
 import { ApiTelegram } from './api-telegram.interface';
 import { switchMap } from 'rxjs/operators';
-import { of } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { SearchResponse } from './search-response';
 import { Moment } from 'moment';
+import { SearchResult } from './search-result';
+import { Link } from './network-graph/network-graph.component';
 
 @Injectable({
   providedIn: 'root',
@@ -24,9 +26,16 @@ export class SearchService {
         ...params,
       })
       .pipe(
-        switchMap((response) =>
-          of(response.report_list.map(this.deserializeTelegram))
-        )
+        switchMap((response): Observable<SearchResult> => {
+          const telegrams = response.report_list.map(this.deserializeTelegram);
+          const nodes = telegrams.filter((telegram) =>
+            response.node_list.includes(telegram.id)
+          );
+          const links = response.edge_list
+            .map(this.deserializeLink)
+            .filter((link) => this.existingNodeFilter(nodes, link));
+          return of({ telegrams, nodes, links });
+        })
       );
   }
 
@@ -50,18 +59,33 @@ export class SearchService {
   }
 
   serializeDate(date?: Moment) {
-    return date?.format('DD/MM/YYYY');
+    return date?.format('YYYY-MM-DD');
   }
 
   deserializeTelegram(telegram: ApiTelegram): Telegram {
     return {
       id: telegram.atel_num,
       title: telegram.title,
-      date: telegram.submission_date,
+      date: new Date(telegram.submission_date),
       authors: telegram.authors,
       body: telegram.body,
       referenced: telegram.referenced_reports,
     };
+  }
+
+  deserializeLink(link: number[]) {
+    return {
+      source: link[0],
+      target: link[1],
+    };
+  }
+
+  existingNodeFilter(nodes: Telegram[], link: Link) {
+    // ensure both source and target are in nodes list
+    return (
+      nodes.some((j) => j.id === link.source) &&
+      nodes.some((j) => j.id === link.target)
+    );
   }
 
   pad(n: number) {

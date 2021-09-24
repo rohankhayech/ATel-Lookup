@@ -1,12 +1,46 @@
-<!-- Timeline -->
+<div *ngIf="result">
+  <div>
+    <!-- Timeline -->
+    <app-timeline
+      [telegrams]="result?.telegrams"
+      (selectionChange)="scrollToTelegram($event)"
+    ></app-timeline>
+  </div>
 
-<!-- Reports -->
-<app-telegram-card
-  *ngFor="let telegram of telegrams"
-  [telegram]="telegram"
-></app-telegram-card>
+  <div class="grid">
+    <div>
+      <!-- Reports -->
+      <app-telegram-card
+        *ngFor="let telegram of result?.telegrams"
+        [telegram]="telegram"
+      ></app-telegram-card>
+    </div>
 
-<!-- Related Reports -->
+    <div>
+      <!-- Network Graph -->
+      <mat-card>
+        <mat-card-header>
+          <mat-card-title>Related Reports</mat-card-title>
+        </mat-card-header>
+
+        <mat-card-content>
+          <app-network-graph
+            [nodes]="result.nodes"
+            [links]="result.links"
+            (selectionChange)="scrollToTelegram($event)"
+          ></app-network-graph>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+</div>
 
 <!-- Floating Button -->
-<button mat-raised-button class="floating" (click)="top()">Back to Top</button>
+<button
+  mat-raised-button
+  *ngIf="result?.telegrams?.length"
+  (click)="top()"
+  class="floating"
+>
+  Back to Top
+</button>

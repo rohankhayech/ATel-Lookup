@@ -9,29 +9,27 @@
     <form>
       <section class="section">
         <mat-form-field appearance="fill" class="wide">
-          <mat-label>Query</mat-label>
-          <input matInput [(ngModel)]="query" name="query" />
+          <mat-label>Free-text Search</mat-label>
+          <input
+            matInput
+            [(ngModel)]="query"
+            name="query"
+            placeholder="Enter terms to search report title and body content"
+          />
         </mat-form-field>
       </section>
 
       <section class="section">
-        <mat-form-field appearance="fill">
-          <mat-label>Search Type</mat-label>
-          <mat-select [(value)]="mode" class="uppercase">
-            <mat-option [value]="SearchMode.Name" class="uppercase"
-              >Name</mat-option
-            >
-            <mat-option [value]="SearchMode.Coordinate" class="uppercase"
+        <span class="bold">Search by Object </span>
+
+        <mat-form-field appearance="standard">
+          <mat-select [(value)]="mode" class="bold">
+            <mat-option [value]="SearchMode.Name" class="bold">Name</mat-option>
+            <mat-option [value]="SearchMode.Coordinate" class="bold"
               >Coordinates</mat-option
             >
           </mat-select>
         </mat-form-field>
-
-        <mat-icon
-          style="color: grey"
-          matTooltip="Search by object name or coordinates"
-          >help</mat-icon
-        >
 
         <ng-container [ngSwitch]="mode">
           <mat-form-field
@@ -39,48 +37,73 @@
             appearance="fill"
             class="wide"
           >
-            <mat-label>Name</mat-label>
-            <input matInput [(ngModel)]="name" name="name" />
+            <mat-label>Object Name</mat-label>
+            <input
+              matInput
+              [(ngModel)]="name"
+              name="name"
+              placeholder="Enter object name or alias"
+            />
           </mat-form-field>
 
           <ng-container *ngSwitchCase="SearchMode.Coordinate">
             <mat-form-field appearance="fill" class="wide">
-              <mat-label>RA</mat-label>
-              <input matInput [(ngModel)]="ra" name="ra" />
+              <mat-label>Right Ascension</mat-label>
+              <input
+                matInput
+                [(ngModel)]="ra"
+                name="ra"
+                placeholder="hh:mm:ss.ssss"
+              />
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="wide">
               <mat-label>Declination</mat-label>
-              <input matInput [(ngModel)]="declination" name="declination" />
+              <input
+                matInput
+                [(ngModel)]="declination"
+                name="declination"
+                placeholder="hh:mm:ss.ssss"
+              />
             </mat-form-field>
 
             <mat-form-field appearance="fill" class="wide">
               <mat-label>Radius</mat-label>
-              <input matInput [(ngModel)]="radius" name="radius" />
+              <input
+                matInput
+                [(ngModel)]="radius"
+                name="radius"
+                placeholder="def 10.0000"
+              />
             </mat-form-field>
           </ng-container>
         </ng-container>
       </section>
 
       <section class="section">
-        <mat-form-field appearance="fill" class="wide">
-          <mat-label>Match</mat-label>
-          <mat-select [(value)]="match" class="uppercase">
-            <mat-option [value]="Match.Any" class="uppercase">Any</mat-option>
-            <mat-option [value]="Match.All" class="uppercase">All</mat-option>
-            <mat-option [value]="Match.None" class="uppercase">None</mat-option>
+        <mat-form-field appearance="standard">
+          <mat-select [(value)]="match" class="bold">
+            <mat-option [value]="Match.Any" class="bold"
+              >Including any of</mat-option
+            >
+            <mat-option [value]="Match.All" class="bold"
+              >Including all of</mat-option
+            >
+            <mat-option [value]="Match.None" class="bold">Excluding</mat-option>
           </mat-select>
         </mat-form-field>
 
-        <p>of the following keywords:</p>
+        <span class="bold"> the following keywords:</span>
 
-        <mat-checkbox
-          *ngFor="let keyword of metadata?.keywords"
-          [(ngModel)]="keywords[keyword]"
-          [name]="keyword"
-          class="checkbox"
-          >{{ keyword }}</mat-checkbox
-        >
+        <div class="grey-card">
+          <mat-checkbox
+            *ngFor="let keyword of metadata?.keywords"
+            [(ngModel)]="keywords[keyword]"
+            [name]="keyword"
+            class="checkbox"
+            >{{ keyword }}</mat-checkbox
+          >
+        </div>
       </section>
 
       <section class="section">
@@ -120,7 +143,8 @@
       <button
         mat-raised-button
         color="primary"
-        (click)="submit()"
+        [appProgressBar]="submit.bind(this)"
+        appProgressBarMode="query"
         class="wide uppercase"
       >
         Search
