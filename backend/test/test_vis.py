@@ -75,9 +75,10 @@ class TestVis(ut.TestCase):
         '''
         nodes_result, edges_result = vis.create_nodes_list(self.reports_unrelated)
         self.assertFalse(len(self.reports_unrelated) == 0)
-        self.assertEqual(nodes_result, [])
+        for report in self.reports_unrelated:
+            self.assertTrue(report.atel_num in self.unrelated_atel_pool)
         self.assertEqual(edges_result, [])
-        self.assertTrue(len(nodes_result) + len(edges_result) == 0)
+        self.assertTrue(len(nodes_result) == len(self.unrelated_atel_pool))
 
 
     def test_related(self):
