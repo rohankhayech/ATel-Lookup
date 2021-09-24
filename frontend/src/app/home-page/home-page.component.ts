@@ -1,6 +1,6 @@
 import { Component, ElementRef, ViewChild } from '@angular/core';
+import { SearchResult } from '../search-result';
 import { SearchResultsComponent } from '../search-results/search-results.component';
-import { Telegram } from '../telegram.interface';
 
 @Component({
   selector: 'app-home-page',
@@ -11,10 +11,10 @@ export class HomePageComponent {
   @ViewChild(SearchResultsComponent, { read: ElementRef })
   public results?: ElementRef;
 
-  public telegrams?: Telegram[];
+  public result?: SearchResult;
 
-  search(telegrams: Telegram[]) {
-    this.telegrams = telegrams;
+  search(result: SearchResult) {
+    this.result = result;
 
     this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
   }
