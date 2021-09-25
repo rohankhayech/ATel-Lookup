@@ -72,16 +72,17 @@ class TestImporterFunctions(unittest.TestCase):
     @mock.patch('controller.importer.importer.import_report')
     @mock.patch('controller.importer.importer.get_next_atel_num')
     def test_auto_import(self, mock_get_next_atel_num, mock_import_report, mock_set_next_atel_num):
-        # Expected import_report function calls
-        expected_calls = [call(1), call(2), call(3), call(4), call(5)]
+        # Expected function calls
+        expected_import_report_calls = [call(1), call(2), call(3), call(4), call(5)]
+        expected_set_next_atel_num_calls = [call(2), call(3), call(4), call(5)]
 
         mock_get_next_atel_num.return_value = 1
         mock_import_report.side_effect = [None, None, ReportAlreadyExistsError, None, ReportNotFoundError]
 
-        # Checks for expected import_report function calls and that set_next_atel_num is called with expected integer
+        # Checks for expected import_report and set_next_atel_num function calls
         import_all_reports()
-        mock_import_report.assert_has_calls(expected_calls)
-        mock_set_next_atel_num.assert_called_with(5)
+        mock_import_report.assert_has_calls(expected_import_report_calls)
+        mock_set_next_atel_num.assert_has_calls(expected_set_next_atel_num_calls)
 
         # Checks that import_report was not called with the argument 6
         try:
@@ -92,16 +93,17 @@ class TestImporterFunctions(unittest.TestCase):
         except Exception as err:
             raise AssertionError(f'{str(err)}')
 
-        # Expected import_report function calls
-        expected_calls = [call(6), call(7), call(8)]
+        # Expected function calls
+        expected_import_report_calls = [call(6), call(7), call(8)]
+        expected_set_next_atel_num_calls = [call(7), call(8)]
 
         mock_get_next_atel_num.return_value = 6
         mock_import_report.side_effect = [None, None, ImportFailError]
 
-        # Checks for expected import_report function calls and that set_next_atel_num is called with expected integer
+        # Checks for expected import_report and set_next_atel_num function calls
         import_all_reports()
-        mock_import_report.assert_has_calls(expected_calls)
-        mock_set_next_atel_num.assert_called_with(8)
+        mock_import_report.assert_has_calls(expected_import_report_calls)
+        mock_set_next_atel_num.assert_has_calls(expected_set_next_atel_num_calls)
 
         # Checks that import_report was not called with the argument 9
         try:
@@ -459,8 +461,14 @@ class TestCustomExceptions(unittest.TestCase):
     
     # Tests that DownloadFailError is being raised
     @mock.patch('requests_html.HTML.render')
-    def test_download_fail_error(self, mock_render):
+    @mock.patch('requests_html.HTMLSession.get')
+    def test_download_fail_error(self, mock_get, mock_render):
+        mock_get.side_effect = None
         mock_render.side_effect = TimeoutError
+        with self.assertRaises(DownloadFailError):
+            download_report(1)
+        
+        mock_get.side_effect = Exception
         with self.assertRaises(DownloadFailError):
             download_report(1)
 
