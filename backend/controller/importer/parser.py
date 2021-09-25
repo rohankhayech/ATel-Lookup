@@ -38,14 +38,14 @@ COORD_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]
                  'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
                  'ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
                  'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
-                 'ra:\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?', # decimal degrees
-                 'ra\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?' # decimal degrees
+                 'ra:\s(?:\+|-)?\d+(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?', # decimal degrees
+                 'ra\s(?:\+|-)?\d+(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?' # decimal degrees
 ]
 
 # Used to convert coordinates to SkyCoord objects
 COORD_FORMATS = [['(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', '(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s'], # hms/dms
                  ['(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?'], # hms/dms
-                 ['\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'] # decimal degrees
+                 ['(?:\+|-)?\d+(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'] # decimal degrees
 ]
 
 # Regexes for extracting dates which could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
@@ -315,11 +315,14 @@ def extract_coords(text: str) -> list[str]:
     # Finds all coordinates that are in the above coordinate formats in the title and body of ATel report
     for regex in COORD_REGEXES:
         # Attempts to find all coordinates that are in a certain coordinate format in the title and body text using regex
-        coord_regex = re.compile(regex)
+        coord_regex = re.compile(f'[^a-z]{regex}[^\d]')
         coords_found = coord_regex.findall(f' {text.lower()} ')
 
-        # Adds coordinates found to list
-        coords = coords + coords_found
+        # Removes any leading and/or trailing characters that are not part of the coordinate format
+        for coord in coords_found:
+            coord_regex = re.compile(regex)
+            extracted_coord = coord_regex.search(coord)
+            coords.append(extracted_coord.group())
 
     return list(dict.fromkeys(coords))
 

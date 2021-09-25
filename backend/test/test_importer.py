@@ -241,11 +241,13 @@ class TestParserFunctions(unittest.TestCase):
     # Tests extract_coords function
     def test_coords_extractor(self):
         self.assertCountEqual(extract_coords('There is no coordinates'), [])
-        self.assertCountEqual(extract_coords('RA: 1111, DEC: +80.2, RB: +17.5, DEC: -55.4 and RA -33.5 DEC 65.0'), [])
+        self.assertCountEqual(extract_coords('RA: 1111, DEC: -180.2, RB: +17.5, DEC: -55.4 and aRA 33.5 DEC 65.0'), [])
         self.assertCountEqual(extract_coords('RA: 10.0, DEC: 20.0 and RA: 224, DEC: -25.8'), ['ra: 10.0, dec: 20.0', 'ra: 224, dec: -25.8'])
         self.assertCountEqual(extract_coords('RA 42.5, DEC -15 and RA +75.5, DEC +44.3'), ['ra 42.5, dec -15', 'ra +75.5, dec +44.3'])
         self.assertCountEqual(extract_coords('RA: +16 DEC: -33.56 and RA: 0.05 DEC: +85.3'), ['ra: +16 dec: -33.56', 'ra: 0.05 dec: +85.3'])
         self.assertCountEqual(extract_coords('RA +355.48 DEC 89.9 and RA +64 DEC 75'), ['ra +355.48 dec 89.9', 'ra +64 dec 75'])
+        self.assertCountEqual(extract_coords('RA -1170.30 DEC -63 and RA 400 DEC 30.2'), ['ra -1170.30 dec -63', 'ra 400 dec 30.2'])
+        self.assertCountEqual(extract_coords('RA -00230.4 DEC 45 and RA +399.45 DEC -10'), ['ra -00230.4 dec 45', 'ra +399.45 dec -10'])
         self.assertCountEqual(extract_coords('RA: +22h45m32.3s, DEC: -77d55m17s and RA: +17h30m20s, DEC: +63d30m15.5s'), ['ra: +22h45m32.3s, dec: -77d55m17s', 'ra: +17h30m20s, dec: +63d30m15.5s'])
         self.assertCountEqual(extract_coords('RA 13h26m59s, DEC +32d06m33.4s and RA 08h49m06.4s, DEC 066d017m59s'), ['ra 13h26m59s, dec +32d06m33.4s', 'ra 08h49m06.4s, dec 066d017m59s'])
         self.assertCountEqual(extract_coords('RA: -06h59m17.4s DEC: -84d49m55.4s and RA: -19h02m55s DEC: +32d49m10.88s'), ['ra: -06h59m17.4s dec: -84d49m55.4s', 'ra: -19h02m55s dec: +32d49m10.88s'])
@@ -271,6 +273,8 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(parse_coords(['ra 42.5, dec -15', 'ra +75.5, dec +44.3']), [SkyCoord(42.5, -15.0, unit=('deg', 'deg')), SkyCoord(75.5, 44.3, unit=('deg', 'deg'))])
         self.assertCountEqual(parse_coords(['ra: +16 dec: -33.56', 'ra: 0.05 dec: +85.3']), [SkyCoord(16.0, -33.56, unit=('deg', 'deg')), SkyCoord(0.05, 85.3, unit=('deg', 'deg'))])
         self.assertCountEqual(parse_coords(['ra +355.48 dec 89.9', 'ra +64 dec 75']), [SkyCoord(355.48, 89.9, unit=('deg', 'deg')), SkyCoord(64.0, 75.0, unit=('deg', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra -1170.30 dec -63', 'ra 400 dec 30.2']), [SkyCoord(-1170.3, -63.0, unit=('deg', 'deg')), SkyCoord(400.0, 30.2, unit=('deg', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra -00230.4 dec 45', 'ra +399.45 dec -10']), [SkyCoord(-230.4, 45.0, unit=('deg', 'deg')), SkyCoord(399.45, -10.0, unit=('deg', 'deg'))])
         self.assertCountEqual(parse_coords(['ra: +22h45m32.3s, dec: -77d55m17s', 'ra: +17h30m20s, dec: +63d30m15.5s']), [SkyCoord('+22h45m32.3s', '-77d55m17s', unit=('hourangle', 'deg')), SkyCoord('+17h30m20s', '+63d30m15.5s', unit=('hourangle', 'deg'))])
         self.assertCountEqual(parse_coords(['ra 13h26m59s, dec +32d06m33.4s', 'ra 08h49m06.4s, dec 066d017m59s']), [SkyCoord('13h26m59s', '+32d06m33.4s', unit=('hourangle', 'deg')), SkyCoord('08h49m06.4s', '066d017m59s', unit=('hourangle', 'deg'))])
         self.assertCountEqual(parse_coords(['ra: -06h59m17.4s dec: -84d49m55.4s', 'ra: -19h02m55s dec: +32d49m10.88s']), [SkyCoord('-06h59m17.4s', '-84d49m55.4s', unit=('hourangle', 'deg')), SkyCoord('-19h02m55s', '+32d49m10.88s', unit=('hourangle', 'deg'))])
