@@ -32,6 +32,7 @@ from controller.search.search import check_object_updates
 from bs4 import BeautifulSoup
 from datetime import datetime
 from astropy.coordinates import SkyCoord
+from astropy.time import Time
 
 # Regexes for extracting coordinates
 COORD_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
@@ -58,7 +59,9 @@ DATE_REGEXES = ['(?:[0-3]\d|[1-9])\s(?:january|february|march|april|may|june|jul
                 '(?:[1-2]\d\d\d|\d\d)\/(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])', # yy/mm/dd (99/02/01) and yyyy/mm/dd (1999/02/01)
                 '(?:[0-1]\d|[1-9])\/(?:[0-3]\d|[1-9])\/(?:[1-2]\d\d\d|\d\d)', # mm/dd/yy (02/01/99) and mm/dd/yyyy (02/01/1999)
                 '(?:[0-3]\d|[1-9])\.(?:[0-1]\d|[1-9])\.(?:[1-2]\d\d\d|\d\d)', # dd.mm.yy (01.02.99) and dd.mm.yyyy (01.02.1999)
-                '(?:[1-2]\d\d\d|\d\d)-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])' # yy-mm-dd (99-02-01) and yyyy-mm-dd (1999-02-01)
+                '(?:[1-2]\d\d\d|\d\d)-(?:[0-1]\d|[1-9])-(?:[0-3]\d|[1-9])', # yy-mm-dd (99-02-01) and yyyy-mm-dd (1999-02-01)
+                'mjd=\d+(?:\.\d+)?', # Modified Julian Date (MJD=50000.0)
+                'jd=\d+(?:\.\d+)?' # Julian Date (JD=2500000.0)
 ]
 
 # List of date formats to convert
@@ -81,7 +84,8 @@ DATE_FORMATS = ['%d %B %Y', # dd mmmm yyyy
                 '%y/%m/%d', # yy/mm/dd
                 '%m/%d/%y', # mm/dd/yy
                 '%d.%m.%y', # dd.mm.yy
-                '%y-%m-%d' # yy-mm-dd
+                '%y-%m-%d', # yy-mm-dd
+                '\d+(?:\.\d+)?' # MJD and JD
 ]
 
 # Regexes for extracting keywords
@@ -324,7 +328,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                                     exists, last_updated = object_exists(key) 
 
                                     # Adds new aliases associated to the object ID into the database if object ID exist and updating is needed
-                                    if(exists):
+                                    if(exists == True):
                                         check_object_updates(key, last_updated)
                                     else:
                                         # Queries SIMBAD by name to get the object ID and its coordinates
@@ -364,7 +368,7 @@ def extract_dates(text: str) -> list[str]:
     # Finds all dates that are in the above date formats in the title and body of ATel report
     for regex in DATE_REGEXES:
         # Attempts to find all dates that are in a certain date format in the title and body text using regex
-        date_regex = re.compile(f'[^\d]{regex}[^\d]')
+        date_regex = re.compile(f'[^\d|^a-z]{regex}[^\d]')
         dates_found = date_regex.findall(f' {text.lower()} ')
 
         # Removes any leading and/or trailing characters that are not part of the date format
@@ -390,10 +394,36 @@ def parse_dates(dates: list[str]) -> list[datetime]:
 
     # Converts each extracted date to datetime object
     for date in dates:
-        for date_format in DATE_FORMATS:
+        for i in range(len(DATE_FORMATS)):
             try:
-                # Adds converted date to list
-                formatted_dates.append(datetime.strptime(date, date_format))
+                # Standard date formats
+                if(i < 20):
+                    # Adds converted date to list
+                    formatted_dates.append(datetime.strptime(date, DATE_FORMATS[i]))
+                # MJD and JD formats
+                else:
+                    time_object = None
+                    date_format = re.search(DATE_REGEXES[10], date)
+
+                    if(date_format is not None):
+                        # Creates Time object in MJD format
+                        mjd = re.search(DATE_FORMATS[i], date_format.group())
+                        time_object = Time(mjd.group(), format='mjd')
+                    else:
+                        # Creates Time object in JD format
+                        date_format = re.search(DATE_REGEXES[11], date)
+
+                        if(date_format is not None):
+                            jd = re.search(DATE_FORMATS[i], date_format.group())
+                            time_object = Time(jd.group(), format='jd')
+
+                    if(time_object is not None):
+                        # Converts MJD/JD to standard date
+                        converted_date = time_object.iso
+                        extracted_date = re.search(DATE_REGEXES[9], converted_date)
+
+                        # Adds converted date to list
+                        formatted_dates.append(datetime.strptime(extracted_date.group(), DATE_FORMATS[9]))
                 break
             except ValueError:
                 pass
