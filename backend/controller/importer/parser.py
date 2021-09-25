@@ -422,8 +422,9 @@ def parse_dates(dates: list[str]) -> list[datetime]:
                         converted_date = time_object.iso
                         extracted_date = re.search(DATE_REGEXES[9], converted_date)
 
-                        # Adds converted date to list
-                        formatted_dates.append(datetime.strptime(extracted_date.group(), DATE_FORMATS[9]))
+                        if(extracted_date is not None):
+                            # Adds converted date to list
+                            formatted_dates.append(datetime.strptime(extracted_date.group(), DATE_FORMATS[9]))
 
                 break
             except ValueError:
