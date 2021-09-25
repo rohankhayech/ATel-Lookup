@@ -230,7 +230,9 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     for link in links:
         if((link['href'].find(url_string) != -1) and (link['href'] != url_string) and (link.get_text() != 'Previous') and (link.get_text() != 'Next')):
             num = re.search('\d+', link['href'])
-            referenced_reports.append(int(num.group()))
+
+            if(num is not None):
+                referenced_reports.append(int(num.group()))
 
     # Filters out referenced by ATel numbers
     for referenced_by_num in referenced_by:
