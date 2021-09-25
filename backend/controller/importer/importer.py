@@ -98,15 +98,17 @@ def import_all_reports():
         while True:
             try:
                 import_report(atel_num)
-                atel_num = atel_num + 1
             except ReportAlreadyExistsError:
-                atel_num = atel_num + 1
+                pass
+
+            atel_num = atel_num + 1
+            set_next_atel_num(atel_num)
     # Saves the number that detects non-existing ATel report
     except ReportNotFoundError:
-        set_next_atel_num(atel_num)
+        pass
     # Saves the number of ATel report when importing fails
     except ImportFailError:
-        set_next_atel_num(atel_num)
+        pass
 
 def download_report(atel_num: int) -> str:
     """
@@ -150,6 +152,8 @@ def download_report(atel_num: int) -> str:
     except HTTPError as err:
         raise NetworkError(f'Network failure encountered: {str(err)}')
     except TimeoutError as err:
+        raise DownloadFailError(f'Couldn\'t download HTML: {str(err)}')
+    except Exception as err:
         raise DownloadFailError(f'Couldn\'t download HTML: {str(err)}')
     finally:
         # Closes connection
