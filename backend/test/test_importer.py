@@ -329,6 +329,9 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_dates('23/11/2009 11:45:45 and 11 Mar 86'), ['23/11/2009', '11 mar 86'])
         self.assertCountEqual(extract_dates('December 25, 1996 and 03-10-15; 18:30'), ['december 25, 1996', '03-10-15'])
         self.assertCountEqual(extract_dates('10/22/1986 11:45 and 7/26/75'), ['10/22/1986', '7/26/75'])
+        self.assertCountEqual(extract_dates('MJD=50000.0 and JD=2455000.0'), ['mjd=50000.0', 'jd=2455000.0'])
+        self.assertCountEqual(extract_dates('11/11/2000 and MJD=48550'), ['11/11/2000', 'mjd=48550'])
+        self.assertCountEqual(extract_dates('JD=2450000 and 1984-03-29'), ['jd=2450000', '1984-03-29'])
        
     # Tests parse_dates function
     def test_dates_parser(self):
@@ -344,6 +347,9 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(parse_dates(['23/11/2009', '11 mar 86']), [datetime(year=2009, month=11, day=23), datetime(year=1986, month=3, day=11)])
         self.assertCountEqual(parse_dates(['december 25, 1996', '03-10-15']), [datetime(year=1996, month=12, day=25), datetime(year=2015, month=10, day=3)])
         self.assertCountEqual(parse_dates(['10/22/1986', '7/26/75']), [datetime(year=1986, month=10, day=22), datetime(year=1975, month=7, day=26)])
+        self.assertCountEqual(parse_dates(['mjd=50000.0', 'jd=2455000.0']), [datetime(year=1995, month=10, day=10), datetime(year=2009, month=6, day=17)])
+        self.assertCountEqual(parse_dates(['11/11/2000', 'mjd=48550']), [datetime(year=2000, month=11, day=11), datetime(year=1991, month=10, day=21)])
+        self.assertCountEqual(parse_dates(['jd=2450000', '1984-03-29']), [datetime(year=1995, month=10, day=9), datetime(year=1984, month=3, day=29)])
     
     # Tests extract_known_aliases function
     @mock.patch('controller.importer.parser.get_all_aliases')
