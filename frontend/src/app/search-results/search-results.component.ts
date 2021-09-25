@@ -1,4 +1,11 @@
-import { Component, Input, QueryList, ViewChildren } from '@angular/core';
+import {
+  Component,
+  Input,
+  QueryList,
+  ViewChild,
+  ViewChildren,
+} from '@angular/core';
+import { MatPaginator } from '@angular/material/paginator';
 import { SearchResult } from '../search-result';
 import { TelegramCardComponent } from '../telegram-card/telegram-card.component';
 
@@ -12,6 +19,9 @@ export class SearchResultsComponent {
 
   @ViewChildren(TelegramCardComponent)
   cards?: QueryList<TelegramCardComponent>;
+
+  @ViewChild(MatPaginator)
+  paginator!: MatPaginator;
 
   public readonly pageSize = 10;
 
@@ -27,15 +37,28 @@ export class SearchResultsComponent {
   }
 
   scrollToTelegram(id: number) {
-    this.cards?.forEach((card) => {
-      if (card.telegram?.id === id) {
-        card.scroll();
-      }
+    const page = this.getPageForTelegram(id);
+    this.updatePage(page);
+
+    setTimeout(() => {
+      this.cards?.forEach((card) => {
+        if (card.telegram?.id === id) {
+          card.scroll();
+        }
+      });
     });
   }
 
   updatePage(page: number) {
     this.page = page;
+    this.paginator.pageIndex = this.page;
     this.cards?.first.scroll();
+  }
+
+  getPageForTelegram(id: number) {
+    const index =
+      this.result?.telegrams.findIndex((telegram) => telegram.id === id) || 0;
+    const page = Math.floor(index / this.pageSize);
+    return page;
   }
 }
