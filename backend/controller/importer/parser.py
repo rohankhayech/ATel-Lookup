@@ -162,7 +162,7 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
         ImportedReport: Object containing all extracted data from the ATel report.
 
     Raises:
-        MissingReportElementError: Thrown when important data could not be extracted or are missing from the report.
+        MissingReportElementError: Thrown when important data could not be extracted or are missing from the ATel report.
     """
 
     # Parses HTML into a tree
@@ -222,9 +222,9 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
 
     # Extracts any links that are in the ATel report
     referenced_reports = []
+    url_string = 'https://www.astronomerstelegram.org/?read='
     div_element = soup.find('div', {'id': 'telegram'})
     links = div_element.find_all('a', href=True)
-    url_string = 'https://www.astronomerstelegram.org/?read='
 
     # Extracts the number of any ATel reports referenced
     for link in links:
@@ -250,10 +250,10 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
 
 def extract_coords(text: str) -> list[str]:
     """
-    Finds all coordinates in the title and body of ATel report.
+    Finds all coordinates in the text of ATel report.
 
     Args:
-        text (str): Title and body of ATel report.
+        text (str): Text of ATel report.
 
     Returns:
         list[str]: List of coordinates found.
@@ -261,9 +261,9 @@ def extract_coords(text: str) -> list[str]:
 
     coords = []
 
-    # Finds all coordinates that are in the above coordinate formats in the title and body of ATel report
+    # Finds all coordinates that are in the above coordinate formats in the text of ATel report
     for regex in COORD_REGEXES:
-        # Attempts to find all coordinates that are in a certain coordinate format in the title and body text using regex
+        # Attempts to find all coordinates that are in a certain coordinate format in the text using regex
         coord_regex = re.compile(f'[^a-z]{regex}[^\d]')
         coords_found = coord_regex.findall(f' {text.lower()} ')
 
@@ -280,7 +280,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
     Parses coordinates that were found into appropriate format so that they can be used to query SIMBAD.
 
     Args:
-        coords (list[str]): List of coordinates found in the title and body of ATel report.
+        coords (list[str]): List of coordinates found in the text of ATel report.
 
     Returns:
         list[SkyCoord]: List of formatted coordinates.
@@ -354,10 +354,10 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
 
 def extract_dates(text: str) -> list[str]:
     """
-    Finds all dates in the title and body of ATel report.
+    Finds all dates in the text of ATel report.
 
     Args:
-        text (str): Title and body of ATel report.
+        text (str): Text of ATel report.
 
     Returns:
         list[str]: List of dates found.
@@ -365,9 +365,9 @@ def extract_dates(text: str) -> list[str]:
 
     dates = []
 
-    # Finds all dates that are in the above date formats in the title and body of ATel report
+    # Finds all dates that are in the above date formats in the text of ATel report
     for regex in DATE_REGEXES:
-        # Attempts to find all dates that are in a certain date format in the title and body text using regex
+        # Attempts to find all dates that are in a certain date format in the text using regex
         date_regex = re.compile(f'[^\d|^a-z]{regex}[^\d]')
         dates_found = date_regex.findall(f' {text.lower()} ')
 
@@ -381,10 +381,10 @@ def extract_dates(text: str) -> list[str]:
 
 def parse_dates(dates: list[str]) -> list[datetime]:
     """
-    Parses dates that were found into datetime objects so that they can be inserted easily to the database.
+    Parses dates that were found into datetime objects so that they can be inserted easily into the database.
 
     Args:
-        dates (list[str]): List of dates found in the title and body of ATel report.
+        dates (list[str]): List of dates found in the text of ATel report.
 
     Returns:
         list[datetime]: List of datetime objects representing dates.
@@ -424,6 +424,7 @@ def parse_dates(dates: list[str]) -> list[datetime]:
 
                         # Adds converted date to list
                         formatted_dates.append(datetime.strptime(extracted_date.group(), DATE_FORMATS[9]))
+
                 break
             except ValueError:
                 pass
@@ -432,10 +433,10 @@ def parse_dates(dates: list[str]) -> list[datetime]:
 
 def extract_known_aliases(text: str) -> list[str]:
     """
-    Finds all known aliases and object IDs in the title and body of ATel report.
+    Finds all known aliases and object IDs in the text of ATel report.
 
     Args:
-        text (str): Title and body of ATel report.
+        text (str): Text of ATel report.
 
     Returns:
         list[str]: List of object IDs found.
@@ -445,27 +446,21 @@ def extract_known_aliases(text: str) -> list[str]:
     # Retrieves known aliases
     aliases = get_all_aliases()
 
-    # Finds all aliases and object IDs in the title and body of ATel report
+    # Finds all aliases and object IDs in the text of ATel report
     for alias in aliases:
-        # Regex for alias
-        regex = f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]'
-
-        # Attempts to find alias in the title and body text using regex
-        alias_regex = re.compile(regex)
+        # Attempts to find alias in the text using regex
+        alias_regex = re.compile(f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]')
         alias_found = alias_regex.search(f' {text.lower()} ')
 
-        # Adds object ID to list if its associated alias is found in the title and body text
+        # Adds object ID to list if its associated alias is found in the text
         if(alias_found is not None):
             object_IDs.append(str(alias.object_ID.lower()))
         else:
-            # Regex for object ID associated to alias
-            regex = f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]'
-
-            # Attempts to find object ID in the title and body text using regex
-            object_ID_regex = re.compile(regex)
+            # Attempts to find object ID in the text using regex
+            object_ID_regex = re.compile(f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]')
             object_ID_found = object_ID_regex.search(f' {text.lower()} ')
 
-            # Adds object ID to list if it is found in the title and body text
+            # Adds object ID to list if it is found in the text
             if(object_ID_found is not None):
                 object_IDs.append(str(alias.object_ID.lower()))
 
@@ -473,10 +468,10 @@ def extract_known_aliases(text: str) -> list[str]:
 
 def extract_keywords(text: str) -> list[str]:
     """
-    Finds all keywords in the title, subjects section and body of ATel report.
+    Finds all keywords in the text of ATel report.
 
     Args:
-        text (str): Title, subjects section and body of ATel report.
+        text (str): Text of ATel report.
 
     Returns:
         list[str]: List of keywords found.
@@ -485,16 +480,13 @@ def extract_keywords(text: str) -> list[str]:
     i = 0
     keywords = []
 
-    # Finds all keywords in the title, subjects section and body of ATel report
+    # Finds all keywords in the text of ATel report
     for keyword in KEYWORD_REGEXES:
-        # Ensures that only full words will be identified as keywords
-        regex = f'[^a-z]{keyword}[^a-z]'
-
-        # Attempts to find keyword in the title, subjects section and body text using regex
-        keyword_regex = re.compile(regex)
+        # Attempts to find keyword in the text using regex
+        keyword_regex = re.compile(f'[^a-z]{keyword}[^a-z]')
         keyword_found = keyword_regex.search(f' {text.lower()} ')
 
-        # Adds keyword to list if it is found in the title, subjects section and body text
+        # Adds keyword to list if it is found in the text
         if(keyword_found is not None):
             keywords.append(str(FIXED_KEYWORDS[i]))
 

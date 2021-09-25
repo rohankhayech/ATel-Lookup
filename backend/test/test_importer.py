@@ -119,15 +119,15 @@ class TestImporterFunctions(unittest.TestCase):
         # ATel report titles for comparison
         titles = ['QPOs in 4U 1626-67', 'GB971227', 'Improved Coordinates for GB971227']
 
-        # Tests HTML downloader for 3 ATels by comparing title outputs
+        # Tests HTML downloader for 3 ATel reports by comparing title outputs
         for i in range(3):
             html = download_report(i + 1)
             soup = BeautifulSoup(html, 'html.parser')
             self.assertEqual(soup.find('h1', {'class': 'title'}).get_text(), titles[i])
         
-        # Tests HTML downloader for non-existing ATel
+        # Tests HTML downloader for non-existing ATel report
         html_string = download_report(9999999999)
-        self.assertIsNone(html_string, 'Detecting non-existing ATel has failed')
+        self.assertIsNone(html_string, 'Detecting non-existing ATel report has failed')
 
 # Parser functions
 class TestParserFunctions(unittest.TestCase):

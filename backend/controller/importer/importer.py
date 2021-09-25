@@ -48,13 +48,13 @@ class DownloadFailError(Exception):
 # Importer functions
 def import_report(atel_num: int):
     """
-    Adds new ATel report to the database if it is valid.
+    Adds new ATel report into the database if it is valid.
 
     Args:
         atel_num (int): The ATel number of the new report to be added.
 
     Raises:
-        ReportAlreadyExistsError: Thrown when report with the ATel number has been added to the database previously.
+        ReportAlreadyExistsError: Thrown when report with the ATel number has been added into the database previously.
         ReportNotFoundError: Thrown when report with the ATel number is not found on the AT website.
         ImportFailError: Thrown when report with the ATel number failed to be imported into the database.
     """
@@ -87,7 +87,7 @@ def import_report(atel_num: int):
 
 def import_all_reports():
     """
-    Adds all new ATel reports to the database starting after the last ATel report imported.
+    Adds all new ATel reports into the database starting after the last ATel report imported.
     """
     
     # Retrieves the number of ATel report to import next
