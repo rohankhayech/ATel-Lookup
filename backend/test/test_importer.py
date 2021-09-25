@@ -397,12 +397,14 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_keywords('The planet, exoplanet, planet(minor) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
         self.assertCountEqual(extract_keywords('The PlAnet, exoPlAnEt, plANet(MINoR) are astronomical terms'), ['planet', 'exoplanet', 'planet(minor)'])
         self.assertCountEqual(extract_keywords('far-infra-red and infra-red'), ['far-infra-red', 'infra-red'])
-        self.assertCountEqual(extract_keywords('comment'), [])
+        self.assertCountEqual(extract_keywords('comment'), ['a comment'])
         self.assertCountEqual(extract_keywords('> gev, gravitatiOnal waves, graVitatIonal lenSiNg and waves'), ['> gev', 'gravitational waves', 'gravitational lensing'])
-        self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid', 'asteroid(binary)', 'binary', 'supernova remnant'])
+        self.assertCountEqual(extract_keywords('nova, ASTEROID(binary) and supernova remnant'), ['nova', 'asteroid', 'asteroid(binary)', 'binary', 'supernovae', 'supernova remnant'])
         self.assertCountEqual(extract_keywords('Steve, a comment, euhemerism and agn'), ['a comment', 'agn'])
         self.assertCountEqual(extract_keywords('   ExopLANet'), ['exoplanet'])
         self.assertCountEqual(extract_keywords('black hole   '), ['black hole'])
+        self.assertCountEqual(extract_keywords('sub millimeter, suns, pre-MaiN Sequence stars and binaries'), ['millimeter', 'sub-millimeter', 'the sun', 'pre-main-sequence star', 'star', 'binary'])
+        self.assertCountEqual(extract_keywords('supernovae and asteroids (binary)'), ['supernovae', 'asteroid', 'asteroid(binary)', 'binary'])
 
 # Custom exceptions
 class TestCustomExceptions(unittest.TestCase):
