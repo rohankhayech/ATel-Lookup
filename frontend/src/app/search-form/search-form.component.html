@@ -7,7 +7,7 @@
     </p>
 
     <form>
-      <section class="section">
+      <section class="section" style="padding-top: 1.6rem">
         <mat-form-field appearance="fill" class="wide">
           <mat-label>Free-text Search</mat-label>
           <input
@@ -93,7 +93,7 @@
         </ng-container>
       </section>
 
-      <section class="section">
+      <section class="section" style="padding-bottom: 1.6rem">
         <mat-form-field appearance="standard">
           <mat-select [(value)]="match" class="bold">
             <mat-option [value]="Match.Any" class="bold"
@@ -108,19 +108,19 @@
 
         <span class="bold"> the following keywords:</span>
 
-        <div class="grey-card">
+        <div class="keywords">
           <mat-checkbox
             *ngFor="let keyword of metadata?.keywords"
             [(ngModel)]="keywords[keyword]"
             [name]="keyword"
-            class="checkbox"
+            class="checkbox capitalized"
             >{{ keyword }}</mat-checkbox
           >
         </div>
       </section>
 
-      <section class="section">
-        <strong>Filter by submission date:</strong>
+      <section class="section" style="padding-top: 1.6rem">
+        <label><b>Filter by submission date:</b></label>
 
         <div fxLayout="row">
           <mat-form-field appearance="fill" class="wide" style="margin: 0 5px">
