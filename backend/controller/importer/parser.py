@@ -316,7 +316,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                     # Converts coordinate to SkyCoord object
                     if((i == 0) or (i == 1)):
                         skycoord_obj = SkyCoord(str(ra.group()), str(dec.group()), unit=('hourangle', 'deg'))
-                    elif(i == 2):
+                    else:
                         skycoord_obj = SkyCoord(float(ra.group()), float(dec.group()), unit=('deg', 'deg'))
                     
                     try:
@@ -326,7 +326,7 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                         if(query_result != dict()):
                             for key, value in query_result.items():
                                 try:
-                                    # Checks whether object ID exist in the database
+                                    # Checks whether object ID exists in the database
                                     exists, last_updated = object_exists(key) 
 
                                     # Adds new aliases associated to the object ID into the database if object ID exist and updating is needed
