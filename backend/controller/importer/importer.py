@@ -101,13 +101,12 @@ def import_all_reports():
             except ReportAlreadyExistsError:
                 pass
 
-            # Updates the number of ATel report to import next
             atel_num = atel_num + 1
-            set_next_atel_num(atel_num)
+    # Updates the number of ATel report to import next
     except ReportNotFoundError:
-        pass
+        set_next_atel_num(atel_num)
     except ImportFailError:
-        pass
+        set_next_atel_num(atel_num)
 
 def download_report(atel_num: int) -> str:
     """
