@@ -55,11 +55,9 @@ def create_nodes_list(reports_list: list[ReportResult]) -> tuple[NodesList, Edge
 
     # Iterate through all reports.
     for report in reports_list:
-        # If a report contains any referenced reports, include it in the nodes list.
-        if len(report.referenced_reports) > 0:
-            nodes.append(report.atel_num)
-            # Create edges between each referenced report.
-            for related_report in report.referenced_reports:
-                edges.append(tuple((report.atel_num, related_report)))
+        nodes.append(report.atel_num)
+        # Create edges between each referenced report.
+        for related_report in report.referenced_reports:
+            edges.append(tuple((report.atel_num, related_report)))
 
     return nodes, edges
