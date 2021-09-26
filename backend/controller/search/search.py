@@ -113,7 +113,7 @@ def search_reports_by_coords(search_filters: SearchFilters,
             if name_query_result is not None:
                 # Add the newly discovered object to the 
                 # local database. 
-                name, coords = name_query_result
+                name, coords, _ = name_query_result
                 db.add_object(name, coords, value)
         db_name_query = db.find_reports_by_object(search_filters, date_filter, key)
 
