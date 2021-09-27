@@ -10,8 +10,8 @@ import { Match } from '../match.enum';
 import { Metadata } from '../metadata.interface';
 import { Parameters } from '../parameters.interface';
 import { SearchMode } from '../search-mode.enum';
+import { SearchResult } from '../search-result';
 import { SearchService } from '../search.service';
-import { Telegram } from '../telegram.interface';
 
 interface Keywords {
   [key: string]: boolean;
@@ -23,7 +23,7 @@ interface Keywords {
   styleUrls: ['./search-form.component.scss'],
 })
 export class SearchFormComponent implements OnInit {
-  @Output() public search = new EventEmitter<Telegram[]>();
+  @Output() public search = new EventEmitter<SearchResult>();
 
   public SearchMode = SearchMode;
   public Match = Match;
@@ -74,9 +74,9 @@ export class SearchFormComponent implements OnInit {
     }
 
     const coordinates: Coordinates = {
-      ra: +this.ra,
-      declination: +this.declination,
-      radius: +this.radius,
+      ra: this.ra,
+      declination: this.declination,
+      radius: this.radius,
     };
 
     const parameters: Parameters = {
@@ -92,7 +92,7 @@ export class SearchFormComponent implements OnInit {
 
     return this.searchService.search(parameters).pipe(
       tap((telegrams) => this.search.emit(telegrams)),
-      tap((telegrams) => {
+      tap(({ telegrams }) => {
         if (telegrams.length === 0) {
           this.snackBar.open('No ATels matched your query', 'Close', {
             duration: 8000,

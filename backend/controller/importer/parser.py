@@ -25,11 +25,28 @@ import re
 
 from model.constants import FIXED_KEYWORDS
 from model.ds.report_types import ImportedReport
-from model.db.db_interface import get_all_aliases
+from model.db.db_interface import object_exists, add_object, get_all_aliases
+from controller.search.query_simbad import query_simbad_by_coords, query_simbad_by_name
+from controller.search.search import check_object_updates
 
 from bs4 import BeautifulSoup
 from datetime import datetime
 from astropy.coordinates import SkyCoord
+
+# Regexes for extracting coordinates
+COORD_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
+                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
+                 'ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
+                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
+                 'ra:\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?', # decimal degrees
+                 'ra\s\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?' # decimal degrees
+]
+
+# Used to convert coordinates to SkyCoord objects
+COORD_FORMATS = [['(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', '(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s'], # hms/dms
+                 ['(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?'], # hms/dms
+                 ['\+?(?:0*[1-3]\d\d|0*\d\d?)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'] # decimal degrees
+]
 
 # Regexes for extracting dates which could have optional time afterwards in hh:mm (23:59) or hh:mm:ss (23:59:59)
 DATE_REGEXES = ['(?:[0-3]\d|[1-9])\s(?:january|february|march|april|may|june|july|august|september|october|november|december)\s[1-2]\d\d\d(?:;?\s(?:[0-2]\d|[1-9]):[0-5]\d(?::[0-5]\d)?)?', # dd mmmm yyyy (01 February 1999)
@@ -292,7 +309,19 @@ def extract_coords(text: str) -> list[str]:
     Returns:
         list[str]: List of coordinates found.
     """
-    return []
+
+    coords = []
+
+    # Finds all coordinates that are in the above coordinate formats in the title and body of ATel report
+    for regex in COORD_REGEXES:
+        # Attempts to find all coordinates that are in a certain coordinate format in the title and body text using regex
+        coord_regex = re.compile(regex)
+        coords_found = coord_regex.findall(f' {text.lower()} ')
+
+        # Adds coordinates found to list
+        coords = coords + coords_found
+
+    return list(dict.fromkeys(coords))
 
 def parse_coords(coords: list[str]) -> list[SkyCoord]:
     """
@@ -304,7 +333,72 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
     Returns:
         list[SkyCoord]: List of formatted coordinates.
     """
-    return []
+
+    formatted_coords = []
+
+    # Converts each extracted coordinate to SkyCoord object
+    for coord in coords:
+        for i in range(len(COORD_FORMATS)):
+            coord_format = COORD_FORMATS[i]
+
+            # Attempts to extract RA and DEC in a certain coordinate format
+            ra_regex = re.compile(f'ra:?\s{coord_format[0]}')
+            dec_regex = re.compile(f'dec:?\s{coord_format[1]}')
+
+            ra_found = ra_regex.search(coord)
+            dec_found = dec_regex.search(coord)
+
+            # Extracts coordinates if they are in the coordinate format
+            if((ra_found is not None) and (dec_found is not None)):
+                ra_regex = re.compile(coord_format[0])
+                dec_regex = re.compile(coord_format[1])
+
+                ra = ra_regex.search(ra_found.group())
+                dec = dec_regex.search(dec_found.group())
+
+                try:
+                    skycoord_obj = None
+                    
+                    # Converts coordinate to SkyCoord object
+                    if((i == 0) or (i == 1)):
+                        skycoord_obj = SkyCoord(str(ra.group()), str(dec.group()), unit=('hourangle', 'deg'))
+                    elif(i == 2):
+                        skycoord_obj = SkyCoord(float(ra.group()), float(dec.group()), unit=('deg', 'deg'))
+                    
+                    try:
+                        # Queries SIMBAD by coordinate to get object IDs and its aliases
+                        query_result = query_simbad_by_coords(skycoord_obj)
+
+                        if(query_result != dict()):
+                            for key, value in query_result.items():
+                                try:
+                                    # Checks whether object ID exist in the database
+                                    exists, last_updated = object_exists(key) 
+
+                                    # Adds new aliases associated to the object ID into the database if object ID exist and updating is needed
+                                    if(exists):
+                                        check_object_updates(key, last_updated)
+                                    else:
+                                        # Queries SIMBAD by name to get the object ID and its coordinates
+                                        name_query_result = query_simbad_by_name(key, False)
+
+                                        if(name_query_result is not None):
+                                            # Adds object ID and its aliases into the database
+                                            name, coordinates, _ = name_query_result
+                                            add_object(name, coordinates, value)
+                                except Exception:
+                                    pass
+                    except Exception:
+                        pass
+
+                    # Adds converted coordinate to list
+                    formatted_coords.append(skycoord_obj)
+                except ValueError:
+                    pass
+
+                break
+
+    return formatted_coords
 
 def extract_dates(text: str) -> list[str]:
     """

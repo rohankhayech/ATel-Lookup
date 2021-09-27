@@ -48,43 +48,23 @@ from flask_jwt_extended import (
 import requests
 from unittest import mock
 
-test_manual_success = {
-    "import_mode": "manual",
-    "atel_num": 1234
-}
+test_manual_success = {"import_mode": "manual", "atel_num": 1234}
 
-test_manual_fail = {
-    "import_mode": "manual"
-}
+test_manual_fail = {"import_mode": "manual"}
 
-test_manual_fail_invalid_atel = {
-    "import_mode": "manual",
-    "atel_num": -87
-}
+test_manual_fail_invalid_atel = {"import_mode": "manual", "atel_num": -87}
 
-test_auto_with_atel_num = {
-    "import_mode": "auto",
-    "atel_num": -6326
-}
+test_auto_with_atel_num = {"import_mode": "auto", "atel_num": -6326}
 
-test_bad_import_mode_name_fail = {
-    "import_mode": "garbage",
-    "atel_num": 17722
-}
+test_bad_import_mode_name_fail = {"import_mode": "garbage", "atel_num": 17722}
 
 test_auto_success_no_atel_given = {
     "import_mode": "auto",
 }
 
-test_report_not_found_error = {
-    "import_mode": "manual",
-    "atel_num": 74632
-}
+test_report_not_found_error = {"import_mode": "manual", "atel_num": 74632}
 
-test_report_already_exists_error = {
-    "import_mode": "manual",
-    "atel_num": 9999
-}
+test_report_already_exists_error = {"import_mode": "manual", "atel_num": 9999}
 
 test_search_basic = {
     "term": "supermassive",
@@ -93,7 +73,7 @@ test_search_basic = {
     "keywords": ["radio", "optical"],
     "keyword_mode": "all",
     "start_date": "2021-01-22",
-    "end_date": "2021-06-22"
+    "end_date": "2021-06-22",
 }
 
 test_search_basic_coords = {
@@ -113,7 +93,7 @@ test_search_bad_date = {
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2025-09-06",
-    "end_date": "2029-06-22"
+    "end_date": "2029-06-22",
 }
 
 test_search_bad_search_mode = {
@@ -123,7 +103,7 @@ test_search_bad_search_mode = {
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2007-09-06",
-    "end_date": "2009-06-22"
+    "end_date": "2009-06-22",
 }
 
 test_search_dates_backwards = {
@@ -133,7 +113,7 @@ test_search_dates_backwards = {
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2007-01-22",
-    "end_date": "2003-06-22"
+    "end_date": "2003-06-22",
 }
 
 test_search_bad_ra_value = {
@@ -143,7 +123,7 @@ test_search_bad_ra_value = {
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2001-01-22",
-    "end_date": "2003-06-22"
+    "end_date": "2003-06-22",
 }
 
 test_search_bad_keyword = {
@@ -153,7 +133,7 @@ test_search_bad_keyword = {
     "keywords": ["radio", "big rock"],
     "keyword_mode": "any",
     "start_date": "2001-01-22",
-    "end_date": "2003-06-22"
+    "end_date": "2003-06-22",
 }
 
 test_search_term_only = {
@@ -162,13 +142,10 @@ test_search_term_only = {
     "keywords": ["radio", "optical"],
     "keyword_mode": "all",
     "start_date": "2021-01-22",
-    "end_date": "2021-06-22"
+    "end_date": "2021-06-22",
 }
 
-test_object_coords_only_name = {
-    "search_mode": "name",
-    "search_data": "Basinski"
-}
+test_object_coords_only_name = {"search_mode": "name", "search_data": "Basinski"}
 
 test_object_coords_only_coords = {
     "search_mode": "coords",
@@ -180,7 +157,7 @@ test_search_no_keywords = {
     "search_mode": "name",
     "search_data": "Basinski",
     "start_date": "2021-01-22",
-    "end_date": "2021-06-22"
+    "end_date": "2021-06-22",
 }
 
 test_search_bad_keyword_mode = {
@@ -204,7 +181,6 @@ test_search_basic_coords_alt = {
 }
 
 
-     
 class TestWebInterfaceImports(ut.TestCase):
     def setUp(self):
         self.app = app.test_client()
@@ -220,17 +196,15 @@ class TestWebInterfaceImports(ut.TestCase):
         cn.close()
         # should show a successful manual import (both import mode and atel num given correctly)
 
-    
-
-    def test_imports_manual_fail(self): 
-        response = self.app.post('/import', json = test_manual_fail)
+    def test_imports_manual_fail(self):
+        response = self.app.post("/import", json=test_manual_fail)
         self.assertEqual(response.json.get("flag"), 0)
-        #should show a failure (no atel number in json object)
+        # should show a failure (no atel number in json object)
 
-    def test_imports_manual_fail_invalid_atel(self): 
-        response = self.app.post('/import', json = test_manual_fail_invalid_atel)
+    def test_imports_manual_fail_invalid_atel(self):
+        response = self.app.post("/import", json=test_manual_fail_invalid_atel)
         self.assertEqual(response.json.get("flag"), 0)
-        #should show a failure (atel number provided but is 0 or less (invalid))
+        # should show a failure (atel number provided but is 0 or less (invalid))
 
     def test_auto_with_atel_num(self): 
         pass
@@ -238,10 +212,10 @@ class TestWebInterfaceImports(ut.TestCase):
         # self.assertEqual(response.json.get("flag"), 1) 
         # Should succeed as the atel number is not needed with the auto import
 
-    def test_bad_import_mode_name_fail(self): 
-        response = self.app.post('/import', json = test_bad_import_mode_name_fail)
+    def test_bad_import_mode_name_fail(self):
+        response = self.app.post("/import", json=test_bad_import_mode_name_fail)
         self.assertEqual(response.json.get("flag"), 0)
-        #Should fail as the import mode name is not correct
+        # Should fail as the import mode name is not correct
 
     def test_auto_success_no_atel_given(self): 
         pass
@@ -250,35 +224,36 @@ class TestWebInterfaceImports(ut.TestCase):
         # Should succeed as auto import mode does not need an atel number
 
     def test_report_not_found_error(self):
-        response = self.app.post('/import', json = test_report_not_found_error)
-        self.assertEqual(response.json.get("flag"), 0) 
-        #giving the function a atel number that does not exist, should give back report not found exception, and set flag to 0
+        response = self.app.post("/import", json=test_report_not_found_error)
+        self.assertEqual(response.json.get("flag"), 0)
+        # giving the function a atel number that does not exist, should give back report not found exception, and set flag to 0
 
     def test_report_already_exists_error(self):
-        response = self.app.post('/import', json = test_report_already_exists_error)
-        response = self.app.post('/import', json = test_report_already_exists_error)
-        self.assertEqual(response.json.get("flag"), 0) 
+        response = self.app.post("/import", json=test_report_already_exists_error)
+        response = self.app.post("/import", json=test_report_already_exists_error)
+        self.assertEqual(response.json.get("flag"), 0)
         cn = db._connect()
         cur = cn.cursor()
         cur.execute("delete from Reports where atelNum = 9999")
         cur.close()
         cn.commit()
         cn.close()
-    
-
-
 
 
 class TestWebInterfaceSearch(ut.TestCase):
     def setUp(self):
         self.app = app.test_client()
         self.filters = SearchFilters(term="term")
-        self.sample_coords = SkyCoord("20 54 05.689", "+37 01 17.38", unit=('hourangle','deg'))
+        self.sample_coords = SkyCoord(
+            "20 54 05.689", "+37 01 17.38", unit=("hourangle", "deg")
+        )
         self.dt_now = datetime.now()
         self.dt_almost = datetime.now() - timedelta(days=59)
         self.dt_exact = datetime.now() - timedelta(days=60)
         self.dt_old = datetime.now() - timedelta(days=200)
-        self.sample_report = ReportResult(1000, "Title", "Authors", "Body", self.dt_old, [])
+        self.sample_report = ReportResult(
+            1000, "Title", "Authors", "Body", self.dt_old, []
+        )
 
     def test_search_basic(self): 
         response = self.app.post('/search', json = test_search_basic)
@@ -288,40 +263,42 @@ class TestWebInterfaceSearch(ut.TestCase):
         # Should succeed doing a name search
 
     def test_search_basic_coords(self):
-        response = self.app.post('/search', json = test_search_basic_coords)
+        response = self.app.post("/search", json=test_search_basic_coords)
         self.assertEqual(response.json.get("flag"), 1)
         self.assertEqual(response.json.get("report_list"), [])
-        self.assertEqual(response.json.get("nodes_list"), [[], []])
+        self.assertEqual(response.json.get("node_list"), [])
+        self.assertEqual(response.json.get("edge_list"), [])
         # Should succeed doing a coords search
 
     def test_search_term_only(self):
-        response = self.app.post('/search', json = test_search_term_only)
+        response = self.app.post("/search", json=test_search_term_only)
         self.assertEqual(response.json.get("flag"), 1)
         self.assertEqual(response.json.get("report_list"), [])
-        self.assertEqual(response.json.get("nodes_list"), [[], []])
+        self.assertEqual(response.json.get("node_list"), [])
+        self.assertEqual(response.json.get("edge_list"), [])
 
     def test_search_bad_date(self):
-        response = self.app.post('/search', json = test_search_bad_date)
+        response = self.app.post("/search", json=test_search_bad_date)
         self.assertEqual(response.json.get("flag"), 0)
         # Should fail if a date is in the future
 
     def test_search_bad_search_mode(self):
-        response = self.app.post('/search', json = test_search_bad_search_mode)
+        response = self.app.post("/search", json=test_search_bad_search_mode)
         self.assertEqual(response.json.get("flag"), 0)
         # Should fail if the search mode given is not "name" or "coords"
 
     def test_search_dates_backwards(self):
-        response = self.app.post('/search', json = test_search_dates_backwards)
+        response = self.app.post("/search", json=test_search_dates_backwards)
         self.assertEqual(response.json.get("flag"), 0)
         # if end date is before start date or vice versa, test should fail
-    
+
     def test_search_bad_ra_value(self):
         response = self.app.post('/search', json = test_search_bad_ra_value) # Outdated test needs to updated
         self.assertEqual(response.json.get("flag"), 0)
         # Testing bad ra value, giving the program ra = 136m50s
 
     def test_search_bad_keyword(self):
-        response = self.app.post('/search', json = test_search_bad_keyword)
+        response = self.app.post("/search", json=test_search_bad_keyword)
         self.assertEqual(response.json.get("flag"), 0)
         # keyword given is not in the FIXED_KEYWORD list, should fail
 
