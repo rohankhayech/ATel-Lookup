@@ -31,7 +31,7 @@ from model.constants import valid_keyword
 #Constants
 REPORT_TITLE_CHAR_LIM:int = 1024   # Max chars for title field.
 REPORT_AUTHOR_CHAR_LIM:int = 1024  # Max chars for authors field.
-REPORT_BODY_CHAR_LIM:int = 4000    # Max chars for body field.
+REPORT_BODY_CHAR_LIM:int = 5120    # Max chars for body field.
 
 class ReportResult:
     """
@@ -46,7 +46,7 @@ class ReportResult:
             atel_num (int): The ATel number associated with the report.
             title (str): The title of the report.
             authors (str): A string representing the authors of the report.
-            body (str): The body text of the report. Must be <= 4000 characters.
+            body (str): The body text of the report. Must be <= 5120 characters.
             submission_date (datetime): A datetime object representing the date and time the report was submitted to The Astronomer's Telegram.
             referenced_reports (list[int], optional): List of ATel numbers of reports referenced by this report.
         """
@@ -170,10 +170,10 @@ class ReportResult:
         Sets the body text of the report.
 
         Args:
-            body (str): The body text of the report. Must be 4000 characters or less.
+            body (str): The body text of the report. Must be 5120 characters or less.
 
         Raises:
-            ValueError: When the given body text exceeds 4000 characters.
+            ValueError: When the given body text exceeds 5120 characters.
         """
         body_str = str(body)
 
@@ -259,7 +259,7 @@ class ImportedReport(ReportResult):
             atel_num (int): The ATel number associated with the report.
             title (str): The title of the report.
             authors (str): A string representing the authors of the report.
-            body (str): The body text of the report. Must be <= 4000 characters.
+            body (str): The body text of the report. Must be <= 5120 characters.
             submission_date (datetime): A datetime object representing the date and time the report was submitted to The Astronomer's Telegram.
             referenced_reports (list[int], optional): List of ATel numbers of reports referenced by this report.
             observation_dates (list[datetime], optional): List of observation dates of the reported event/s.
