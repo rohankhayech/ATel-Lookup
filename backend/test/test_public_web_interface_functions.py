@@ -180,6 +180,15 @@ test_search_basic_coords_alt = {
     "end_date": "2010-09-12"
 }
 
+test_search_blank_hms = {
+    "term": "supermassive",
+    "search_mode": "coords",
+    "search_data": ["hms", "dms", 3.4],
+    "keywords": ["radio", "optical"],
+    "keyword_mode": "any",
+    "start_date": "2001-01-22",
+    "end_date": "2003-06-22",
+}
 
 class TestWebInterfaceImports(ut.TestCase):
     def setUp(self):
@@ -311,6 +320,11 @@ class TestWebInterfaceSearch(ut.TestCase):
     def test_search_basic_coords_alt(self):
         response = self.app.post('/search', json = test_search_basic_coords_alt)
         self.assertEqual(response.json.get("flag"), 1)
+
+    def test_search_blank_hms(self):
+        response = self.app.post('/search', json = test_search_blank_hms)
+        self.assertEqual(response.json.get("flag"), 0)
+    
 
 
     #Testing Mocking Tests - none of this is implemented/working yet

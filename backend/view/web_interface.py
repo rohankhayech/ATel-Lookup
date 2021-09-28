@@ -49,7 +49,7 @@ def parse_date_input(date_string: str) -> datetime:
     return date_obj
 
 
-def parse_search_coords(ra: float, dec: float) -> SkyCoord:
+def parse_search_coords(ra: str, dec: str) -> SkyCoord:
     '''Parse coordinates into a SkyCoord object.
 
     Args:
@@ -79,6 +79,9 @@ def valid_ra(ra: str) -> bool:
 
     '''
     bool_response = True
+    h_value = 0
+    m_value = 0
+    s_value = 0
 
     if ("h" in ra and "m" in ra and "s" in ra): # for the hms format of coords
         string_split = re.split('h|m|s',ra)
@@ -92,6 +95,13 @@ def valid_ra(ra: str) -> bool:
         h_value = int(string_split[0]) 
         m_value = int(string_split[1])
         s_value = float(string_split[2])
+
+    if h_value == 0 or h_value == None:
+        bool_response = False
+    if m_value == 0 or m_value == None:
+        bool_response = False
+    if s_value == 0 or s_value == None:
+        bool_response = False
 
     # checking validity of values with their min max ranges
     if bool_response == True:
@@ -117,6 +127,9 @@ def valid_dec(dec: str) -> bool:
 
     '''
     bool_response = True
+    d_value = 0
+    m_value = 0
+    s_value = 0
 
     if ("d" in dec and "m" in dec and "s" in dec): # for the hms format of coords
         string_split = re.split('d|m|s',dec)
@@ -130,6 +143,13 @@ def valid_dec(dec: str) -> bool:
         d_value = int(string_split[0])
         m_value = int(string_split[1])
         s_value = float(string_split[2])
+
+    if d_value == 0 or d_value == None:
+        bool_response = False
+    if m_value == 0 or m_value == None:
+        bool_response = False
+    if s_value == 0 or s_value == None:
+        bool_response = False
 
     # checking validity of values with their min max ranges
     if bool_response == True:
