@@ -207,6 +207,8 @@ def search() -> json:
     end_date_obj = None
     ra = 0.0
     dec = 0.0
+    radius = 10.0
+    sky_coord = None
 
     # retrieving json imports
     term_in = request.json.get("term", "")
@@ -245,6 +247,10 @@ def search() -> json:
     if keywords_in == []:
         keywords_in = None
 
+    if search_mode_in == "coords":
+        if search_data_in[0] == "":
+            search_data_in = None
+
 
     if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == ""):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
         flag = 0
@@ -260,14 +266,20 @@ def search() -> json:
             flag = 0
 
 
-    if (search_mode_in == "coords"):  # if the search mode is "coords" need to make sure there is three values given
+
+
+
+
+
+    #Skycoord Creation, if coords selected will use values to create skycoord
+    if (search_mode_in == "coords" and search_data_in != None):  # if the search mode is "coords" need to make sure there is three values given
         if len(search_data_in) == 3:
             ra = search_data_in[0]
             dec = search_data_in[1]
             radius = search_data_in[2]
 
             try:
-                if (True):
+                if (valid_ra(ra) == True and valid_dec(dec) == True):
                     sky_coord = parse_search_coords(ra,dec)
                 else:
                     flag = 0
@@ -275,7 +287,15 @@ def search() -> json:
                 flag = 0
 
         else:
-            flag = 0  # if search data is not fit for coords, set flag to failure
+            flag = 1  # if search data is not fit for coords, set flag to failure
+
+
+
+
+
+
+
+
 
     if keyword_mode_in != None and (keywords_in != None and keywords_in != ""): # as long as keyword mode is set, and there is data in keywords_in
         for x in keywords_in:
@@ -293,6 +313,12 @@ def search() -> json:
             flag = 0
 
 
+
+
+
+
+
+    #create search filters
     if term_in == "" and keywords_in == None: # set search filters to None if the term is blank and no keywords were provided
         search_filters = None
     else:
@@ -300,15 +326,31 @@ def search() -> json:
             term_in, keywords_in, keyword_mode_enum
         )  # creating the search filters object
 
+
+
+
+
+    #create date filters
     if start_date_in == None and end_date_in == None: # set the date filters to None if no dates have been provided
         date_filter = None
     else:
         date_filter = DateFilter(start_date_obj, end_date_obj)
 
+
+
+
+
+
+
     # calling search_reports functions
+    if search_mode_in == "coords" and search_data_in == None:
+        search_mode_in = "name"
     if flag == 1:
-        if ((search_mode_in == "name") or (ra == 0 and dec == 0 and radius == 0)):
+        if (search_mode_in == "name"):
             try:
+                print(search_filters)
+                print(date_filter)
+                print(search_data_in)
                 reports = search_reports_by_name(search_filters, date_filter, search_data_in)
             except ValueError as e:
                 flag = 0
@@ -319,6 +361,12 @@ def search() -> json:
             else:
                 flag = 0
             
+
+
+
+
+
+
 
     # calling visualisation function
     if flag == 1:
