@@ -315,7 +315,12 @@ def search() -> json:
             except ValueError as e:
                 flag = 0
         elif search_mode_in == "coords":
-            reports = search_reports_by_coords(search_filters, date_filter, sky_coord, radius)
+            radius_float = float(radius)
+            if valid_radius(radius) == True:
+                reports = search_reports_by_coords(search_filters, date_filter, sky_coord, radius_float)
+            else:
+                flag = 0
+            
 
     # calling visualisation function
     if flag == 1:
