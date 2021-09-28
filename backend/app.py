@@ -340,7 +340,7 @@ def search() -> json:
                     flag = 0
 
             else:
-                flag = 1  # if search data is not fit for coords, set flag to failure
+                flag = 0  # if search data is not fit for coords, set flag to failure
 
 
 
@@ -372,7 +372,8 @@ def search() -> json:
             try:
                 reports = search_reports_by_name(search_filters, date_filter, search_data_in)
             except ValueError as e:
-                flag = 0
+                print(str(e.message))
+                flag = 12
         elif search_mode_in == "coords":
             radius_float = float(radius)
             if valid_radius(radius) == True:
