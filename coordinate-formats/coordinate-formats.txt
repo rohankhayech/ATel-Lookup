@@ -1,0 +1,18 @@
+List of coordinate formats that can be extracted:
+=================================================
+RA: (+|-)float, DEC: (+|-)float
+RA: (+|-)float DEC: (+|-)float
+RA (+|-)float, DEC (+|-)float
+RA (+|-)float DEC (+|-)float
+
+RA: (+|-)int[h]int[m]float[s], DEC: (+|-)int[d]int[m]float[s]
+RA: (+|-)int[h]int[m]float[s] DEC: (+|-)int[d]int[m]float[s]
+RA (+|-)int[h]int[m]float[s], DEC (+|-)int[d]int[m]float[s]
+RA (+|-)int[h]int[m]float[s] DEC (+|-)int[d]int[m]float[s]
+
+RA: (+|-)int:int:float, DEC: (+|-)int:int:float
+RA: (+|-)int:int:float DEC: (+|-)int:int:float
+RA (+|-)int:int:float, DEC (+|-)int:int:float
+RA (+|-)int:int:float DEC (+|-)int:int:float
+
+() = optional, | = or, [] = include
