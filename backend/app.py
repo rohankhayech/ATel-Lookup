@@ -308,12 +308,11 @@ def search() -> json:
     # calling search_reports functions
     if flag == 1:
         if search_mode_in == "name":
-            try:
-                reports = search_reports_by_name(
-                    search_filters, date_filter, search_data_in
-                )
-            except ValueError as e:
-                flag = 0
+            # try:
+                reports = search_reports_by_name(search_filters, date_filter, search_data_in)
+            # except ValueError as e:
+                # print(e)
+                # flag = 50
         elif search_mode_in == "coords":
             radius_float = float(radius)
             if valid_radius(radius) == True:
