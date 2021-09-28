@@ -48,7 +48,7 @@ from flask_jwt_extended import (
 import requests
 from unittest import mock
 
-test_manual_success = {"import_mode": "manual", "atel_num": 1234}
+test_manual_success = {"import_mode": "manual", "atel_num": 14900}
 
 test_manual_fail = {"import_mode": "manual"}
 
@@ -197,13 +197,14 @@ class TestWebInterfaceImports(ut.TestCase):
     def test_imports_manual_success(self):
         response = self.app.post('/import', json = test_manual_success)
         self.assertEqual(response.json.get("flag"), 1) 
-        cn = db._connect()
-        cur = cn.cursor()
-        cur.execute("delete from Reports where atelNum = 1234")
-        cur.close()
-        cn.commit()
-        cn.close()
+        
         # should show a successful manual import (both import mode and atel num given correctly)
+    cn = db._connect()
+    cur = cn.cursor()
+    cur.execute("delete from Reports where atelNum = 14900")
+    cur.close()
+    cn.commit()
+    cn.close()
 
     def test_imports_manual_fail(self):
         response = self.app.post("/import", json=test_manual_fail)
