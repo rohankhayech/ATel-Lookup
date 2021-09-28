@@ -31,6 +31,8 @@ import random as r
 from enum import Enum 
 from unittest import mock
 
+from unittest.mock import MagicMock
+
 from controller.search import query_simbad
 from controller.search.query_simbad import QuerySimbadError
 from model.constants import DEFAULT_RADIUS
@@ -38,6 +40,7 @@ from model.constants import DEFAULT_RADIUS
 from astropy.table import Table
 from astropy.table.column import Column
 from astropy.coordinates.sky_coordinate import SkyCoord
+from requests.adapters import ReadTimeout
 
 
 class TableType(Enum):
@@ -252,6 +255,13 @@ class TestNameSearch(ut.TestCase):
         self.assertEqual(query_simbad.query_simbad_by_name("invalid_object"), None)
 
 
+    def test_timeout(self):
+        mock = query_simbad
+        query_simbad.Simbad.query_object = MagicMock(side_effect=ReadTimeout)
+        with self.assertRaises(QuerySimbadError):
+            query_simbad.query_simbad_by_name("M31") 
+
+
     # Test a standard object search.
     @mock.patch('controller.search.query_simbad.Simbad.query_object', new=mocked_object_table)
     @mock.patch('controller.search.query_simbad.Simbad.query_objectids', new=mocked_objectids_table)
@@ -313,6 +323,13 @@ class TestCoordSearch(ut.TestCase):
     @mock.patch('controller.search.query_simbad.Simbad.query_region', new=mocked_object_not_found)
     def test_no_object_found(self):
         self.assertEqual(query_simbad.query_simbad_by_coords(self.sample_coords, self.sample_radius), {})
+
+    
+    def test_timeout(self):
+        mock = query_simbad
+        query_simbad.Simbad.query_region = MagicMock(side_effect=ReadTimeout)
+        with self.assertRaises(QuerySimbadError):
+            query_simbad.query_simbad_by_coords(self.sample_coords) 
 
 
     # A 'None' SkyCoord should raise an error. 
