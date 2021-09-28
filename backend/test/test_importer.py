@@ -257,6 +257,9 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_coords('RA -08:017:17, DEC -55:03:55 and RA 10:10:10.10, DEC 60:17:45'), ['ra -08:017:17, dec -55:03:55', 'ra 10:10:10.10, dec 60:17:45'])
         self.assertCountEqual(extract_coords('RA: -19:50:07 DEC: -18:16:13.4 and RA: -05:2:5.4 DEC: +39:45:48'), ['ra: -19:50:07 dec: -18:16:13.4', 'ra: -05:2:5.4 dec: +39:45:48'])
         self.assertCountEqual(extract_coords('RA +16:31:58.3, DEC 75:0053:33.2 and RA -17:29:54, DEC +14:56:0.4'), ['ra +16:31:58.3, dec 75:0053:33.2', 'ra -17:29:54, dec +14:56:0.4'])
+        self.assertCountEqual(extract_coords('RA07:16:55,DEC+65:39:48.5 and RA 16:40:32.5,DEC -18:50:53'), ['ra07:16:55,dec+65:39:48.5', 'ra 16:40:32.5,dec -18:50:53'])
+        self.assertCountEqual(extract_coords('RA:164.417DEC:-34.5 and RA 40DEC38.5'), ['ra:164.417dec:-34.5', 'ra 40dec38.5'])
+        self.assertCountEqual(extract_coords('RA:16h32m48.5s, DEC:-07d23m009.3s and RA15h30m45.0s, DEC 47d24m55s'), ['ra:16h32m48.5s, dec:-07d23m009.3s', 'ra15h30m45.0s, dec 47d24m55s'])
 
     # Tests parse_coords function
     @mock.patch('controller.importer.parser.add_object')
@@ -285,6 +288,9 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(parse_coords(['ra -08:017:17, dec -55:03:55', 'ra 10:10:10.10, dec 60:17:45']), [SkyCoord('-08:017:17', '-55:03:55', unit=('hourangle', 'deg')), SkyCoord('10:10:10.10', '60:17:45', unit=('hourangle', 'deg'))])
         self.assertCountEqual(parse_coords(['ra: -19:50:07 dec: -18:16:13.4', 'ra: -05:2:5.4 dec: 39:45:48']), [SkyCoord('-19:50:07', '-18:16:13.4', unit=('hourangle', 'deg')), SkyCoord('-05:2:5.4', '39:45:48', unit=('hourangle', 'deg'))])
         self.assertCountEqual(parse_coords(['ra +16:31:58.3, dec 75:0053:33.2', 'ra -17:29:54, dec +14:56:0.4']), [SkyCoord('+16:31:58.3', '75:0053:33.2', unit=('hourangle', 'deg')), SkyCoord('-17:29:54', '+14:56:0.4', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra07:16:55,dec+65:39:48.5', 'ra 16:40:32.5,dec -18:50:53']), [SkyCoord('07:16:55', '+65:39:48.5', unit=('hourangle', 'deg')), SkyCoord('16:40:32.5', '-18:50:53', unit=('hourangle', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra:164.417dec:-34.5', 'ra 40dec38.5']), [SkyCoord(164.417, -34.5, unit=('deg', 'deg')), SkyCoord(40.0, 38.5, unit=('deg', 'deg'))])
+        self.assertCountEqual(parse_coords(['ra:16h32m48.5s, dec:-07d23m009.3s', 'ra15h30m45.0s, dec 47d24m55s']), [SkyCoord('16h32m48.5s', '-07d23m009.3s', unit=('hourangle', 'deg')), SkyCoord('15h30m45.0s', '47d24m55s', unit=('hourangle', 'deg'))])
 
         expected_query_simbad_by_coords_calls = [call(SkyCoord(50.0, 60.0, unit=('deg', 'deg'))),
                                                  call(SkyCoord(120.0, 30.0, unit=('deg', 'deg')))
