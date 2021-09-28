@@ -190,8 +190,12 @@ def search() -> json:
         edges_list: a list of edges for the visualisation graph.
 
     """
-    # variable defining
-    flag = 1  # set initial flag to success
+
+    '''
+    SETTING INITIAL VARIABLES
+    '''
+
+    flag = 1 
     reports = []
     list_result = [], []
     report_dicts = []
@@ -210,8 +214,8 @@ def search() -> json:
     radius = 10.0
     sky_coord = None
 
-    # retrieving json imports
-    term_in = request.json.get("term", "")
+    #retrieving json imports
+    term_in = request.json.get("term", None)
     search_mode_in = request.json.get("search_mode", None)
     search_data_in = request.json.get("search_data", None)
     keywords_in = request.json.get("keywords", None)
@@ -219,23 +223,33 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
+    #if any fields are missing from the JSON request, flag 0
+    if (term_in == None or search_mode_in == None or search_data_in == None
+            or keywords_in == None or keyword_mode_in == None
+            or start_date_in == None or end_date_in == None):
+        flag = 0 
+
+
+
+    '''
+    VARIABLE MODIFICATION
+    '''
+
+    #If field blank, set to None
     if search_mode_in == "":
         search_mode_in = None
-
     if search_data_in == "":
         search_data_in = None
-
     if keywords_in == "":
         keywords_in = None
-
     if keyword_mode_in == "":
         keyword_mode_in = None
-
     if start_date_in == "":
         start_date_in = None
-
     if end_date_in == "":
         end_date_in = None
+    if term_in == "":
+        term_in = None
 
     # turning dates into date objects
     if start_date_in != None:
@@ -252,105 +266,110 @@ def search() -> json:
             search_data_in = None
 
 
-    if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == ""):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
-        flag = 0
-    elif start_date_obj != None and end_date_obj != None: # if dates exist
-        if start_date_obj > datetime.now() and end_date_obj > datetime.now(): # failure if either date is in the future
-            flag = 0
 
-    # if search mode is not valid
-    if search_mode_in != "coords" and search_mode_in != "name":
-        flag = 0
-    elif start_date_obj != None and end_date_obj != None: 
-        if start_date_obj > end_date_obj or end_date_obj < start_date_obj: # failure if start date is ahead of end date, and vice versa
+    '''
+    CHECKS
+    '''
+
+    #checking if search_mode_in has a valid value - SEARCH MODE CHECK
+    if flag == 1:
+        if search_mode_in != "coords" and search_mode_in != "name":
             flag = 0
 
 
+    #checking to make sure atleast one of the required fields has been given - REQUIRED FIELDS CHECK
+    if flag == 1:
+        if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
+            flag = 0
+
+
+    #checking if start date is greater than end date and vice versa - DATE VALIDITY CHECKS
+    if flag == 1:
+        if start_date_obj != None and end_date_obj != None: 
+            if start_date_obj > end_date_obj or end_date_obj < start_date_obj: # failure if start date is ahead of end date, and vice versa
+                flag = 0
+    #checking if start date and end date are infact dates in the past - DATE VALIDITY CHECK
+    if flag == 1:
+        if start_date_obj != None and end_date_obj != None: # if dates exist
+            if start_date_obj > datetime.now() and end_date_obj > datetime.now(): # failure if either date is in the future
+                flag = 0
 
 
 
+    #checking if keywords are within the FIXED_KEYWORDS list - KEYWORDS CHECK
+    if flag == 1:
+        if keyword_mode_in != None and (keywords_in != None and keywords_in != ""): # as long as keyword mode is set, and there is data in keywords_in
+            for x in keywords_in:
+                if x not in FIXED_KEYWORDS: # checking if the keywords are part of the fixed keyword list
+                    flag = 0
 
 
-    #Skycoord Creation, if coords selected will use values to create skycoord
-    if (search_mode_in == "coords" and search_data_in != None):  # if the search mode is "coords" need to make sure there is three values given
-        if len(search_data_in) == 3:
-            ra = search_data_in[0]
-            dec = search_data_in[1]
-            radius = search_data_in[2]
-
+    #creating the keyword_mode enum - KEYWORDS MODE CHECK
+    if flag == 1:
+        keyword_mode_enum = KeywordMode.ANY
+        if keyword_mode_in != None:
             try:
-                if (valid_ra(ra) == True and valid_dec(dec) == True):
-                    sky_coord = parse_search_coords(ra,dec)
+                if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none": 
+                    keyword_mode_enum = parse_keyword_mode(keyword_mode_in) # turns keyword_mode_in to the enum version
                 else:
                     flag = 0
-            except ValueError as e:
+            except InvalidKeywordError as e:
                 flag = 0
 
-        else:
-            flag = 1  # if search data is not fit for coords, set flag to failure
 
 
 
+    '''
+    FUNCTIONS AFTER CHECKS COMPLETED
+    '''
 
-
-
-
-
-
-    if keyword_mode_in != None and (keywords_in != None and keywords_in != ""): # as long as keyword mode is set, and there is data in keywords_in
-        for x in keywords_in:
-            if x not in FIXED_KEYWORDS: # checking if the keywords are part of the fixed keyword list
-                flag = 0
-
-    keyword_mode_enum = KeywordMode.ANY
-    if keyword_mode_in != None:
-        try:
-            if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none": 
-                keyword_mode_enum = parse_keyword_mode(keyword_mode_in) # turns keyword_mode_in to the enum version
-            else:
-                flag = 0
-        except InvalidKeywordError as e:
-            flag = 0
-
-
-
-
-
-
-
-    #create search filters
-    if term_in == "" and keywords_in == None: # set search filters to None if the term is blank and no keywords were provided
-        search_filters = None
-    else:
-        search_filters = SearchFilters(
-            term_in, keywords_in, keyword_mode_enum
-        )  # creating the search filters object
-
-
-
-
-
-    #create date filters
-    if start_date_in == None and end_date_in == None: # set the date filters to None if no dates have been provided
-        date_filter = None
-    else:
-        date_filter = DateFilter(start_date_obj, end_date_obj)
-
-
-
-
-
-
-
-    # calling search_reports functions
-    if search_mode_in == "coords" and search_data_in == None:
-        search_mode_in = "name"
+    #CREATING THE SKYCOORD OBJECT IF THERE ARE COORDS GIVEN
     if flag == 1:
-        if (search_mode_in == "name"):
+        if (search_mode_in == "coords" and search_data_in != None):  # if the search mode is "coords" need to make sure there is three values given
+            if len(search_data_in) == 3:
+                ra = search_data_in[0]
+                dec = search_data_in[1]
+                radius = search_data_in[2]
+
+                try:
+                    if (valid_ra(ra) == True and valid_dec(dec) == True):
+                        sky_coord = parse_search_coords(ra,dec)
+                    else:
+                        flag = 0
+                except ValueError as e:
+                    flag = 0
+
+            else:
+                flag = 1  # if search data is not fit for coords, set flag to failure
+
+
+
+    #CREATING SEARCH FILTERS OBJECT
+    if flag == 1:
+        if term_in == None and keywords_in == None: # set search filters to None if the term is blank and no keywords were provided
+            search_filters = None
+        else:
+            search_filters = SearchFilters(
+                term_in, keywords_in, keyword_mode_enum
+            )  # creating the search filters object
+
+
+
+    #CREATING DATE FILTERS OBJECT
+    if flag == 1:
+        if start_date_in == None and end_date_in == None: # set the date filters to None if no dates have been provided
+            date_filter = None
+        else:
+            date_filter = DateFilter(start_date_obj, end_date_obj)
+
+
+
+    #CALLING SEARCH REPORTS BY NAME AND SEARCH REPORTS BY COORDS TO GET reports OUTPUT
+    if flag == 1:
+        if search_mode_in == "coords" and search_data_in == None:
+            search_mode_in = "name"
+        if search_mode_in == "name":
             try:
-                print(search_filters)
-                print(date_filter)
-                print(search_data_in)
                 reports = search_reports_by_name(search_filters, date_filter, search_data_in)
             except ValueError as e:
                 flag = 0
@@ -363,12 +382,7 @@ def search() -> json:
             
 
 
-
-
-
-
-
-    # calling visualisation function
+    #CALLING VISUALISATION FUNCTION TO GET NODES/EDGES LIST RESULT
     if flag == 1:
         list_result = create_nodes_list(reports)
         for report in reports:
@@ -383,6 +397,8 @@ def search() -> json:
                 }
             )
 
+
+    #SEARCH FUNCTION RETURN
     return jsonify(
         {
             "flag": flag,
