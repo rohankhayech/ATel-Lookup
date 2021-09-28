@@ -296,8 +296,8 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
             coord_format = COORD_FORMATS[i]
 
             # Attempts to extract RA and DEC in a certain coordinate format
-            ra_regex = re.compile(f'ra:?\s{coord_format[0]}')
-            dec_regex = re.compile(f'dec:?\s{coord_format[1]}')
+            ra_regex = re.compile(f'ra:?\s?{coord_format[0]}')
+            dec_regex = re.compile(f'dec:?\s?{coord_format[1]}')
 
             ra_found = ra_regex.search(coord)
             dec_found = dec_regex.search(coord)
