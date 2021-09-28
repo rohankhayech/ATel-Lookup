@@ -352,7 +352,7 @@ class TestSearchByCoords(TestSearch):
         })
         mock.db.object_exists = MagicMock(return_value=(False, None))
         mock.check_object_updates = MagicMock() 
-        mock.qs.query_simbad_by_name = MagicMock(return_value=("name", self.sample_coords)) 
+        mock.qs.query_simbad_by_name = MagicMock(return_value=("name", self.sample_coords, [])) 
         mock.db.add_object = MagicMock()
         mock.db.find_reports_by_object = MagicMock(return_value=[self.sample_report])
         mock.db.find_reports_in_coord_range = MagicMock(return_value=[])

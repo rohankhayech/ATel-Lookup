@@ -214,8 +214,9 @@ class TestReportTypes(unittest.TestCase):
             self.ir.atel_num = 0
 
     def test_invalid_lens(self):
+        self.ir.body = "a"*5120  # Allow minor invalid lengths
         with self.assertRaises(ValueError):
-            self.ir.body = "a"*4001
+            self.ir.body = "a"*5121
         with self.assertRaises(ValueError):
             self.ir.title = "a"*1025
         with self.assertRaises(ValueError):
