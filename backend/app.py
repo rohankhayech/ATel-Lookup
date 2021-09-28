@@ -205,8 +205,8 @@ def search() -> json:
     end_date_in = None
     start_date_obj = None
     end_date_obj = None
-    ra_deg = 0.0
-    dec_deg = 0.0
+    ra = 0.0
+    dec = 0.0
 
     # retrieving json imports
     term_in = request.json.get("term", "")
@@ -268,7 +268,7 @@ def search() -> json:
 
             try:
                 if (valid_ra(ra) == True and valid_dec(dec) == True):
-                    sky_coord = parse_search_coords(ra_deg,dec_deg)
+                    sky_coord = parse_search_coords(ra,dec)
                 else:
                     flag = 0
             except ValueError as e:
