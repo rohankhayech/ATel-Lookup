@@ -365,7 +365,7 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_known_aliases('This is a test'), [])
         self.assertCountEqual(extract_known_aliases('Double check that an empty list is returned'), [])
 
-        mock_get_all_aliases.return_value = [AliasResult('Test', 'x'), AliasResult('alias-for-object', 'object'), AliasResult('another alias', 'object'), AliasResult('test', 'y')]
+        mock_get_all_aliases.return_value = [AliasResult('Test', 'x'), AliasResult('alias-for-object', 'object'), AliasResult('another alias', 'object'), AliasResult('test', 'y'), AliasResult('s.p\ecial\ char+ac()ters', '.(z)+')]
 
         self.assertCountEqual(extract_known_aliases('No alias to be found here'), [])
         self.assertCountEqual(extract_known_aliases('This is a test'), ['x', 'y'])
@@ -382,6 +382,9 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(extract_known_aliases('x'), ['x'])
         self.assertCountEqual(extract_known_aliases('x, y and alias-for-object'), ['x', 'object', 'y'])
         self.assertCountEqual(extract_known_aliases('object and y'), ['object', 'y'])
+        self.assertCountEqual(extract_known_aliases('s.p\ecial\ char+ac()ters and y'), ['y', '.(z)+'])
+        self.assertCountEqual(extract_known_aliases('alias-for-object and .(z)+'), ['object', '.(z)+'])
+        self.assertCountEqual(extract_known_aliases('s.p\ecial\ char+ac()ters and .(z)+'), ['.(z)+'])
 
     # Tests extract_keywords function
     def test_keywords_extractor(self):
