@@ -268,66 +268,65 @@ class TestWebInterfaceSearch(ut.TestCase):
             1000, "Title", "Authors", "Body", self.dt_old, []
         )
 
-    # def test_search_basic(self): 
-    #     response = self.app.post('/search', json = test_search_basic)
-    #     self.assertEqual(response.json.get("flag"), 1)
+    def test_search_basic(self): 
+        response = self.app.post('/search', json = test_search_basic)
+        self.assertEqual(response.json.get("flag"), 1)
+        # Should succeed doing a name search
 
-    #     # Should succeed doing a name search
+    def test_search_basic_coords(self):
+        response = self.app.post("/search", json=test_search_basic_coords)
+        self.assertEqual(response.json.get("flag"), 1)
+        # Should succeed doing a coords search
 
-    # def test_search_basic_coords(self):
-    #     response = self.app.post("/search", json=test_search_basic_coords)
-    #     self.assertEqual(response.json.get("flag"), 1)
-    #     # Should succeed doing a coords search
-
-    # def test_search_term_only(self):
-    #     response = self.app.post("/search", json=test_search_term_only)
-    #     self.assertEqual(response.json.get("flag"), 1)
+    def test_search_term_only(self):
+        response = self.app.post("/search", json=test_search_term_only)
+        self.assertEqual(response.json.get("flag"), 1)
 
 
-    # def test_search_bad_date(self):
-    #     response = self.app.post("/search", json=test_search_bad_date)
-    #     self.assertEqual(response.json.get("flag"), 0)
-    #     # Should fail if a date is in the future
+    def test_search_bad_date(self):
+        response = self.app.post("/search", json=test_search_bad_date)
+        self.assertEqual(response.json.get("flag"), 0)
+        # Should fail if a date is in the future
 
-    # def test_search_bad_search_mode(self):
-    #     response = self.app.post("/search", json=test_search_bad_search_mode)
-    #     self.assertEqual(response.json.get("flag"), 0)
-    #     # Should fail if the search mode given is not "name" or "coords"
+    def test_search_bad_search_mode(self):
+        response = self.app.post("/search", json=test_search_bad_search_mode)
+        self.assertEqual(response.json.get("flag"), 0)
+        # Should fail if the search mode given is not "name" or "coords"
 
-    # def test_search_dates_backwards(self):
-    #     response = self.app.post("/search", json=test_search_dates_backwards)
-    #     self.assertEqual(response.json.get("flag"), 0)
-    #     # if end date is before start date or vice versa, test should fail
+    def test_search_dates_backwards(self):
+        response = self.app.post("/search", json=test_search_dates_backwards)
+        self.assertEqual(response.json.get("flag"), 0)
+        # if end date is before start date or vice versa, test should fail
 
-    # def test_search_bad_ra_value(self):
-    #     response = self.app.post('/search', json = test_search_bad_ra_value) # Outdated test needs to updated
-    #     self.assertEqual(response.json.get("flag"), 0)
-    #     # Testing bad ra value, giving the program ra = 136m50s
+    def test_search_bad_ra_value(self):
+        response = self.app.post('/search', json = test_search_bad_ra_value) # Outdated test needs to updated
+        self.assertEqual(response.json.get("flag"), 0)
+        # Testing bad ra value, giving the program ra = 136m50s
 
-    # def test_search_bad_keyword(self):
-    #     response = self.app.post("/search", json=test_search_bad_keyword)
-    #     self.assertEqual(response.json.get("flag"), 0)
-    #     # keyword given is not in the FIXED_KEYWORD list, should fail
+    def test_search_bad_keyword(self):
+        response = self.app.post("/search", json=test_search_bad_keyword)
+        self.assertEqual(response.json.get("flag"), 0)
+        # keyword given is not in the FIXED_KEYWORD list, should fail
 
     def test_object_coords_only_name(self):
         response = self.app.post('/search', json = test_object_coords_only_name)
         self.assertEqual(response.json.get("flag"), 1)
 
-    # def test_search_no_keywords(self):
-    #     response = self.app.post('/search', json = test_search_no_keywords)
-    #     self.assertEqual(response.json.get("flag"), 1)
+    def test_search_no_keywords(self):
+        response = self.app.post('/search', json = test_search_no_keywords)
+        self.assertEqual(response.json.get("flag"), 1)
 
-    # def test_search_bad_keyword_mode(self):
-    #     response = self.app.post('/search', json = test_search_bad_keyword_mode)
-    #     self.assertEqual(response.json.get("flag"), 0)
+    def test_search_bad_keyword_mode(self):
+        response = self.app.post('/search', json = test_search_bad_keyword_mode)
+        self.assertEqual(response.json.get("flag"), 0)
 
-    # def test_search_basic_coords_alt(self):
-    #     response = self.app.post('/search', json = test_search_basic_coords_alt)
-    #     self.assertEqual(response.json.get("flag"), 1)
+    def test_search_basic_coords_alt(self):
+        response = self.app.post('/search', json = test_search_basic_coords_alt)
+        self.assertEqual(response.json.get("flag"), 1)
 
-    # def test_search_blank_hms(self):
-    #     response = self.app.post('/search', json = test_search_blank_hms)
-    #     self.assertEqual(response.json.get("flag"), 0)
+    def test_search_blank_hms(self):
+        response = self.app.post('/search', json = test_search_blank_hms)
+        self.assertEqual(response.json.get("flag"), 0)
     
 
 
