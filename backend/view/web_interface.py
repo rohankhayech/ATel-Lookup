@@ -79,14 +79,15 @@ def valid_ra(ra: str) -> bool:
 
     '''
     bool_response = True
+    ra_str = str(ra)
     h_value = 0
     m_value = 0
-    s_value = 0
+    s_value = 0.0
 
-    if ("h" in ra and "m" in ra and "s" in ra): # for the hms format of coords
-        string_split = re.split('h|m|s',ra)
-    elif (":" in ra): # for the xx:xx:xx format of coords
-        string_split = ra.split(':')
+    if ("h" in ra_str and "m" in ra_str and "s" in ra_str): # for the hms format of coords
+        string_split = re.split('h|m|s',ra_str)
+    elif (":" in ra_str): # for the xx:xx:xx format of coords
+        string_split = ra_str.split(':')
     else:
         bool_response = False
     

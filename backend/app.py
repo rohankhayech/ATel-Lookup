@@ -267,7 +267,7 @@ def search() -> json:
             radius = search_data_in[2]
 
             try:
-                if (valid_ra(ra) == True and valid_dec(dec) == True):
+                if (True):
                     sky_coord = parse_search_coords(ra,dec)
                 else:
                     flag = 0
@@ -307,13 +307,10 @@ def search() -> json:
 
     # calling search_reports functions
     if flag == 1:
-        if search_mode_in == "name":
+        if ((search_mode_in == "name") or (ra == 0 and dec == 0 and radius == 0)):
             try:
                 reports = search_reports_by_name(search_filters, date_filter, search_data_in)
             except ValueError as e:
-                print("\n")
-                print(e)
-                print("\n")
                 flag = 0
         elif search_mode_in == "coords":
             radius_float = float(radius)
