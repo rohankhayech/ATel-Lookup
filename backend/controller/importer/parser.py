@@ -452,7 +452,7 @@ def extract_known_aliases(text: str) -> list[str]:
     # Finds all aliases and object IDs in the text of ATel report
     for alias in aliases:
         # Attempts to find alias in the text using regex
-        alias_regex = re.compile(f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]')
+        alias_regex = re.compile(f'[^\d|^a-z]{str(re.escape(alias.alias.lower()))}[^\d|^a-z]')
         alias_found = alias_regex.search(f' {text.lower()} ')
 
         # Adds object ID to list if its associated alias is found in the text
@@ -460,7 +460,7 @@ def extract_known_aliases(text: str) -> list[str]:
             object_IDs.append(str(alias.object_ID.lower()))
         else:
             # Attempts to find object ID in the text using regex
-            object_ID_regex = re.compile(f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]')
+            object_ID_regex = re.compile(f'[^\d|^a-z]{str(re.escape(alias.object_ID.lower()))}[^\d|^a-z]')
             object_ID_found = object_ID_regex.search(f' {text.lower()} ')
 
             # Adds object ID to list if it is found in the text
