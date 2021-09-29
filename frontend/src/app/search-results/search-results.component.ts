@@ -1,6 +1,7 @@
 import {
   Component,
   Input,
+  OnChanges,
   QueryList,
   ViewChild,
   ViewChildren,
@@ -14,7 +15,7 @@ import { TelegramCardComponent } from '../telegram-card/telegram-card.component'
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
 })
-export class SearchResultsComponent {
+export class SearchResultsComponent implements OnChanges {
   @Input() public result?: SearchResult;
 
   @ViewChildren(TelegramCardComponent)
@@ -30,6 +31,10 @@ export class SearchResultsComponent {
   get view() {
     const index = this.page * this.pageSize;
     return this.result?.telegrams?.slice(index, index + this.pageSize);
+  }
+
+  ngOnChanges() {
+    this.page = 0;
   }
 
   top() {
