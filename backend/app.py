@@ -62,6 +62,8 @@ from controller.authentication import (
     login,
 )
 
+from multiprocessing import Process
+
 app = Flask(__name__)
 jwt = JWTManager(app)
 CORS(app)
@@ -127,6 +129,7 @@ def get_user():
     """
     return current_user
 
+
 """
 Web Interface Endpoints
 
@@ -147,6 +150,7 @@ def imports() -> json:
         json: JSON flag – Flag that states whether the import was successful or unsuccessful.
 
     """
+
     # print("REQUEST.JSON PRINTOUT -> ", request.json)
     flag = 1
 
@@ -171,7 +175,7 @@ def imports() -> json:
                     atel_num_in
                 )  # currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
             elif import_mode_in == "auto":
-                import_all_reports()
+                background_import()
         except ReportAlreadyExistsError as e:
             flag = 0
         except ReportNotFoundError as e:
@@ -351,6 +355,12 @@ def load_metadata() -> json:
     return jsonify(
         {"keywords": keywords, "lastUpdated": last_updated, "reportCount": report_count}
     )
+
+
+def background_import():
+    process = Process(target=import_all_reports, daemon=True)
+    process.start()
+
 
 """
 Application Main Line  
