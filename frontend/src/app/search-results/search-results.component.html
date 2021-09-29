@@ -1,6 +1,8 @@
 <div *ngIf="result">
   <div>
     <!-- Timeline -->
+    <h3><b>Timeline</b></h3>
+
     <app-timeline
       *ngIf="(result?.telegrams?.length ?? 0) >= 3"
       [telegrams]="result?.telegrams"
