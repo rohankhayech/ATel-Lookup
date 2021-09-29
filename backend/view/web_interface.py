@@ -44,7 +44,7 @@ def parse_date_input(date_string: str) -> datetime:
 
     '''
 
-    date_obj = datetime.strptime(date_string,"%d/%m/%Y")
+    date_obj = datetime.strptime(date_string,"%Y-%m-%d")
 
     return date_obj
 
@@ -97,20 +97,20 @@ def valid_ra(ra: str) -> bool:
         m_value = int(string_split[1])
         s_value = float(string_split[2])
 
-    if h_value == 0 or h_value == None:
+    if h_value == None:
         bool_response = False
-    if m_value == 0 or m_value == None:
+    if m_value == None:
         bool_response = False
-    if s_value == 0 or s_value == None:
+    if s_value == None:
         bool_response = False
 
     # checking validity of values with their min max ranges
     if bool_response == True:
-        if h_value < -24 and h_value > 24:
+        if h_value < -24 or h_value > 24:
             bool_response = False
-        elif m_value < 0 and m_value > 60:
+        elif m_value < 0 or m_value >= 60:
             bool_response = False
-        elif s_value < 0.0 and s_value > 60.0:
+        elif s_value < 0.0 or s_value >= 60.0:
             bool_response = False
 
     return bool_response 
@@ -145,20 +145,20 @@ def valid_dec(dec: str) -> bool:
         m_value = int(string_split[1])
         s_value = float(string_split[2])
 
-    if d_value == 0 or d_value == None:
+    if d_value == None:
         bool_response = False
-    if m_value == 0 or m_value == None:
+    if m_value == None:
         bool_response = False
-    if s_value == 0 or s_value == None:
+    if s_value == None:
         bool_response = False
 
     # checking validity of values with their min max ranges
     if bool_response == True:
         if d_value < 0 and d_value > 360:
             bool_response = False
-        elif m_value < 0 and m_value > 60:
+        elif m_value < 0 and m_value >= 60:
             bool_response = False
-        elif s_value < 0.0 and s_value > 60.0:
+        elif s_value < 0.0 and s_value >= 60.0:
             bool_response = False
 
     return bool_response 
