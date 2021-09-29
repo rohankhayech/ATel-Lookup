@@ -63,6 +63,9 @@ from controller.authentication import (
 )
 
 from multiprocessing import Process
+from NamedAtomicLock import NamedAtomicLock
+
+lock = NamedAtomicLock("importr")
 
 app = Flask(__name__)
 jwt = JWTManager(app)
@@ -358,8 +361,14 @@ def load_metadata() -> json:
 
 
 def background_import():
-    process = Process(target=import_all_reports, daemon=True)
+    process = Process(target=background_import_task, daemon=True)
     process.start()
+
+
+def background_import_task():
+    lock.acquire()
+    import_all_reports()
+    lock.release()
 
 
 """
