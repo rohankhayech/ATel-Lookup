@@ -238,6 +238,52 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.coordinates, [])
         self.assertCountEqual(imported_report.referenced_by, [14003, 14100, 14168])
 
+        # Parses HTML of ATel #400
+        f = open(os.path.join('test', 'res', 'atel400.html'), 'r')
+        imported_report = parse_report(400, f.read())
+        f.close()
+
+        # Retrieves ATel #400 body text
+        f = open(os.path.join('test', 'res', 'atel400_body.txt'), 'r')
+        body = f.read()
+        f.close()
+
+        self.assertEqual(imported_report.atel_num, 400)
+        self.assertEqual(imported_report.title, '4.85 and 10.45 GHz observations of XTE J1118+480 following the VLA measurements')
+        self.assertEqual(imported_report.authors, 'Emmanouil Angelakis, Alexander Kraus (Max Planck Instuitute for Radio Astronomy, Bonn)')
+        self.assertEqual(imported_report.body, body)
+        self.assertEqual(imported_report.submission_date, datetime(year=2005, month=1, day=26, hour=22, minute=0))
+        
+        self.assertCountEqual(imported_report.referenced_reports, [])
+        self.assertCountEqual(imported_report.observation_dates, [])
+        self.assertCountEqual(imported_report.keywords, [])
+        self.assertCountEqual(imported_report.objects, [])
+        self.assertCountEqual(imported_report.coordinates, [])
+        self.assertCountEqual(imported_report.referenced_by, [404, 420])
+
+        # Parses HTML of ATel #932
+        f = open(os.path.join('test', 'res', 'atel932.html'), 'r')
+        imported_report = parse_report(932, f.read())
+        f.close()
+
+        # Retrieves ATel #932 body text
+        f = open(os.path.join('test', 'res', 'atel932_body.txt'), 'r')
+        body = f.read()
+        f.close()
+
+        self.assertEqual(imported_report.atel_num, 932)
+        self.assertEqual(imported_report.title, 'Swift/XMM-Newton detection of a large glitch in the bursting transient Anomalous X-ray Pulsar CXO J164710.2-455216')
+        self.assertEqual(imported_report.authors, 'G. L. Israel and S. Dall\'Osso (INAF - AO Roma), S. Campana (INAF - AO Brera), M. Muno (Caltech), and L. Stella (INAF - AO Roma)')
+        self.assertEqual(imported_report.body, body)
+        self.assertEqual(imported_report.submission_date, datetime(year=2006, month=11, day=3, hour=21, minute=58))
+        
+        self.assertCountEqual(imported_report.referenced_reports, [893, 896, 894, 902, 929])
+        self.assertCountEqual(imported_report.observation_dates, [])
+        self.assertCountEqual(imported_report.keywords, [])
+        self.assertCountEqual(imported_report.objects, [])
+        self.assertCountEqual(imported_report.coordinates, [])
+        self.assertCountEqual(imported_report.referenced_by, [989])
+
     # Tests extract_coords function
     def test_coords_extractor(self):
         self.assertCountEqual(extract_coords('There is no coordinates'), [])
@@ -473,10 +519,10 @@ class TestCustomExceptions(unittest.TestCase):
             parse_report(1, '<h1 class=\'title\'></h1>')
 
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong>')
+            parse_report(1, '<h1 class=\'title\'><div id=\'telegram\'></div></h1><strong></strong>')
         
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><p>Test</p><strong></strong>')
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'><p>Test</p></div><strong></strong>')
 
 if __name__ == "__main__":
     unittest.main()
