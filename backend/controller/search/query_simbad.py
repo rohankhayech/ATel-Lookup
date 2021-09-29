@@ -31,7 +31,7 @@ from astroquery.simbad import Simbad
 
 from model.constants import DEFAULT_RADIUS, RADIUS_UNIT
 
-from requests.exceptions import ConnectionError, HTTPError
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout
 
 
 #############################
@@ -230,6 +230,8 @@ def query_simbad_by_coords(coords: SkyCoord,
     except UserWarning as e:
         # No object found.
         return dict()
+    except ReadTimeout as e:
+        raise QuerySimbadError(f"SIMBAD timed out: {str(e)}")
 
 
 def query_simbad_by_name(object_name: str, 
@@ -278,3 +280,5 @@ def query_simbad_by_name(object_name: str,
     except UserWarning as e:
         # No object found.
         return None
+    except ReadTimeout as e:
+        raise QuerySimbadError(f"SIMBAD timed out: {str(e)}")
