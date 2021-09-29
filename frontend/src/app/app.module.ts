@@ -34,6 +34,7 @@ import { TelegramCardComponent } from './telegram-card/telegram-card.component';
 import { MatMomentDateModule } from '@angular/material-moment-adapter';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { ProgressBarDirective } from './progress-bar.directive';
+import { FlexLayoutModule } from '@angular/flex-layout';
 import { TimelineComponent } from './timeline/timeline.component';
 import { NetworkGraphComponent } from './network-graph/network-graph.component';
 
@@ -57,6 +58,7 @@ import { NetworkGraphComponent } from './network-graph/network-graph.component';
     BrowserAnimationsModule,
     FormsModule,
     HttpClientModule,
+    FlexLayoutModule,
     MatSnackBarModule,
     MatToolbarModule,
     MatFormFieldModule,
