@@ -34,6 +34,11 @@ from datetime import datetime
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
+# Used for extracting the body of ATel reports
+BODY_TAGS = [['div', {'id': None}],
+             ['p', {'align': 'justify'}]
+]
+
 # Regexes for extracting coordinates
 COORD_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
                  'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
@@ -184,18 +189,36 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     else:
         raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
 
-    # Finds all possible paragraphs in the HTML
+    # Extracts the body of ATel report
     body = ''
-    texts = soup.find_all('p', {'class': None, 'align': None})
+    div_element = soup.find('div', {'id': 'telegram'})
+    texts = div_element.find_all('p', {'class': None, 'align': None})
 
-    # Filters out non-body text elements and formats the body text
+    # Formats the body text
     for text in texts:
         if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
-            if('\n' in text.get_text()):
-                body += str(text.get_text())
-            else:
-                body += f'{text.get_text()}\n'
+            string = str(text.get_text()).replace('\n', ' ').strip()
+            body = f'{body}{string}\n\n'
 
+    body = re.sub(' +', ' ', body.strip())
+
+    # Attempts to extract the body of ATel report using different tags if the body was not found
+    if(body == ''):
+        for i in range(len(BODY_TAGS)):
+            # Extracts the body of ATel report using a tag
+            body_tag = BODY_TAGS[i]
+            texts = div_element.find_all(body_tag[0], body_tag[1])
+
+            # Formats the body text
+            for text in texts:
+                string = str(text.get_text()).replace('\n', ' ').strip()
+                body = f'{body}{string}\n\n'
+            
+            body = re.sub(' +', ' ', body.strip())
+
+            if(body != ''):
+                break
+            
     if(body == ''):
         raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
     
@@ -223,7 +246,6 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Extracts any links that are in the ATel report
     referenced_reports = []
     url_string = 'https://www.astronomerstelegram.org/?read='
-    div_element = soup.find('div', {'id': 'telegram'})
     links = div_element.find_all('a', href=True)
 
     # Extracts the number of any ATel reports referenced
