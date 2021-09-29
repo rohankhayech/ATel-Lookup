@@ -224,10 +224,10 @@ def search() -> json:
     end_date_in = request.json.get("end_date", None)
 
     #if any fields are missing from the JSON request, flag 0
-    if (term_in == None or search_mode_in == None or search_data_in == None
-            or keywords_in == None or keyword_mode_in == None
-            or start_date_in == None or end_date_in == None):
-        flag = 0 
+    # if (term_in == None or search_mode_in == None or search_data_in == None
+    #         or keywords_in == None or keyword_mode_in == None
+    #         or start_date_in == None or end_date_in == None):
+    #     flag = 0 
 
 
 
@@ -372,8 +372,12 @@ def search() -> json:
             try:
                 reports = search_reports_by_name(search_filters, date_filter, search_data_in)
             except ValueError as e:
-                print(str(e.message))
-                flag = 12
+                if hasattr(e, "message"):
+                    msg = e.message
+                else:
+                    msg = str(e)
+                print(msg)
+                flag = 0
         elif search_mode_in == "coords":
             radius_float = float(radius)
             if valid_radius(radius) == True:
