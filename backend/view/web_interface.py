@@ -44,7 +44,7 @@ def parse_date_input(date_string: str) -> datetime:
 
     '''
 
-    date_obj = datetime.strptime(date_string,"%d/%m/%Y")
+    date_obj = datetime.strptime(date_string,"%Y-%m-%d")
 
     return date_obj
 
