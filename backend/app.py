@@ -125,6 +125,7 @@ def get_user():
     """
     return current_user
 
+
 """
 Web Interface Endpoints
 
@@ -428,12 +429,13 @@ def load_metadata() -> json:
     """
 
     keywords = FIXED_KEYWORDS
-    last_updated = datetime.now()
-    report_count = 0
+    last_updated = db.get_last_updated_date()
+    next_atel = db.get_next_atel_num()
 
     return jsonify(
-        {"keywords": keywords, "lastUpdated": last_updated, "reportCount": report_count}
+        {"keywords": keywords, "lastUpdated": last_updated, "nextAtel": next_atel}
     )
+
 
 """
 Application Main Line  
