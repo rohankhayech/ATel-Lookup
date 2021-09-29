@@ -1,21 +1,28 @@
 .card {
-  width: 1000px;
-  margin: 40px auto;
+  max-width: 1000px;
+  margin: 0 auto;
 }
 
 .card-content {
-  padding: 20px;
+  padding: 1rem;
 }
 
 .checkbox {
-  margin: 4px 6px;
+  font-size: 1em;
+  margin: 2px 0;
+  width: 25%;
+  overflow: hidden;
 }
 
 .section {
-  margin: 16px auto;
+  padding: 0.2rem 1rem;
+  margin: 1rem 0.2rem;
+  background-color: rgba(0, 0, 0, 0.01);
+  border-radius: 3px;
 }
 
-.grey-card {
-  background-color: rgba(0, 0, 0, 0.04);
-  border-radius: 5px;
+.keywords {
+  background-color: rgba(0, 0, 0, 0.05);
+  padding: 1rem;
+  border-radius: 3px;
 }

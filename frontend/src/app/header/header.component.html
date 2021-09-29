@@ -3,7 +3,23 @@
 
   <span class="spacer"></span>
 
-  <a routerLink="/admin">
-    <mat-icon>{{ icon }}</mat-icon>
-  </a>
+  <button
+    mat-raised-button
+    [color]="authenticated ? 'accent' : undefined"
+    routerLink="/admin"
+    class="uppercase"
+  >
+    Admin Portal
+  </button>
+
+  <button
+    *ngIf="authenticated"
+    mat-raised-button
+    color="primary"
+    (click)="invalidate()"
+    class="uppercase"
+    style="margin-left: 2rem"
+  >
+    Log Out
+  </button>
 </mat-toolbar>
