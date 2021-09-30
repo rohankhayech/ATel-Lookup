@@ -86,7 +86,12 @@ export class NetworkGraphComponent implements OnChanges {
       .on('click', this.click.bind(this))
       .call((simulation: any) => this.drag(simulation));
 
-    node.append('title').text((d) => d.title);
+    node
+      .append('title')
+      .text(
+        (telegram) =>
+          `${telegram.title} (${telegram.date.toLocaleDateString()})`
+      );
 
     simulation.on('tick', () => {
       link
