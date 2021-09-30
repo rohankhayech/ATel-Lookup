@@ -1,4 +1,5 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
+import { Router } from '@angular/router';
 import { AuthenticationService } from '../authentication.service';
 
 @Component({
@@ -6,14 +7,21 @@ import { AuthenticationService } from '../authentication.service';
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
-export class HeaderComponent implements OnInit {
-  public icon?: string;
+export class HeaderComponent {
+  public authenticated = false;
 
-  constructor(private authenticationService: AuthenticationService) {
+  constructor(
+    private authenticationService: AuthenticationService,
+    private router: Router
+  ) {
     this.authenticationService.token$.subscribe((token) => {
-      this.icon = token !== null ? 'admin_panel_settings' : 'login';
+      this.authenticated = token !== null;
     });
   }
 
-  ngOnInit(): void {}
+  invalidate() {
+    this.authenticationService.invalidate();
+
+    this.router.navigate(['/']);
+  }
 }

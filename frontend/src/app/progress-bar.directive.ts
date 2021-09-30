@@ -3,6 +3,7 @@ import {
   ComponentFactoryResolver,
   ComponentRef,
   Directive,
+  ElementRef,
   HostListener,
   Input,
   ViewContainerRef,
@@ -25,6 +26,7 @@ export class ProgressBarDirective {
   private component?: ComponentRef<MatProgressBar>;
 
   constructor(
+    private elementRef: ElementRef,
     private viewContainerRef: ViewContainerRef,
     componentFactoryResolver: ComponentFactoryResolver
   ) {
@@ -32,10 +34,14 @@ export class ProgressBarDirective {
       componentFactoryResolver.resolveComponentFactory(MatProgressBar);
   }
 
-  @HostListener('click') onMouseLeave() {
+  @HostListener('click')
+  onClick() {
+    this.elementRef.nativeElement.disabled = true;
+
     this.createProgressBar();
+
     this.appProgressBar()
-      .pipe(finalize(() => this.destroyProgressBar()))
+      .pipe(finalize(() => this.onComplete()))
       .subscribe();
   }
 
@@ -47,7 +53,9 @@ export class ProgressBarDirective {
     this.component.instance.color = 'accent';
   }
 
-  destroyProgressBar() {
+  onComplete() {
     this.component?.destroy();
+
+    this.elementRef.nativeElement.disabled = false;
   }
 }
