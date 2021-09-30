@@ -81,12 +81,13 @@
               class="wide"
               style="margin: 0 5px"
             >
-              <mat-label>Radius</mat-label>
+              <mat-label>Radius (default: 10, maximum: 20)</mat-label>
               <input
                 matInput
                 [(ngModel)]="radius"
                 name="radius"
-                placeholder="def 10.0000"
+                placeholder="10.0000 arcseconds"
+                [max]="20"
               />
             </mat-form-field>
           </div>
