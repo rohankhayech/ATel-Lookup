@@ -7,6 +7,7 @@ import {
   Output,
 } from '@angular/core';
 import { fromEvent } from 'rxjs';
+import { ColorUtilities } from '../color-utilities';
 import { Telegram } from '../telegram.interface';
 
 @Component({
@@ -55,11 +56,14 @@ export class TimelineComponent implements OnInit, OnChanges {
         telegram.authors
       }</p><p>${telegram.date.toLocaleDateString()}</p>`;
 
+      const style = ColorUtilities.stringToColor(telegram.title);
+
       rows.push([
         'Report',
         telegram.id,
         telegram.authors,
         tooltip,
+        style,
         telegram.date,
         telegram.date,
       ]);
@@ -69,6 +73,7 @@ export class TimelineComponent implements OnInit, OnChanges {
     dataTable.addColumn({ type: 'number', role: 'id' });
     dataTable.addColumn({ type: 'string', id: 'Name' });
     dataTable.addColumn({ type: 'string', role: 'tooltip' });
+    dataTable.addColumn({ type: 'string', role: 'style' });
     dataTable.addColumn({ type: 'date', id: 'Start' });
     dataTable.addColumn({ type: 'date', id: 'End' });
     dataTable.addRows(rows);
