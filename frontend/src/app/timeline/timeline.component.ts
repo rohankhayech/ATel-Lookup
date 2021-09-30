@@ -10,6 +10,10 @@ import { fromEvent } from 'rxjs';
 import { ColorUtilities } from '../color-utilities';
 import { Telegram } from '../telegram.interface';
 
+interface Timeline extends google.visualization.Timeline {
+  setSelection(selection: unknown[]): void;
+}
+
 @Component({
   selector: 'app-timeline',
   templateUrl: './timeline.component.html',
@@ -47,7 +51,7 @@ export class TimelineComponent implements OnInit, OnChanges {
     }
 
     var container = document.getElementById('timeline') as Element;
-    var chart = new google.visualization.Timeline(container);
+    var chart = new google.visualization.Timeline(container) as Timeline;
     var dataTable = new google.visualization.DataTable();
 
     const rows = [];
@@ -82,11 +86,32 @@ export class TimelineComponent implements OnInit, OnChanges {
       timeline: { groupByRowLabel: true },
     };
 
-    google.visualization.events.addListener(chart, 'select', () => {
+    const selectionCallback = () => {
+      // remove selection listener
+      google.visualization.events.removeListener(selectionListener);
+
+      // emit selection change
       const selection = chart.getSelection();
       const id = dataTable.getValue(selection[0].row!, 1);
       this.selectionChange.emit(id);
-    });
+
+      // reset selection
+      chart.setSelection([]);
+
+      // add selection listener
+      addSelectionListener();
+    };
+
+    const addSelectionListener = () => {
+      selectionListener = google.visualization.events.addListener(
+        chart,
+        'select',
+        selectionCallback
+      );
+    };
+
+    let selectionListener: unknown;
+    addSelectionListener();
 
     chart.draw(dataTable, options);
   }
