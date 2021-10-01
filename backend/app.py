@@ -388,14 +388,15 @@ def search() -> json:
                     msg = e.message
                 else:
                     msg = str(e)
-                print(msg)
                 flag = 0
+                message = msg
         elif search_mode_in == "coords":
             radius_float = float(radius)
             if valid_radius(radius) == True:
                 reports = search_reports_by_coords(search_filters, date_filter, sky_coord, radius_float)
             else:
                 flag = 0
+                message = "A:Invalid radius given"
             
 
 
