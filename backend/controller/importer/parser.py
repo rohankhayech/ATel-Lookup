@@ -35,18 +35,13 @@ from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
 # Regexes for extracting coordinates
-COORD_REGEXES = ['ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
-                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', # hms/dms
-                 'ra:\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
-                 'ra\s(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', # hms/dms
-                 'ra:\s(?:\+|-)?\d+(?:\.\d+)?(?:,?\s)dec:\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?', # decimal degrees
-                 'ra\s(?:\+|-)?\d+(?:\.\d+)?(?:,?\s)dec\s(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?' # decimal degrees
+COORD_REGEXES = ['[r]\.?\s*[a]\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?(?:0*[1-2]\d|0*\d)[:ho\s]\s*(?:0*[1-6]\d|0*\d)[:m\'\s]\s*(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:\'\')*[s\"\s]?(?:\.\d+)?\s*\)*\s*[.,;]?\s*[d][e][c][l]?\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?(?:0*\d\d?)[:do\s]\s*(?:0*[1-6]\d|0*\d)[:m\'\s]\s*(?:0*[1-6]\d|0*\d)(?:\.\d+)?\)?(?:\'\')*[s\"]?(?:\.\d+)?', # HMS/DMS
+                 '[r]\.?\s*[a]\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?\d+(?:\.\d+)?\s*\)*\s*[.,;]?\s*[d][e][c][l]?\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?(?:0*\d\d?)(?:\.\d+)?' # Decimal Degrees
 ]
 
 # Used to convert coordinates to SkyCoord objects
-COORD_FORMATS = [['(?:\+|-)?(?:0*[1-2]\d|0*\d)h(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s', '(?:\+|-)?(?:0*\d\d?)d(?:0*[1-6]\d|0*\d)m(?:0*[1-6]\d|0*\d)(?:\.\d+)?s'], # hms/dms
-                 ['(?:\+|-)?(?:0*[1-2]\d|0*\d):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?):(?:0*[1-6]\d|0*\d):(?:0*[1-6]\d|0*\d)(?:\.\d+)?'], # hms/dms
-                 ['(?:\+|-)?\d+(?:\.\d+)?', '(?:\+|-)?(?:0*\d\d?)(?:\.\d+)?'] # decimal degrees
+COORD_FORMATS = [['[+-]?(?:0*[1-2]\d|0*\d)[:ho\s]\s*(?:0*[1-6]\d|0*\d)[:m\'\s]\s*(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:\'\')*[s\"\s]?(?:\.\d+)?', '[+-]?(?:0*\d\d?)[:do\s]\s*(?:0*[1-6]\d|0*\d)[:m\'\s]\s*(?:0*[1-6]\d|0*\d)(?:\.\d+)?\)?(?:\'\')*[s\"]?(?:\.\d+)?'], # HMS/DMS
+                 ['[+-]?\d+(?:\.\d+)?', '[+-]?(?:0*\d\d?)(?:\.\d+)?'] # Decimal Degrees
 ]
 
 # Regexes for extracting dates
@@ -266,7 +261,7 @@ def extract_coords(text: str) -> list[str]:
     # Finds all coordinates that are in the above coordinate formats in the text of ATel report
     for regex in COORD_REGEXES:
         # Attempts to find all coordinates that are in a certain coordinate format in the text using regex
-        coord_regex = re.compile(f'[^a-z]{regex}[^\d]')
+        coord_regex = re.compile(f'[^a-z]{regex}[^\d|^a-z]')
         coords_found = coord_regex.findall(f' {text.lower()} ')
 
         # Removes any leading and/or trailing characters that are not part of the coordinate format
@@ -296,8 +291,8 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
             coord_format = COORD_FORMATS[i]
 
             # Attempts to extract RA and DEC in a certain coordinate format
-            ra_regex = re.compile(f'ra:?\s{coord_format[0]}')
-            dec_regex = re.compile(f'dec:?\s{coord_format[1]}')
+            ra_regex = re.compile(f'[r]\.?\s*[a]\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?{coord_format[0]}')
+            dec_regex = re.compile(f'[d][e][c][l]?\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?{coord_format[1]}')
 
             ra_found = ra_regex.search(coord)
             dec_found = dec_regex.search(coord)
@@ -307,16 +302,64 @@ def parse_coords(coords: list[str]) -> list[SkyCoord]:
                 ra_regex = re.compile(coord_format[0])
                 dec_regex = re.compile(coord_format[1])
 
-                ra = ra_regex.search(ra_found.group())
-                dec = dec_regex.search(dec_found.group())
-
                 try:
                     skycoord_obj = None
                     
-                    # Converts coordinate to SkyCoord object
-                    if((i == 0) or (i == 1)):
-                        skycoord_obj = SkyCoord(str(ra.group()), str(dec.group()), unit=('hourangle', 'deg'))
+                    # HMS/DMS
+                    if(i == 0):
+                        ra = ra_regex.search(ra_found.group())
+                        dec = dec_regex.search(dec_found.group())
+
+                        # Stores + and - if there is any for concatenation
+                        ra_sign = ''
+                        dec_sign = ''
+
+                        # Determines the sign of RA
+                        if(ra.group()[0] == '+'):
+                            ra_sign = '+'
+                        elif(ra.group()[0] == '-'):
+                            ra_sign = '-'
+
+                        # Determines the sign of DEC
+                        if(dec.group()[0] == '+'):
+                            dec_sign = '+'
+                        elif(dec.group()[0] == '-'):
+                            dec_sign = '-'
+
+                        value_regex = re.compile(f'\d+')
+                        decimal_regex = re.compile(f'\.\d+')
+
+                        # Parses values of RA
+                        ra_values_found = value_regex.findall(ra.group())
+                        ra_decimal_found = decimal_regex.search(ra.group())
+
+                        # Parses values of DEC
+                        dec_values_found = value_regex.findall(dec.group())
+                        dec_decimal_found = decimal_regex.search(dec.group())
+
+                        hms = None
+                        dms = None
+
+                        # Concatenates RA values to create hms string
+                        if(ra_decimal_found is not None):
+                            hms = f'{ra_sign}{ra_values_found[0]}h{ra_values_found[1]}m{ra_values_found[2]}{ra_decimal_found.group()}s'
+                        else:
+                            hms = f'{ra_sign}{ra_values_found[0]}h{ra_values_found[1]}m{ra_values_found[2]}s'
+
+                        # Concatenates DEC values to create dms string
+                        if(dec_decimal_found is not None):
+                            dms = f'{dec_sign}{dec_values_found[0]}d{dec_values_found[1]}m{dec_values_found[2]}{dec_decimal_found.group()}s'
+                        else:
+                            dms = f'{dec_sign}{dec_values_found[0]}d{dec_values_found[1]}m{dec_values_found[2]}s'
+
+                        # Converts coordinate to SkyCoord object
+                        skycoord_obj = SkyCoord(hms, dms, unit=('hourangle', 'deg'))
+                    # Decimal Degrees
                     else:
+                        ra = ra_regex.search(ra_found.group().replace('(2000)', '').replace('(j2000)', ''))
+                        dec = dec_regex.search(dec_found.group().replace('(2000)', '').replace('(j2000)', ''))
+
+                        # Converts coordinate to SkyCoord object
                         skycoord_obj = SkyCoord(float(ra.group()), float(dec.group()), unit=('deg', 'deg'))
                     
                     try:
@@ -452,7 +495,7 @@ def extract_known_aliases(text: str) -> list[str]:
     # Finds all aliases and object IDs in the text of ATel report
     for alias in aliases:
         # Attempts to find alias in the text using regex
-        alias_regex = re.compile(f'[^\d|^a-z]{alias.alias.lower()}[^\d|^a-z]')
+        alias_regex = re.compile(f'[^\d|^a-z]{str(re.escape(alias.alias.lower()))}[^\d|^a-z]')
         alias_found = alias_regex.search(f' {text.lower()} ')
 
         # Adds object ID to list if its associated alias is found in the text
@@ -460,7 +503,7 @@ def extract_known_aliases(text: str) -> list[str]:
             object_IDs.append(str(alias.object_ID.lower()))
         else:
             # Attempts to find object ID in the text using regex
-            object_ID_regex = re.compile(f'[^\d|^a-z]{alias.object_ID.lower()}[^\d|^a-z]')
+            object_ID_regex = re.compile(f'[^\d|^a-z]{str(re.escape(alias.object_ID.lower()))}[^\d|^a-z]')
             object_ID_found = object_ID_regex.search(f' {text.lower()} ')
 
             # Adds object ID to list if it is found in the text

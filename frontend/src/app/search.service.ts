@@ -47,8 +47,8 @@ export class SearchService {
         parameters.mode === SearchMode.Name
           ? parameters.name
           : [
-              parameters.coordinates.declination,
               parameters.coordinates.ra,
+              parameters.coordinates.declination,
               parameters.coordinates.radius,
             ],
       keyword_mode: parameters.match,
