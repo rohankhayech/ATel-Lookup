@@ -197,6 +197,7 @@ def search() -> json:
     '''
 
     flag = 1 
+    message = ""
     reports = []
     list_result = [], []
     report_dicts = []
@@ -276,12 +277,14 @@ def search() -> json:
     if flag == 1:
         if search_mode_in != "coords" and search_mode_in != "name":
             flag = 0
+            message = "Invalid Search Mode"
 
 
     #checking to make sure atleast one of the required fields has been given - REQUIRED FIELDS CHECK
     if flag == 1:
         if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
             flag = 0
+            message = "Required fields not met"
 
 
     #checking if start date is greater than end date and vice versa - DATE VALIDITY CHECKS
@@ -289,6 +292,7 @@ def search() -> json:
         if start_date_obj != None and end_date_obj != None: 
             if start_date_obj > end_date_obj or end_date_obj < start_date_obj: # failure if start date is ahead of end date, and vice versa
                 flag = 0
+                message = "Invalid start date or end date"
     #checking if start date and end date are infact dates in the past - DATE VALIDITY CHECK
     if flag == 1:
         if start_date_obj != None and end_date_obj != None: # if dates exist
@@ -411,6 +415,7 @@ def search() -> json:
             "report_list": report_dicts,
             "node_list": list_result[0],
             "edge_list": list_result[1],
+            "message": message
         }
     )
 
