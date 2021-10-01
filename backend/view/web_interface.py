@@ -154,7 +154,7 @@ def valid_dec(dec: str) -> bool:
 
     # checking validity of values with their min max ranges
     if bool_response == True:
-        if d_value < 0 or d_value > 360:
+        if d_value < -90 or d_value > 90:
             bool_response = False
         elif m_value < 0 or m_value >= 60:
             bool_response = False
