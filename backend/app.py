@@ -240,9 +240,11 @@ def search() -> json:
     #If field blank, set to None
     if search_mode_in == "":
         search_mode_in = None
-    if search_data_in == "":
+    if search_mode_in == "name" and search_data_in == "":
         search_data_in = None
-    if keywords_in == "":
+    if search_mode_in == "coords" and search_data_in == ["","",""]:
+        search_data_in = None
+    if keywords_in == "" or keywords_in == [""]:
         keywords_in = None
     if keyword_mode_in == "":
         keyword_mode_in = None
@@ -263,10 +265,6 @@ def search() -> json:
     if keywords_in == []:
         keywords_in = None
 
-    if search_mode_in == "coords":
-        if search_data_in[0] == "":
-            search_data_in = None
-
 
 
     '''
@@ -275,58 +273,67 @@ def search() -> json:
 
     #checking if search_mode_in has a valid value - SEARCH MODE CHECK
     if flag == 1:
-        if search_mode_in != "coords" and search_mode_in != "name":
-            flag = 0
-            message = "B:Invalid Search Mode"
+        try:
+            search_mode_check(search_mode_in)
+        except ValueError as e:
+            flag = 0 # system error
+            message = str(e)
 
 
     #checking to make sure atleast one of the required fields has been given - REQUIRED FIELDS CHECK
     if flag == 1:
-        if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None):  # At least one of the text fields (search_data) or keyword boxes (keywords/keyword_mode must be filled).
-            flag = 0
-            message = "A:Required fields not met"
+        try:
+            req_fields_check(search_data_in, keywords_in, keyword_mode_in, term_in)
+        except ValueError as e:
+            flag = 2 # user error
+            message = str(e)
 
 
-    #checking if start date is greater than end date and vice versa - DATE VALIDITY CHECKS
+    # checking if start date is greater than end date and vice versa - DATE VALIDITY CHECK
+    # checking if start date and end date are infact dates in the past - DATE VALIDITY CHECK
     if flag == 1:
-        if start_date_obj != None and end_date_obj != None: 
-            if start_date_obj > end_date_obj or end_date_obj < start_date_obj: # failure if start date is ahead of end date, and vice versa
-                flag = 0
-                message = "A:Start date greater than end date, or vice versa"
-    #checking if start date and end date are infact dates in the past - DATE VALIDITY CHECK
-    if flag == 1:
-        if start_date_obj != None and end_date_obj != None: # if dates exist
-            if start_date_obj > datetime.now() and end_date_obj > datetime.now(): # failure if either date is in the future
-                flag = 0
-                message = "A:Start date or end date in the future"
-
+        if start_date_obj != None and end_date_obj != None:
+            try:
+                valid_date_check(start_date_obj, end_date_obj)
+            except ValueError as e:
+                flag = 2 # user error
+                message = str(e)
 
 
     #checking if keywords are within the FIXED_KEYWORDS list - KEYWORDS CHECK
     if flag == 1:
-        if keyword_mode_in != None and (keywords_in != None and keywords_in != ""): # as long as keyword mode is set, and there is data in keywords_in
-            for x in keywords_in:
-                if x not in FIXED_KEYWORDS: # checking if the keywords are part of the fixed keyword list
-                    flag = 0
-                    message = "B:Keyword not within Keyword List"
+        if keyword_mode_in != None and (keywords_in != None and keywords_in != ""):
+            try:
+                keywords_check(keywords_in)
+            except ValueError as e:
+                flag = 0 # system error
+                message = str(e)
+
 
 
     #creating the keyword_mode enum - KEYWORDS MODE CHECK
     if flag == 1:
         keyword_mode_enum = KeywordMode.ANY
-        if keyword_mode_in != None:
+        if keyword_mode_in != None and (keywords_in != None and keywords_in != ""):
             try:
-                if keyword_mode_in == "all" or keyword_mode_in == "any" or keyword_mode_in == "none": 
-                    keyword_mode_enum = parse_keyword_mode(keyword_mode_in) # turns keyword_mode_in to the enum version
-                else:
-                    flag = 0
-                    message = "B:Keyword mode not correct"
-            except InvalidKeywordError as e:
-                flag = 0
-                message = "B:Keyword mode not correct"
+                keyword_mode_check(keyword_mode_in)
+                keyword_mode_enum = parse_keyword_mode(keyword_mode_in)
+            except ValueError as e:
+                flag = 0 # system error
+                message = str(e) 
 
 
+    #performing basic validation on the coordinate search data - COORD DATA CHECK
+    if flag == 1:
+        if (search_mode_in == "coords" and search_data_in != None):
+            try:
+                valid_coords_basic_check(search_data_in)
+            except ValueError as e:
+                flag = 2 # user error
+                message = str(e) 
 
+            
+            
 
     '''
     FUNCTIONS AFTER CHECKS COMPLETED
@@ -339,21 +346,20 @@ def search() -> json:
                 ra = search_data_in[0]
                 dec = search_data_in[1]
                 radius = search_data_in[2]
+                if radius == "":
+                    radius = 10.0 # default value for radius is 10.0, so if not given, set to 10.0
 
                 try:
-                    if (valid_ra(ra) == True and valid_dec(dec) == True):
-                        sky_coord = parse_search_coords(ra,dec)
-                    else:
-                        flag = 0
-                        message = "A:Invalid Right Ascension coordinates or Declination coordinates"
+                    valid_ra(ra)
+                    valid_dec(dec)
+                    sky_coord = parse_search_coords(ra,dec)
                 except ValueError as e:
-                    flag = 0
-                    message = "A:" + str(e)
+                    flag = 2
+                    message = str(e)
 
             else:
-                flag = 0  # if search data is not fit for coords, set flag to failure
-                message = "B:Bad JSON request, no search_data given"
-
+                flag = 0 # system error
+                message = "Bad JSON request, full coordinates field not provided"
 
 
     #CREATING SEARCH FILTERS OBJECT
@@ -388,15 +394,16 @@ def search() -> json:
                     msg = e.message
                 else:
                     msg = str(e)
-                flag = 0
+                flag = 0 #system error
                 message = msg
         elif search_mode_in == "coords":
             radius_float = float(radius)
-            if valid_radius(radius) == True:
+            try:
+                valid_radius(radius)
                 reports = search_reports_by_coords(search_filters, date_filter, sky_coord, radius_float)
-            else:
-                flag = 0
-                message = "A:Invalid radius given"
+            except ValueError as e:
+                flag = 2 # user error
+                message = str(e)
             
 
 
@@ -414,6 +421,7 @@ def search() -> json:
                     "referenced_reports": report.referenced_reports,
                 }
             )
+
 
 
     #SEARCH FUNCTION RETURN

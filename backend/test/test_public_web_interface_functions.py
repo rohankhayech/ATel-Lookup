@@ -139,7 +139,7 @@ test_search_dates_backwards = {
 test_search_bad_ra_value = {
     "term": "supermassive",
     "search_mode": "coords",
-    "search_data": ["136m50s", "30d10m35s", 3.4],
+    "search_data": ["12:36", "30:10:35", 3.4],
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2001-01-22",
@@ -149,7 +149,7 @@ test_search_bad_ra_value = {
 test_search_bad_keyword = {
     "term": "supermassive",
     "search_mode": "coords",
-    "search_data": ["13h36m50s", "30d10m35s", 3.4],
+    "search_data": ["13:36:50", "30:10:35", 3.4],
     "keywords": ["radio", "big rock"],
     "keyword_mode": "any",
     "start_date": "2001-01-22",
@@ -162,7 +162,7 @@ test_search_term_only = {
     "search_data": "",
     "keywords": ["radio", "optical"],
     "keyword_mode": "all",
-    "start_date": "2021-01-22",
+    "start_date": "",
     "end_date": "2021-06-22",
 }
 
@@ -179,7 +179,7 @@ test_object_coords_only_name = {
 test_object_coords_only_coords = {
     "term": "",
     "search_mode": "coords",
-    "search_data": ["13h36m50s", "30d10m35s", 3.4],
+    "search_data": ["13:36:50", "30:10:35.432", 3.4],
     "keywords": [""],
     "keyword_mode": "",
     "start_date": "",
@@ -219,7 +219,7 @@ test_search_basic_coords_alt = {
 test_search_blank_hms = {
     "term": "supermassive",
     "search_mode": "coords",
-    "search_data": ["hms", "dms", 3.4],
+    "search_data": ["", "30:10:35", 3.4],
     "keywords": ["radio", "optical"],
     "keyword_mode": "any",
     "start_date": "2001-01-22",
@@ -228,6 +228,16 @@ test_search_blank_hms = {
 
 test_search_temp_test = {
     "term": "and",
+    "search_mode": "coords",
+    "search_data": ["","",""],
+    "keywords": [""],
+    "keyword_mode": "",
+    "start_date": "",
+    "end_date": ""
+}
+
+test_search_no_req_fields = {
+    "term": "",
     "search_mode": "coords",
     "search_data": ["","",""],
     "keywords": [""],
@@ -337,7 +347,7 @@ class TestWebInterfaceSearch(ut.TestCase):
 
     def test_search_bad_date(self):
         response = self.app.post("/search", json=test_search_bad_date)
-        self.assertEqual(response.json.get("flag"), 0)
+        self.assertEqual(response.json.get("flag"), 2)
         # Should fail if a date is in the future
 
     def test_search_bad_search_mode(self):
@@ -347,12 +357,12 @@ class TestWebInterfaceSearch(ut.TestCase):
 
     def test_search_dates_backwards(self):
         response = self.app.post("/search", json=test_search_dates_backwards)
-        self.assertEqual(response.json.get("flag"), 0)
+        self.assertEqual(response.json.get("flag"), 2)
         # if end date is before start date or vice versa, test should fail
 
     def test_search_bad_ra_value(self):
         response = self.app.post('/search', json = test_search_bad_ra_value) # Outdated test needs to updated
-        self.assertEqual(response.json.get("flag"), 0)
+        self.assertEqual(response.json.get("flag"), 2)
         # Testing bad ra value, giving the program ra = 136m50s
 
     def test_search_bad_keyword(self):
@@ -378,7 +388,7 @@ class TestWebInterfaceSearch(ut.TestCase):
 
     def test_search_blank_hms(self):
         response = self.app.post('/search', json = test_search_blank_hms)
-        self.assertEqual(response.json.get("flag"), 0)
+        self.assertEqual(response.json.get("flag"), 2)
     
     def test_search_temp_test(self):
         response = self.app.post('/search', json = test_search_temp_test)
@@ -387,6 +397,12 @@ class TestWebInterfaceSearch(ut.TestCase):
     def test_object_coords_only_coords(self):
         response = self.app.post('/search', json = test_object_coords_only_coords)
         self.assertEqual(response.json.get("flag"), 1)
+
+    def test_search_no_req_fields(self):
+        response = self.app.post('/search', json = test_search_no_req_fields)
+        self.assertEqual(response.json.get("flag"), 2)
+
+    
 
     #Testing Mocking Tests - none of this is implemented/working yet
     # return_value=({
