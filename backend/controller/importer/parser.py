@@ -267,8 +267,8 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
 
         # Formats the body text
         body = body.replace('\n', ' ').strip()
-        body = re.sub(' +', ' ', body.strip())        
-    
+        body = re.sub(' +', ' ', body.strip())
+
     if(body == ''):
         raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
 

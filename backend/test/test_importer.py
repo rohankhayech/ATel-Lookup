@@ -98,7 +98,7 @@ class TestImporterFunctions(unittest.TestCase):
         expected_set_next_atel_num_call = [call(8)]
 
         mock_get_next_atel_num.return_value = 6
-        mock_import_report.side_effect = [None, None, ImportFailError]
+        mock_import_report.side_effect = [MissingReportElementError, None, ImportFailError]
 
         # Checks for expected import_report and set_next_atel_num function calls
         import_all_reports()
@@ -536,12 +536,12 @@ class TestCustomExceptions(unittest.TestCase):
 
         with self.assertRaises(MissingReportElementError):
             parse_report(1, '<h1 class=\'title\'></h1>')
-
-        with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'><div id=\'telegram\'></div></h1><strong></strong>')
         
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'><p>Test</p></div><strong></strong>')
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'></div><strong></strong>')
+        
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'><em><em></em></em></div><strong>01 Jan 1999; 00:00 UT</strong>')
 
 if __name__ == "__main__":
     unittest.main()
