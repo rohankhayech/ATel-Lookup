@@ -189,11 +189,12 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     else:
         raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
 
+    # Extracts the body of ATel report
     body = ''
     div_element = soup.find('div', {'id': 'telegram'})
     
-    # Extracts the body of ATel report using a tag
     for i in range(len(BODY_TAGS)):
+        # Extracts the body of ATel report using a tag
         body_tag = BODY_TAGS[i]
         texts = div_element.find_all(body_tag[0], body_tag[1])
 
