@@ -37,6 +37,7 @@ import { ProgressBarDirective } from './progress-bar.directive';
 import { FlexLayoutModule } from '@angular/flex-layout';
 import { TimelineComponent } from './timeline/timeline.component';
 import { NetworkGraphComponent } from './network-graph/network-graph.component';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 @NgModule({
   declarations: [
@@ -73,6 +74,7 @@ import { NetworkGraphComponent } from './network-graph/network-graph.component';
     MatTooltipModule,
     MatMomentDateModule,
     MatProgressBarModule,
+    MatPaginatorModule,
   ],
   providers: [
     {
