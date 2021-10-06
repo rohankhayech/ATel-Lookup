@@ -273,6 +273,10 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     if(body == ''):
         raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
 
+    # Truncates body text to 5120 characters
+    if(len(body.strip()) > 5120):
+        body = body.strip()[:5120]
+
     text = f'{title} {body.strip()}'
 
     return ImportedReport(atel_num, title, authors, body.strip(), formatted_submission_date, referenced_reports, parse_dates(extract_dates(text)), extract_keywords(f'{title} {subjects} {body.strip()}'), extract_known_aliases(text), parse_coords(extract_coords(text)), referenced_by)
