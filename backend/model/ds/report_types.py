@@ -29,8 +29,8 @@ from controller.helper.type_checking import list_is_type
 from model.constants import valid_keyword
 
 #Constants
-REPORT_TITLE_CHAR_LIM:int = 1024   # Max chars for title field.
-REPORT_AUTHOR_CHAR_LIM:int = 1024  # Max chars for authors field.
+REPORT_TITLE_CHAR_LIM:int = 2056   # Max chars for title field.
+REPORT_AUTHOR_CHAR_LIM:int = 2056  # Max chars for authors field.
 REPORT_BODY_CHAR_LIM:int = 5120    # Max chars for body field.
 
 class ReportResult:
