@@ -34,7 +34,7 @@ export class SearchResultsComponent implements OnChanges {
   }
 
   ngOnChanges() {
-    this.page = 0;
+    this.updatePage(0);
   }
 
   top() {
