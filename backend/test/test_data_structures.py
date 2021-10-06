@@ -218,9 +218,9 @@ class TestReportTypes(unittest.TestCase):
         with self.assertRaises(ValueError):
             self.ir.body = "a"*5121
         with self.assertRaises(ValueError):
-            self.ir.title = "a"*1025
+            self.ir.title = "a"*2057
         with self.assertRaises(ValueError):
-            self.ir.authors = "a"*1025
+            self.ir.authors = "a"*2057
 
     def test_invalid_keyword(self):
         with self.assertRaises(ValueError):

@@ -13,9 +13,16 @@
     <div>
       <!-- Reports -->
       <app-telegram-card
-        *ngFor="let telegram of result?.telegrams"
+        *ngFor="let telegram of view"
         [telegram]="telegram"
       ></app-telegram-card>
+
+      <mat-paginator
+        [length]="result?.telegrams?.length"
+        [pageSize]="pageSize"
+        (page)="updatePage($event.pageIndex)"
+      >
+      </mat-paginator>
     </div>
 
     <div>
