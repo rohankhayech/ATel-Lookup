@@ -1,2 +1,3 @@
 alter table Reports
-modify column body varchar(5120) not null
+modify column title varchar(2056) not null,
+modify column authors varchar(2056) not null
