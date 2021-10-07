@@ -45,9 +45,10 @@ def parse_date_input(date_string: str) -> datetime:
         datetime: A Python datetime object based on the parsed string. 
 
     '''
-
-    date_obj = datetime.strptime(date_string,"%Y-%m-%d")
-
+    try:
+        date_obj = datetime.strptime(date_string,"%Y-%m-%d")
+    except ValueError as e:
+        raise ValueError("Incorrect date format, ensure they are: dd/mm/yyyy")
     return date_obj
 
 

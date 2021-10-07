@@ -72,17 +72,19 @@ class TestParseDateInput(ut.TestCase):
         self.testValue = 1
         
     def test_correct_date(self):
-        test_string = "2020-01-01"
-        test_string_datetime = datetime.strptime(test_string,"%Y-%m-%d")
-        temp_date_obj = parse_date_input(test_string)
-        self.assertEqual(temp_date_obj, test_string_datetime)
+        try:
+            test_string = "2020-01-01"
+            parse_date_input(test_string)
+        except ValueError:
+            self.fail("PARSE DATE INPUT: test_correct_date failed")
 
     def test_wrong_date(self):
-        test_string = "2020-01-01"
-        test_string_bad = "1950-06-06"
-        test_string_datetime = datetime.strptime(test_string_bad,"%Y-%m-%d")
-        temp_date_obj = parse_date_input(test_string)
-        self.assertNotEqual(temp_date_obj, test_string_datetime)
+        test_string = "200003-45-45"
+        self.assertRaises(ValueError, parse_date_input, test_string)
+        test_string = "2003:10-10"
+        self.assertRaises(ValueError, parse_date_input, test_string)
+        test_string = "12-13"
+        self.assertRaises(ValueError, parse_date_input, test_string)
 
 
 class TestParseSearchCoords(ut.TestCase):
