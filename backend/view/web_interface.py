@@ -143,6 +143,8 @@ def valid_dec(dec: str) -> bool:
     d_value = 0
     m_value = 0
     s_value = 0
+    if dec == "" or dec == None:
+        raise ValueError("No declination coordinates given")
 
     if ("d" in dec and "m" in dec and "s" in dec): # for the hms format of coords
         string_split = re.split('d|m|s',dec)
@@ -196,6 +198,9 @@ def valid_radius(rad: str) -> bool:
 
     '''
     bool_response = True
+    if rad == "" or rad == None:
+        rad = 10.0
+        
     rad_float = float(rad)
 
     # checking validity of the radius with its min max ranges
