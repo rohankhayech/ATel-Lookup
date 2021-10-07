@@ -62,6 +62,11 @@ from controller.authentication import (
     login,
 )
 
+from multiprocessing import Process
+from NamedAtomicLock import NamedAtomicLock
+
+lock = NamedAtomicLock("importr")
+
 app = Flask(__name__)
 jwt = JWTManager(app)
 CORS(app)
@@ -148,6 +153,7 @@ def imports() -> json:
         json: JSON flag – Flag that states whether the import was successful or unsuccessful.
 
     """
+
     # print("REQUEST.JSON PRINTOUT -> ", request.json)
     flag = 1
 
@@ -172,7 +178,7 @@ def imports() -> json:
                     atel_num_in
                 )  # currently not working, talk to nathan, issue with download_report 28/08/2021 9:39pm
             elif import_mode_in == "auto":
-                import_all_reports()
+                background_import()
         except ReportAlreadyExistsError as e:
             flag = 0
         except ReportNotFoundError as e:
@@ -352,6 +358,17 @@ def load_metadata() -> json:
     return jsonify(
         {"keywords": keywords, "lastUpdated": last_updated, "nextAtel": next_atel}
     )
+
+
+def background_import():
+    process = Process(target=background_import_task, daemon=True)
+    process.start()
+
+
+def background_import_task():
+    lock.acquire()
+    import_all_reports()
+    lock.release()
 
 
 """
