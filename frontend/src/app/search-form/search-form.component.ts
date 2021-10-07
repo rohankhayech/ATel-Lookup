@@ -41,6 +41,8 @@ export class SearchFormComponent implements OnInit {
   public start?: Moment;
   public end?: Moment;
 
+  public keywordColumns: string[][] = [];
+
   constructor(
     private http: HttpClient,
     private searchService: SearchService,
@@ -56,6 +58,7 @@ export class SearchFormComponent implements OnInit {
       .get<Metadata>(`${environment.apiUrl}/metadata`)
       .subscribe((metadata) => {
         this.metadata = metadata;
+        this.keywordColumns = this.splitArray(this.metadata.keywords, 4);
 
         for (const keyword of this.metadata.keywords) {
           this.keywords[keyword] = false;
@@ -114,5 +117,13 @@ export class SearchFormComponent implements OnInit {
 
   get keywordList() {
     return this.metadata?.keywords.filter((keyword) => this.keywords[keyword]);
+  }
+
+  private splitArray<T>(array: T[], n: number) {
+    let result = [];
+    for (let i = n; i > 0; i--) {
+      result.push(array.splice(0, Math.ceil(array.length / i)));
+    }
+    return result;
   }
 }

@@ -32,7 +32,7 @@ from model.db.db_interface import _connect
 
 # Constants
 
-_LATEST_SCHEMA_VERSION: int = 5
+_LATEST_SCHEMA_VERSION: int = 7
 """ 
 Version number of the latest database schema.
 This must be increased every time the schema is upgraded.

@@ -1,10 +1,9 @@
 <div *ngIf="result">
-  <div>
+  <div *ngIf="(result?.telegrams?.length ?? 0) >= 3">
     <!-- Timeline -->
     <h3><b>Timeline</b></h3>
 
     <app-timeline
-      *ngIf="(result?.telegrams?.length ?? 0) >= 3"
       [telegrams]="result?.telegrams"
       (selectionChange)="scrollToTelegram($event)"
     ></app-timeline>
@@ -14,9 +13,16 @@
     <div>
       <!-- Reports -->
       <app-telegram-card
-        *ngFor="let telegram of result?.telegrams"
+        *ngFor="let telegram of view"
         [telegram]="telegram"
       ></app-telegram-card>
+
+      <mat-paginator
+        [length]="result?.telegrams?.length"
+        [pageSize]="pageSize"
+        (page)="updatePage($event.pageIndex)"
+      >
+      </mat-paginator>
     </div>
 
     <div>

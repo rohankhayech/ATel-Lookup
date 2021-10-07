@@ -34,6 +34,16 @@ from datetime import datetime
 from astropy.coordinates import SkyCoord
 from astropy.time import Time
 
+# Used for extracting the body of ATel reports
+BODY_TAGS = [['p', {'class': None, 'align': None}],
+             ['div', {'id': None}],
+             ['p', {'align': 'justify'}],
+             ['p', {'align': 'left'}],
+             ['p', {'class': 'p1'}],
+             ['p', {'class': 'western'}],
+             ['pre', None]
+]
+
 # Regexes for extracting coordinates
 COORD_REGEXES = ['[r]\.?\s*[a]\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?(?:0*[1-2]\d|0*\d)[:ho\s]\s*(?:0*[1-6]\d|0*\d)[:m\'\s]\s*(?:0*[1-6]\d|0*\d)(?:\.\d+)?(?:\'\')*[s\"\s]?(?:\.\d+)?\s*\)*\s*[.,;]?\s*[d][e][c][l]?\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?(?:0*\d\d?)[:do\s]\s*(?:0*[1-6]\d|0*\d)[:m\'\s]\s*(?:0*[1-6]\d|0*\d)(?:\.\d+)?\)?(?:\'\')*[s\"]?(?:\.\d+)?', # HMS/DMS
                  '[r]\.?\s*[a]\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?\d+(?:\.\d+)?\s*\)*\s*[.,;]?\s*[d][e][c][l]?\.?\s*(?:\([j]?2000\))?\s*[,:=]?\s*\(?[+-]?(?:0*\d\d?)(?:\.\d+)?' # Decimal Degrees
@@ -98,7 +108,6 @@ KEYWORD_REGEXES = ['radios?',
                   'vhe',
                   'uhe',
                   'neutrinos?',
-                  'comments?',
                   'agn',
                   'asteroids?\s?\(binary\)',
                   'asteroids?',
@@ -127,7 +136,6 @@ KEYWORD_REGEXES = ['radios?',
                   'pre(\s|-)main(\s|-)sequence stars?',
                   'pulsars?',
                   'quasars?',
-                  'requests? for observations?',
                   'soft gamma(\s|-)ray repeaters?',
                   'solar system objects?',
                   'stars?',
@@ -137,7 +145,9 @@ KEYWORD_REGEXES = ['radios?',
                   'tidal disruption events?',
                   'transients?',
                   'variables?',
-                  'young stellar objects?'
+                  'young stellar objects?',
+                  'requests? for observations?',
+                  'comments?',
 ]
 
 # Custom exception
@@ -179,20 +189,25 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     else:
         raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
 
-    # Finds all possible paragraphs in the HTML
+    # Extracts the body of ATel report
     body = ''
-    texts = soup.find_all('p', {'class': None, 'align': None})
+    div_element = soup.find('div', {'id': 'telegram'})
+    
+    for i in range(len(BODY_TAGS)):
+        # Extracts the body of ATel report using a tag
+        body_tag = BODY_TAGS[i]
+        texts = div_element.find_all(body_tag[0], body_tag[1])
 
-    # Filters out non-body text elements and formats the body text
-    for text in texts:
-        if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
-            if('\n' in text.get_text()):
-                body += str(text.get_text())
-            else:
-                body += f'{text.get_text()}\n'
+        # Formats the body text
+        for text in texts:
+            if((text.find('iframe') == None) and (len(text.get_text(strip=True)) != 0) and ('Referred to by ATel #:' not in text.get_text(strip=True))):
+                string = str(text.get_text()).replace('\n', ' ').strip()
+                body = f'{body}{string}\n\n'
+            
+        body = re.sub(' +', ' ', body.strip())
 
-    if(body == ''):
-        raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
+        if(body != ''):
+            break
     
     # Extracts submission date of ATel report
     elements = soup.find_all('strong')
@@ -207,18 +222,18 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
         raise MissingReportElementError(f'Submission date is missing in ATel #{str(atel_num)}')
 
     # Extracts the number of any ATel reports that referenced the ATel report
+    referenced_by_text = ''
     referenced_by = []
 
     if(soup.find('div', {'id': 'references'}) is not None):
-        referenced_by = soup.find('div', {'id': 'references'}).get_text()
-        referenced_by = re.findall('\d+', referenced_by)
+        referenced_by_text = soup.find('div', {'id': 'references'}).get_text()
+        referenced_by = re.findall('\d+', referenced_by_text)
     
     referenced_by = list(dict.fromkeys([int(referenced_by_num) for referenced_by_num in referenced_by]))
 
     # Extracts any links that are in the ATel report
     referenced_reports = []
     url_string = 'https://www.astronomerstelegram.org/?read='
-    div_element = soup.find('div', {'id': 'telegram'})
     links = div_element.find_all('a', href=True)
 
     # Extracts the number of any ATel reports referenced
@@ -240,6 +255,27 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
 
     if(soup.find('p', {'class': 'subjects'}) is not None):
         subjects = soup.find('p', {'class': 'subjects'}).get_text()
+
+    # Extracts all texts in the ATel report if the body text is still empty
+    if(body == ''):
+        body = str(div_element.get_text())
+
+        # Filters out non-body texts
+        body = body.replace('[ Previous | Next | ADS ]', '').replace(title, '').replace('Image available here', '').replace(subjects, '').replace(f'ATel #{atel_num};  {authors}', '').replace(f'ATel #{atel_num}; ', '').replace(authors, '').replace(f'on {submission_date}', '').replace(referenced_by_text, '')
+
+        em_element = soup.find_all('em')
+        body = body.replace(em_element[1].get_text(), '')
+
+        # Formats the body text
+        body = body.replace('\n', ' ').strip()
+        body = re.sub(' +', ' ', body.strip())
+
+    if(body == ''):
+        raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
+
+    # Truncates body text to 5120 characters
+    if(len(body.strip()) > 5120):
+        body = body.strip()[:5120]
 
     text = f'{title} {body.strip()}'
 

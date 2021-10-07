@@ -81,12 +81,13 @@
               class="wide"
               style="margin: 0 5px"
             >
-              <mat-label>Radius</mat-label>
+              <mat-label>Radius (default: 10, maximum: 20)</mat-label>
               <input
                 matInput
                 [(ngModel)]="radius"
                 name="radius"
-                placeholder="def 10.0000"
+                placeholder="10.0000 arcseconds"
+                [max]="20"
               />
             </mat-form-field>
           </div>
@@ -108,14 +109,16 @@
 
         <span class="bold"> the following keywords:</span>
 
-        <div class="keywords">
-          <mat-checkbox
-            *ngFor="let keyword of metadata?.keywords"
-            [(ngModel)]="keywords[keyword]"
-            [name]="keyword"
-            class="checkbox capitalized"
-            >{{ keyword }}</mat-checkbox
-          >
+        <div class="keywords" fxLayout="row" fxLayoutAlign="space-between">
+          <div *ngFor="let keywordsColumn of keywordColumns" fxLayout="column">
+            <mat-checkbox
+              *ngFor="let keyword of keywordsColumn"
+              [(ngModel)]="keywords[keyword]"
+              [name]="keyword"
+              class="checkbox capitalized"
+              >{{ keyword }}</mat-checkbox
+            >
+          </div>
         </div>
       </section>
 
@@ -166,4 +169,10 @@
       </button>
     </form>
   </mat-card-content>
+
+  <mat-card-footer style="text-align: center; margin-bottom: 8px">
+    <strong>
+      Disclaimer: This website is not affiliated with The Astronomer's Telegram
+    </strong>
+  </mat-card-footer>
 </mat-card>

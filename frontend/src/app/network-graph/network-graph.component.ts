@@ -13,6 +13,7 @@ import {
   SimulationLinkDatum,
   SimulationNodeDatum,
 } from 'd3';
+import { ColorUtilities } from '../color-utilities';
 import { Telegram } from '../telegram.interface';
 
 export interface Node extends SimulationNodeDatum, Telegram {}
@@ -78,11 +79,19 @@ export class NetworkGraphComponent implements OnChanges {
       .selectAll('circle')
       .data(this.nodes)
       .join('circle')
+      .style('fill', function (d) {
+        return ColorUtilities.stringToColor(d.title);
+      })
       .attr('r', 5)
       .on('click', this.click.bind(this))
       .call((simulation: any) => this.drag(simulation));
 
-    node.append('title').text((d) => d.title);
+    node
+      .append('title')
+      .text(
+        (telegram) =>
+          `${telegram.title} (${telegram.date.toLocaleDateString()})`
+      );
 
     simulation.on('tick', () => {
       link

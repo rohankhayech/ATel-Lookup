@@ -57,6 +57,7 @@ def import_report(atel_num: int):
         ReportAlreadyExistsError: Thrown when report with the ATel number has been added into the database previously.
         ReportNotFoundError: Thrown when report with the ATel number is not found on the AT website.
         ImportFailError: Thrown when report with the ATel number failed to be imported into the database.
+        MissingReportElementError: Thrown when important data could not be extracted or are missing from the ATel report.
     """
 
     # Raises error when ATel report is already imported into the database
@@ -78,9 +79,6 @@ def import_report(atel_num: int):
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
     except DownloadFailError as err:
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
-    # Raises error when ATel report import fails due to a missing report element
-    except MissingReportElementError as err:
-        raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
     # Raises error when ATel report is already imported into the database
     except ExistingReportError:
         raise ReportAlreadyExistsError(f'ATel #{str(atel_num)} already exists in the database')
@@ -99,6 +97,8 @@ def import_all_reports():
             try:
                 import_report(atel_num)
             except ReportAlreadyExistsError:
+                pass
+            except MissingReportElementError:
                 pass
 
             atel_num = atel_num + 1

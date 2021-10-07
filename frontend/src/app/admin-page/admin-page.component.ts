@@ -33,7 +33,7 @@ export class AdminPageComponent implements OnInit {
   importAll() {
     return this.importService.importAll().pipe(
       tap(() =>
-        this.snackBar.open('ATels successfully imported', 'Close', {
+        this.snackBar.open('Started importing ATels', 'Close', {
           duration: 8000,
         })
       ),
@@ -66,9 +66,9 @@ export class AdminPageComponent implements OnInit {
 
   fetchMetadata() {
     this.http
-    .get<Metadata>(`${environment.apiUrl}/metadata`)
-    .subscribe((metadata) => {
-      this.upcoming = metadata.nextAtel;
-    });
+      .get<Metadata>(`${environment.apiUrl}/metadata`)
+      .subscribe((metadata) => {
+        this.upcoming = metadata.nextAtel;
+      });
   }
 }
