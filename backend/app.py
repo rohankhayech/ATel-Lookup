@@ -208,13 +208,6 @@ def search() -> json:
     list_result = [], []
     report_dicts = []
 
-    term_in = ""
-    search_mode_in = None
-    search_data_in = None
-    keywords_in = None
-    keyword_mode_in = None
-    start_date_in = None
-    end_date_in = None
     start_date_obj = None
     end_date_obj = None
     ra = 0.0
