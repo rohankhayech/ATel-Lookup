@@ -22,6 +22,7 @@ License Terms and Copyright:
 
 
 from datetime import datetime
+from multiprocessing import Value
 from astropy.coordinates import SkyCoord
 from typing import Tuple
 from model.ds.search_filters import KeywordMode
@@ -331,10 +332,14 @@ def valid_coords_basic_check(search_data_in: str) -> bool:
     return bool_response
 
 
-# def search_mode_check(search_mode_in: str) -> bool:
-#     '''
-#     '''
+def none_check(term_in: str, search_mode_in: str, search_data_in: str, keywords_in: str, keyword_mode_in: str, start_date_in: str, end_date_in: str) -> bool:
+    '''
+    '''
+    bool_response = True
 
-#     bool_response = True
+    if (term_in == None or search_mode_in == None or search_data_in == None
+            or keywords_in == None or keyword_mode_in == None
+            or start_date_in == None or end_date_in == None):
+        raise ValueError("Bad JSON request, not all fields recieved")
 
-#     return bool_response
+    return bool_response

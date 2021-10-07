@@ -224,12 +224,12 @@ def search() -> json:
     start_date_in = request.json.get("start_date", None)
     end_date_in = request.json.get("end_date", None)
 
-    #if any fields are missing from the JSON request, flag 0
-    # if (term_in == None or search_mode_in == None or search_data_in == None
-    #         or keywords_in == None or keyword_mode_in == None
-    #         or start_date_in == None or end_date_in == None):
-    #     flag = 0 
-
+    # if any fields are missing from the JSON request, flag 0
+    try: 
+        none_check(term_in, search_mode_in, search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in)
+    except ValueError as e:
+        flag = 0
+        message = "Bad JSON request, not all fields recieved"
 
 
     '''
