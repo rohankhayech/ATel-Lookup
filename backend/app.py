@@ -256,10 +256,17 @@ def search() -> json:
 
     # turning dates into date objects
     if start_date_in != None:
-        start_date_obj = parse_date_input(start_date_in)
+        try:
+            start_date_obj = parse_date_input(start_date_in)
+        except ValueError as e:
+            flag = 2
+            message = str(e)
     if end_date_in != None:
-        end_date_obj = parse_date_input(end_date_in)
-    
+        try:
+            end_date_obj = parse_date_input(end_date_in)
+        except ValueError as e:
+            flag = 2
+            message = str(e)
     # set keywords_in to None if empty
     if keywords_in == []:
         keywords_in = None
