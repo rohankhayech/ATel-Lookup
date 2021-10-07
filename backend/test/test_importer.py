@@ -98,7 +98,7 @@ class TestImporterFunctions(unittest.TestCase):
         expected_set_next_atel_num_call = [call(8)]
 
         mock_get_next_atel_num.return_value = 6
-        mock_import_report.side_effect = [None, None, ImportFailError]
+        mock_import_report.side_effect = [MissingReportElementError, None, ImportFailError]
 
         # Checks for expected import_report and set_next_atel_num function calls
         import_all_reports()
@@ -237,6 +237,52 @@ class TestParserFunctions(unittest.TestCase):
         self.assertCountEqual(imported_report.objects, [])
         self.assertCountEqual(imported_report.coordinates, [])
         self.assertCountEqual(imported_report.referenced_by, [14003, 14100, 14168])
+
+        # Parses HTML of ATel #400
+        f = open(os.path.join('test', 'res', 'atel400.html'), 'r')
+        imported_report = parse_report(400, f.read())
+        f.close()
+
+        # Retrieves ATel #400 body text
+        f = open(os.path.join('test', 'res', 'atel400_body.txt'), 'r')
+        body = f.read()
+        f.close()
+
+        self.assertEqual(imported_report.atel_num, 400)
+        self.assertEqual(imported_report.title, '4.85 and 10.45 GHz observations of XTE J1118+480 following the VLA measurements')
+        self.assertEqual(imported_report.authors, 'Emmanouil Angelakis, Alexander Kraus (Max Planck Instuitute for Radio Astronomy, Bonn)')
+        self.assertEqual(imported_report.body, body)
+        self.assertEqual(imported_report.submission_date, datetime(year=2005, month=1, day=26, hour=22, minute=0))
+        
+        self.assertCountEqual(imported_report.referenced_reports, [])
+        self.assertCountEqual(imported_report.observation_dates, [])
+        self.assertCountEqual(imported_report.keywords, [])
+        self.assertCountEqual(imported_report.objects, [])
+        self.assertCountEqual(imported_report.coordinates, [])
+        self.assertCountEqual(imported_report.referenced_by, [404, 420])
+
+        # Parses HTML of ATel #932
+        f = open(os.path.join('test', 'res', 'atel932.html'), 'r')
+        imported_report = parse_report(932, f.read())
+        f.close()
+
+        # Retrieves ATel #932 body text
+        f = open(os.path.join('test', 'res', 'atel932_body.txt'), 'r')
+        body = f.read()
+        f.close()
+
+        self.assertEqual(imported_report.atel_num, 932)
+        self.assertEqual(imported_report.title, 'Swift/XMM-Newton detection of a large glitch in the bursting transient Anomalous X-ray Pulsar CXO J164710.2-455216')
+        self.assertEqual(imported_report.authors, 'G. L. Israel and S. Dall\'Osso (INAF - AO Roma), S. Campana (INAF - AO Brera), M. Muno (Caltech), and L. Stella (INAF - AO Roma)')
+        self.assertEqual(imported_report.body, body)
+        self.assertEqual(imported_report.submission_date, datetime(year=2006, month=11, day=3, hour=21, minute=58))
+        
+        self.assertCountEqual(imported_report.referenced_reports, [893, 896, 894, 902, 929])
+        self.assertCountEqual(imported_report.observation_dates, [])
+        self.assertCountEqual(imported_report.keywords, [])
+        self.assertCountEqual(imported_report.objects, [])
+        self.assertCountEqual(imported_report.coordinates, [])
+        self.assertCountEqual(imported_report.referenced_by, [989])
 
     # Tests extract_coords function
     def test_coords_extractor(self):
@@ -440,10 +486,9 @@ class TestCustomExceptions(unittest.TestCase):
             import_report(1)
 
     # Tests that ImportFailError is being raised
-    @mock.patch('controller.importer.importer.parse_report')
     @mock.patch('controller.importer.importer.download_report')
     @mock.patch('controller.importer.importer.report_exists')
-    def test_import_fail_error(self, mock_report_exists, mock_download_report, mock_parse_report):
+    def test_import_fail_error(self, mock_report_exists, mock_download_report):
         mock_report_exists.return_value = False
 
         mock_download_report.side_effect = NetworkError
@@ -451,11 +496,6 @@ class TestCustomExceptions(unittest.TestCase):
             import_report(1)
 
         mock_download_report.side_effect = DownloadFailError
-        with self.assertRaises(ImportFailError):
-            import_report(1)
-
-        mock_download_report.return_value = 'Test'
-        mock_parse_report.side_effect = MissingReportElementError
         with self.assertRaises(ImportFailError):
             import_report(1)
 
@@ -484,18 +524,28 @@ class TestCustomExceptions(unittest.TestCase):
             download_report(1)
 
     # Tests that MissingReportElementError is being raised
-    def test_missing_report_element_error(self):
+    @mock.patch('controller.importer.importer.parse_report')
+    @mock.patch('controller.importer.importer.download_report')
+    @mock.patch('controller.importer.importer.report_exists')
+    def test_importer_missing_report_element_error(self, mock_report_exists, mock_download_report, mock_parse_report):
+        mock_report_exists.return_value = False
+        mock_download_report.return_value = 'Test'
+        mock_parse_report.side_effect = MissingReportElementError
+        with self.assertRaises(MissingReportElementError):
+            import_report(1)
+
+    def test_parser_missing_report_element_error(self):
         with self.assertRaises(MissingReportElementError):
             parse_report(1, '<Test></Test>')
 
         with self.assertRaises(MissingReportElementError):
             parse_report(1, '<h1 class=\'title\'></h1>')
-
-        with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong>')
         
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><p>Test</p><strong></strong>')
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'></div><strong></strong>')
+        
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'><em><em></em></em></div><strong>01 Jan 1999; 00:00 UT</strong>')
 
 if __name__ == "__main__":
     unittest.main()
