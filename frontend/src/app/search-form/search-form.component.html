@@ -109,14 +109,16 @@
 
         <span class="bold"> the following keywords:</span>
 
-        <div class="keywords">
-          <mat-checkbox
-            *ngFor="let keyword of metadata?.keywords"
-            [(ngModel)]="keywords[keyword]"
-            [name]="keyword"
-            class="checkbox capitalized"
-            >{{ keyword }}</mat-checkbox
-          >
+        <div class="keywords" fxLayout="row" fxLayoutAlign="space-between">
+          <div *ngFor="let keywordsColumn of keywordColumns" fxLayout="column">
+            <mat-checkbox
+              *ngFor="let keyword of keywordsColumn"
+              [(ngModel)]="keywords[keyword]"
+              [name]="keyword"
+              class="checkbox capitalized"
+              >{{ keyword }}</mat-checkbox
+            >
+          </div>
         </div>
       </section>
 
