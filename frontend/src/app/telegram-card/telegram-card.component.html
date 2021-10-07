@@ -7,7 +7,7 @@
   <mat-card-content>
     <p>Submission Date: {{ telegram?.date | date }}</p>
     <p>Authors: {{ telegram?.authors }}</p>
-    <p>{{ telegram?.body }}</p>
+    <p>{{ telegram?.body?.substring(0, 400) }}...</p>
   </mat-card-content>
 
   <mat-card-actions>
