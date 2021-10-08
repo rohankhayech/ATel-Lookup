@@ -20,6 +20,7 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
+
 from model.ds.search_filters import SearchFilters
 from model.ds.report_types import ReportResult
 from model.ds.search_filters import KeywordMode
@@ -50,7 +51,7 @@ from unittest import mock
 
 test_manual_success = {
     "import_mode": "manual", 
-    "atel_num": 14900
+    "atel_num": 13900
 }
 
 test_manual_fail = {
@@ -332,7 +333,8 @@ test_search_no_req_fields = {
 
 #     def test_search_basic(self): 
 #         response = self.app.post('/search', json = test_search_basic)
-#         self.assertEqual(response.json.get("flag"), 1)
+#         # self.assertEqual(response.json.get("flag"), 1)
+#         flag = self.app.post('/import', json = test_manual_success)
         # Should succeed doing a name search
 
 #     def test_search_basic_coords(self):
