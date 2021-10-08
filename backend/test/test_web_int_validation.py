@@ -22,8 +22,10 @@ License Terms and Copyright:
 
 
 from datetime import datetime
+from multiprocessing import Value
 from astropy.coordinates import SkyCoord
 from typing import Tuple
+from view.web_interface import none_check
 from view.web_interface import keyword_mode_check
 from view.web_interface import keywords_check
 from view.web_interface import valid_date_check
@@ -322,6 +324,22 @@ class TestKeywordModeCheck(ut.TestCase):
         self.assertRaises(ValueError, keyword_mode_check, keyword_mode)
         keyword_mode = "121212121"
         self.assertRaises(ValueError, keyword_mode_check, keyword_mode)
+
+
+class TestNoneCheck(ut.TestCase):
+    def test_successful_check(self):
+        try:
+            term_in = "a"
+            search_mode_in = "name"
+            search_data_in = ""
+            keywords_in = [""]
+            keyword_mode_in = ""
+            start_date_in = ""
+            end_date_in = ""
+            none_check(term_in, search_mode_in, search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in)
+        except ValueError:
+            self.fail("NONE CHECK SUCCESS - FAILED")
+        
 
 
 # Run suite. 
