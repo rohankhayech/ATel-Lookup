@@ -325,6 +325,11 @@ def valid_coords_basic_check(search_data_in: str) -> bool:
     '''
     '''
     bool_response = True
+    print("\n")
+    print(search_data_in)
+    print("\n")
+    if search_data_in == None or search_data_in == "":
+        raise ValueError("Right ascension and declination coordinates must be provided")
 
     if search_data_in[0] == "" or search_data_in[1] == "":
         raise ValueError("Right ascension and declination coordinates must be provided")

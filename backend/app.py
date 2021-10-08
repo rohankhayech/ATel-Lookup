@@ -331,7 +331,7 @@ def search() -> json:
 
     #performing basic validation on the coordinate search data - COORD DATA CHECK
     if flag == 1:
-        if (search_mode_in == "coords" and search_data_in != None):
+        if (search_mode_in == "coords" and search_data_in != None and search_data_in != ""):
             try:
                 valid_coords_basic_check(search_data_in)
             except ValueError as e:

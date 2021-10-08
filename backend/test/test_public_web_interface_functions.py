@@ -89,11 +89,11 @@ test_report_already_exists_error = {
 test_search_basic = {
     "term": "supermassive",
     "search_mode": "name",
-    "search_data": "Basinski",
-    "keywords": ["radio", "optical"],
-    "keyword_mode": "all",
-    "start_date": "2021-01-22",
-    "end_date": "2021-06-22",
+    "search_data": "",
+    "keywords": [""],
+    "keyword_mode": "",
+    "start_date": "",
+    "end_date": "",
 }
 
 test_search_basic_coords = {
@@ -250,9 +250,9 @@ test_search_no_req_fields = {
 #     def setUp(self):
 #         self.app = app.test_client()
 
-#     def test_imports_manual_success(self):
-#         response = self.app.post('/import', json = test_manual_success)
-#         self.assertEqual(response.json.get("flag"), 1) 
+    # def test_imports_manual_success(self):
+    #     response = self.app.post('/import', json = test_manual_success)
+    #     self.assertEqual(response.json.get("flag"), 1) 
         
 #         # should show a successful manual import (both import mode and atel num given correctly)
 #     cn = db._connect()
@@ -262,10 +262,10 @@ test_search_no_req_fields = {
 #     cn.commit()
 #     cn.close()
 
-#     def test_imports_manual_fail(self):
-#         response = self.app.post("/import", json=test_manual_fail)
-#         self.assertEqual(response.json.get("flag"), 0)
-#         # should show a failure (no atel number in json object)
+    # def test_imports_manual_fail(self):
+    #     response = self.app.post("/import", json=test_manual_fail)
+    #     self.assertEqual(response.json.get("flag"), 1)
+    #     # should show a failure (no atel number in json object)
 
 #     def test_imports_manual_fail_invalid_atel(self):
 #         response = self.app.post("/import", json=test_manual_fail_invalid_atel)
@@ -333,7 +333,7 @@ test_search_no_req_fields = {
 #     def test_search_basic(self): 
 #         response = self.app.post('/search', json = test_search_basic)
 #         self.assertEqual(response.json.get("flag"), 1)
-#         # Should succeed doing a name search
+        # Should succeed doing a name search
 
 #     def test_search_basic_coords(self):
 #         response = self.app.post("/search", json=test_search_basic_coords)
