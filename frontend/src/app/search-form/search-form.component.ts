@@ -1,3 +1,4 @@
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -42,12 +43,22 @@ export class SearchFormComponent implements OnInit {
   public end?: Moment;
 
   public keywordColumns: string[][] = [];
+  private _keywordsLength = 4;
 
   constructor(
     private http: HttpClient,
     private searchService: SearchService,
-    private snackBar: MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar,
+    private breakpointObserver: BreakpointObserver
+  ) {
+    this.breakpointObserver
+      .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .subscribe(() => (this.keywordsLength = 2));
+
+    this.breakpointObserver
+      .observe([Breakpoints.Medium, Breakpoints.Large, Breakpoints.XLarge])
+      .subscribe(() => (this.keywordsLength = 4));
+  }
 
   ngOnInit() {
     this.fetchMetadata();
@@ -58,7 +69,7 @@ export class SearchFormComponent implements OnInit {
       .get<Metadata>(`${environment.apiUrl}/metadata`)
       .subscribe((metadata) => {
         this.metadata = metadata;
-        this.keywordColumns = this.splitArray(this.metadata.keywords, 4);
+        this.keywordsLength = 4;
 
         for (const keyword of this.metadata.keywords) {
           this.keywords[keyword] = false;
@@ -126,5 +137,18 @@ export class SearchFormComponent implements OnInit {
       result.push(array.splice(0, Math.ceil(array.length / i)));
     }
     return result;
+  }
+
+  get keywordsLength() {
+    return this._keywordsLength;
+  }
+
+  set keywordsLength(value: number) {
+    this._keywordsLength = value;
+
+    this.keywordColumns = this.splitArray(
+      this.metadata?.keywords ?? [],
+      this.keywordsLength
+    );
   }
 }
