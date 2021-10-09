@@ -93,7 +93,9 @@ export class NetworkGraphComponent implements OnChanges {
       .append('title')
       .text(
         (telegram) =>
-          `${telegram.title} (${telegram.date.toLocaleDateString()})`
+          `#${telegram.id} "${
+            telegram.title
+          }", ${telegram.date.toLocaleDateString()}`
       );
 
     simulation.on('tick', () => {
