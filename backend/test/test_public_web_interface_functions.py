@@ -165,7 +165,9 @@ class TestWebInterfaceImports(ut.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-    def test_imports_manual_success(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_imports_manual_success(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
         response = self.app.post("/import", json=test_manual_success)
         self.assertEqual(response.json.get("flag"), 1)
         cn = db._connect()
@@ -176,12 +178,16 @@ class TestWebInterfaceImports(ut.TestCase):
         cn.close()
         # should show a successful manual import (both import mode and atel num given correctly)
 
-    def test_imports_manual_fail(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_imports_manual_fail(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
         response = self.app.post("/import", json=test_manual_fail)
         self.assertEqual(response.json.get("flag"), 0)
         # should show a failure (no atel number in json object)
 
-    def test_imports_manual_fail_invalid_atel(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_imports_manual_fail_invalid_atel(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
         response = self.app.post("/import", json=test_manual_fail_invalid_atel)
         self.assertEqual(response.json.get("flag"), 0)
         # should show a failure (atel number provided but is 0 or less (invalid))
@@ -191,7 +197,9 @@ class TestWebInterfaceImports(ut.TestCase):
         self.assertEqual(response.json.get("flag"), 1)
         #Should succeed as the atel number is not needed with the auto import"""
 
-    def test_bad_import_mode_name_fail(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_bad_import_mode_name_fail(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
         response = self.app.post("/import", json=test_bad_import_mode_name_fail)
         self.assertEqual(response.json.get("flag"), 0)
         # Should fail as the import mode name is not correct
@@ -201,12 +209,16 @@ class TestWebInterfaceImports(ut.TestCase):
         self.assertEqual(response.json.get("flag"), 1)
         #Should succeed as auto import mode does not need an atel number"""
 
-    def test_report_not_found_error(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_report_not_found_error(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
         response = self.app.post("/import", json=test_report_not_found_error)
         self.assertEqual(response.json.get("flag"), 0)
         # giving the function a atel number that does not exist, should give back report not found exception, and set flag to 0
 
-    def test_report_already_exists_error(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_report_already_exists_error(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
         response = self.app.post("/import", json=test_report_already_exists_error)
         response = self.app.post("/import", json=test_report_already_exists_error)
         self.assertEqual(response.json.get("flag"), 0)

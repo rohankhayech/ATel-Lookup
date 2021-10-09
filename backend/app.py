@@ -142,6 +142,7 @@ Author:
 
 
 @app.route("/import", methods=["POST"])
+@jwt_required()
 def imports() -> json:
     """Called by the web interface with the flag auto or manual (determining
     whether a specific report is to be added, or to just import any new reports since last import)

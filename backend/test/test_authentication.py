@@ -29,17 +29,9 @@ from model.db import db_interface
 from app import app
 
 
-# Importer functions
-class TestImporterFunctions(unittest.TestCase):
+class TestAuthentication(unittest.TestCase):
     test_username = "test_username"
     test_password = "test_password"
-
-    # @mock.patch("controller.importer.importer.add_report")
-    # def test_create_admin_account(self, mock_report_exists):
-    #     mock_report_exists.return_value = False
-
-    #     db.add_admin_user(self.test_username, self.test_password)
-    #     self.assertTrue(db.user_exists(self.test_username))
 
     def test_add_admin_user(self):
         add_admin_user(self.test_username, self.test_password)
