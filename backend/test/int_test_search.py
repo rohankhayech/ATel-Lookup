@@ -22,16 +22,92 @@ License Terms and Copyright:
 """
 
 
-import unittest
-from app import app 
+import unittest as ut
+
+from app import app
+from controller.importer.importer import ReportAlreadyExistsError 
+from controller.importer import importer
 
 
-class TestFR6:
+class TestFR6(ut.TestCase):
     ''' Functional Requirement 6:
         Description: The software must allow the user to search for ATels by
         Object ID.
     '''
-    pass #NYI
+    def setUp(self):
+        self.app = app.test_client() 
+
+        # Pre-requisites: ATel #76, #79, #82 imported in db.
+        self.test_data_A = {
+            "search_mode": "name",
+            "search_data": "M31",
+        }
+
+        # Pre-requisites: ATel #87, #90, #91 imported in db. 
+        self.test_data_B = {
+            "search_mode": "name",
+            "search_data": "XTE J1751-305"
+        }
+
+        try:
+            # A
+            importer.import_report(76)
+            importer.import_report(79)
+            importer.import_report(82)
+            # B 
+            importer.import_report(87)
+            importer.import_report(90)
+            importer.import_report(91)
+        except ReportAlreadyExistsError:
+            pass 
+
+    
+    def test_search_data_A(self):
+        response = self.app.post('/search', json=self.test_data_A)
+
+        # Assert the response is valid. 
+        self.assertEqual(response.json.get('flag'), 1)
+
+        reports_list = response.json.get('report_list')
+        self.assertTrue(len(reports_list) >= 3)
+
+        # Check to see if the ATels appear in results. 
+        atel_nums = [] 
+        for r in reports_list:
+            for (k, v) in r.items():
+                if k == 'atel_num':
+                    atel_nums.append(v) 
+
+        # Depending on db, there may be more than these 
+        # reports for the object, which is why this is being tested
+        # manually. 
+        self.assertIn(76, atel_nums)
+        self.assertIn(79, atel_nums)
+        self.assertIn(82, atel_nums)
+
+    
+    def test_search_data_B(self):
+        response = self.app.post('/search', json=self.test_data_B) 
+
+        # Assert the response is valid. 
+        self.assertEqual(response.json.get('flag'), 1)
+
+        reports_list = response.json.get('report_list')
+        self.assertTrue(len(reports_list) >= 3)
+
+        # Check to see if the ATels appear in results. 
+        atel_nums = [] 
+        for r in reports_list:
+            for (k, v) in r.items():
+                if k == 'atel_num':
+                    atel_nums.append(v) 
+
+        # Depending on db, there may be more than these 
+        # reports for the object, which is why this is being tested
+        # manually. 
+        self.assertIn(87, atel_nums)
+        self.assertIn(90, atel_nums)
+        self.assertIn(91, atel_nums)
 
 
 class TestFR7:
