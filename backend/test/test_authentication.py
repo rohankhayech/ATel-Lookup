@@ -51,6 +51,32 @@ class TestAuthentication(unittest.TestCase):
 
             self.assertIsNotNone(response.json)
 
+    def test_import_unauthorized(self):
+        with app.test_client() as client:
+            response = client.post("/import")
+
+            self.assertEqual(response.json.get("msg"), "Missing Authorization Header")
+
+    def test_import(self):
+        self.test_add_admin_user()
+
+        with app.test_client() as client:
+            response = client.post(
+                "/authenticate",
+                json={
+                    "username": self.test_username,
+                    "password": self.test_password,
+                },
+            )
+
+            token = response.json
+
+            json = {"import_mode": "manual", "atel_num": 1}
+            headers = {"Authorization": f"Bearer {token}"}
+            response = client.post("/import", json=json, headers=headers)
+
+            self.assertIsNotNone(response.json.get("flag"))
+
     def tearDown(self):
         connection = db_interface._connect()
         cursor: MySQLCursor = connection.cursor()
