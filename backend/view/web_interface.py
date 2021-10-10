@@ -270,12 +270,12 @@ def search_mode_check(search_mode_in: str) -> bool:
 
     return bool_response
 
-def req_fields_check(search_data_in: str, keywords_in: str, keyword_mode_in: str, term_in: str) -> bool:
+def req_fields_check(search_data_in: str, keywords_in: str, term_in: str) -> bool:
     '''
     '''
     bool_response = True
 
-    if not (search_data_in and keywords_in and term_in):
+    if ((search_data_in == "" or search_data_in == ["","",""]) and (keywords_in == "" or keywords_in == []) and term_in == ""):
         raise ValueError("Required fields not given, provide a free text search, keyword, object name or coordinates.")
 
     return bool_response

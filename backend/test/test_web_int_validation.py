@@ -240,19 +240,17 @@ class TestSearchModeCheck(ut.TestCase):
 
 class TestReqFieldsCheck(ut.TestCase):
     def test_not_enough_fields(self):
-        search_data_in = None
-        keywords_in = None
-        keyword_mode_in = None
-        term_in = None
-        self.assertRaises(ValueError, req_fields_check, search_data_in, keywords_in, keyword_mode_in, term_in)
+        search_data_in = ""
+        keywords_in = []
+        term_in = ""
+        self.assertRaises(ValueError, req_fields_check, search_data_in, keywords_in, term_in)
 
     def test_enough_fields(self):
         try:
-            search_data_in = None
-            keywords_in = None
-            keyword_mode_in = None
+            search_data_in = ""
+            keywords_in = []
             term_in = "supermassive"
-            req_fields_check(search_data_in, keywords_in, keyword_mode_in, term_in)
+            req_fields_check(search_data_in, keywords_in, term_in)
         except ValueError:
             self.fail("REQ FIELDS: test_enough_fields failed")
 

@@ -240,6 +240,12 @@ def search() -> json:
         flag = 0
         message = "Bad JSON request, all fields not recieved"
 
+    if flag == 1:
+        try:
+            req_fields_check(search_data_in, keywords_in, term_in)
+        except ValueError as e:
+            flag = 2 # user error
+            message = str(e)
 
     '''
     VARIABLE MODIFICATION
@@ -310,12 +316,12 @@ def search() -> json:
 
 
     #checking to make sure atleast one of the required fields has been given - REQUIRED FIELDS CHECK
-    if flag == 1:
-        try:
-            req_fields_check(search_data_in, keywords_in, keyword_mode_in, term_in)
-        except ValueError as e:
-            flag = 2 # user error
-            message = str(e)
+    # if flag == 1:
+    #     try:
+    #         req_fields_check(search_data_in, keywords_in, keyword_mode_in, term_in)
+    #     except ValueError as e:
+    #         flag = 2 # user error
+    #         message = str(e)
 
 
     # checking if start date is greater than end date and vice versa - DATE VALIDITY CHECK
