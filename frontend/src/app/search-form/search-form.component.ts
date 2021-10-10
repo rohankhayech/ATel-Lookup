@@ -110,7 +110,7 @@ export class SearchFormComponent implements OnInit {
       this.query ||
       this.keywordList?.length ||
       (this.mode === SearchMode.Coordinate
-        ? this.ra && this.declination && this.radius
+        ? this.ra && this.declination
         : this.name)
     );
   }
