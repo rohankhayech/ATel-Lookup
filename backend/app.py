@@ -155,6 +155,7 @@ def imports() -> json:
     # print("REQUEST.JSON PRINTOUT -> ", request.json)
     # set initial flag
     flag = 1
+    message = ""
 
     # retrieve json imports
     import_mode_in = request.json.get("import_mode", None)
@@ -172,15 +173,17 @@ def imports() -> json:
             elif import_mode_in == "auto":
                 background_import()
         except ReportAlreadyExistsError as e:
-            flag = 0
+            flag = 2
+            message = str(e)
         except ReportNotFoundError as e:
-            flag = 0
+            flag = 2
+            message = str(e)
         except ImportFailError as e:
             flag = 0
         except MissingReportElementError as e:
             flag = 0
 
-    return jsonify({"flag": flag})
+    return jsonify({"flag": flag, "message": message})
 
 
 @app.route("/search", methods=["POST"])
