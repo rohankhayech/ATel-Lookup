@@ -98,14 +98,6 @@ class TestParseSearchCoords(ut.TestCase):
         skycoord = SkyCoord(ra, dec, frame="icrs", unit=("hourangle", "deg"))
         self.assertEqual(skycoord_func, skycoord)
 
-    def test_wrong_skycoord(self):
-        ra = "13:36:50"
-        dec = "30:10:35"
-        ra_bad = "18:16:20"
-        dec_bad = "10:19:11"
-        skycoord_func = parse_search_coords(ra,dec)
-        skycoord_bad = SkyCoord(ra_bad, dec_bad, frame="icrs", unit=("hourangle", "deg"))
-        self.assertNotEqual(skycoord_func, skycoord_bad)
 
 class TestRightAscensionValidation(ut.TestCase):
     def test_no_coords(self):

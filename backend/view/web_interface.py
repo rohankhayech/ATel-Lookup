@@ -60,7 +60,11 @@ def parse_search_coords(ra: str, dec: str) -> SkyCoord:
         dec (str): Declination coords
     
     Returns:
-        SkyCoord: A SkyCoord object representing the parsed coordinates. 
+        SkyCoord: A SkyCoord object representing the parsed coordinates.
+
+    Note:
+        This function only takes valid data, and will raise an exception if the data is invalid. Ensure this function is called after
+        valid_ra and valid_dec have been called with no errors. 
 
     '''
     sky_coord_out = None
