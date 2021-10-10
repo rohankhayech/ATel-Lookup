@@ -599,10 +599,10 @@ def find_reports_in_coord_range(filters:SearchFilters=None, date_range:DateFilte
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    if (bool(coords) ^ bool(radius)):
+    if ((coords is not None) ^ (radius is not None)):
         raise TypeError("Must specify both coords and radius, or neither.")
 
-    filter_coords = bool(coords) and bool(radius)
+    filter_coords = (coords is not None) and (radius is not None)
 
     if (filters or filter_coords):
         cn = _connect()
