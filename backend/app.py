@@ -163,8 +163,10 @@ def imports() -> json:
 
     if import_mode_in != "manual" and import_mode_in != "auto":  # check if import mode not named correctly
         flag = 0
+        message = "Import mode was not manual or auto"
     elif import_mode_in == "manual" and valid_atel_num(atel_num_in) == False:  # check if import mode set to manual but correct atel number was not provided
-        flag = 0
+        flag = 2
+        message = "The ATel number provided is invalid"
 
     if flag == 1: # if all tests have passed so far
         try:
@@ -180,8 +182,10 @@ def imports() -> json:
             message = str(e)
         except ImportFailError as e:
             flag = 0
+            message = str(e)
         except MissingReportElementError as e:
             flag = 0
+            message = str(e)
 
     return jsonify({"flag": flag, "message": message})
 
