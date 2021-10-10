@@ -63,7 +63,7 @@ from controller.authentication import (
 from multiprocessing import Process
 from NamedAtomicLock import NamedAtomicLock
 
-lock = NamedAtomicLock("importr")
+lock = NamedAtomicLock("importer")
 
 app = Flask(__name__)
 jwt = JWTManager(app)
