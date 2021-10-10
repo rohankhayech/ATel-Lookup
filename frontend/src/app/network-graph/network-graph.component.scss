@@ -1,3 +1,9 @@
+#container {
+  height: 500px;
+  overflow: auto;
+}
+
 #network-graph {
-  height: 500px; // TODO: make height equal width
+  width: 10000px;
+  height: 10000px;
 }
