@@ -12,6 +12,7 @@ import { SearchResponse } from './search-response';
 import { Moment } from 'moment';
 import { SearchResult } from './search-result';
 import { Link } from './network-graph/network-graph.component';
+import { ErrorUtilities } from './error-utilities';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,7 @@ export class SearchService {
         ...params,
       })
       .pipe(
+        ErrorUtilities.handleHttpResponse('Search failed'),
         switchMap((response): Observable<SearchResult> => {
           const telegrams = response.report_list.map(this.deserializeTelegram);
           const nodes = telegrams.filter((telegram) =>
