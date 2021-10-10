@@ -3,7 +3,7 @@ import { switchMap } from 'rxjs/operators';
 
 export interface IHttpResponse {
   flag: 0 | 1 | 2;
-  msg: string;
+  message: string;
 }
 
 export class ErrorUtilities {
@@ -15,7 +15,7 @@ export class ErrorUtilities {
         case 1: // success
           return of(response);
         case 2: // user error
-          return throwError(new Error(response.msg));
+          return throwError(new Error(response.message));
         default:
           // unexpected error
           return throwError(new Error(message));
