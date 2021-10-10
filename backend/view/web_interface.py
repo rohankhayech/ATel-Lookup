@@ -285,20 +285,20 @@ def valid_date_check(start_date_obj: datetime, end_date_obj: datetime) -> bool:
     '''
     bool_response = True
 
-    if start_date_obj == None:
-        start_date_obj = parse_date_input("1900-01-01")
+    if start_date_obj != None and end_date_obj != None:
+        if start_date_obj > end_date_obj:
+            raise ValueError("The start date is greater than the end date.")
+        if end_date_obj < start_date_obj:
+            raise ValueError("The end date is less than the start date.")
 
-    if end_date_obj == None:
-        end_date_obj = datetime.now()
+    if start_date_obj != None:
+        if start_date_obj > datetime.now():
+            raise ValueError("The start date is a date in the future.")
 
-    if start_date_obj > end_date_obj:
-        raise ValueError("The start date is greater than the end date.")
-    if end_date_obj < start_date_obj:
-        raise ValueError("The end date is less than the start date.")
-    if start_date_obj > datetime.now():
-        raise ValueError("The start date is a date in the future.")
-    if end_date_obj > datetime.now():
-        raise ValueError("The end date is a date in the future.")
+    if end_date_obj != None:
+        if end_date_obj > datetime.now():
+            raise ValueError("The end date is a date in the future.")
+
 
     return bool_response
 
