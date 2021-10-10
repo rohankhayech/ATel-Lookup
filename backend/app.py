@@ -177,6 +177,8 @@ def imports() -> json:
             flag = 0
         except ImportFailError as e:
             flag = 0
+        except MissingReportElementError as e:
+            flag = 0
 
     return jsonify({"flag": flag})
 
@@ -229,7 +231,7 @@ def search() -> json:
         none_check(term_in, search_mode_in, search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in)
     except ValueError as e:
         flag = 0
-        message = "Bad JSON request, not all fields recieved"
+        message = "Bad JSON request, all fields not recieved"
 
 
     '''
@@ -237,40 +239,46 @@ def search() -> json:
     '''
 
     #If field blank, set to None
-    if search_mode_in == "":
-        search_mode_in = None
-    if search_mode_in == "name" and search_data_in == "":
-        search_data_in = None
-    if search_mode_in == "coords" and search_data_in == ["","",""]:
-        search_data_in = None
-    if keywords_in == "" or keywords_in == [""]:
-        keywords_in = None
-    if keyword_mode_in == "":
-        keyword_mode_in = None
-    if start_date_in == "":
-        start_date_in = None
-    if end_date_in == "":
-        end_date_in = None
-    if term_in == "":
-        term_in = None
+    if flag == 1:
+        if search_mode_in == "":
+            search_mode_in = None
+        if search_mode_in == "name" and search_data_in == "":
+            search_data_in = None
+        if search_mode_in == "coords" and search_data_in == ["","",""]:
+            search_data_in = None
+        if keywords_in == "" or keywords_in == [""]:
+            keywords_in = None
+        if keyword_mode_in == "":
+            keyword_mode_in = None
+        if start_date_in == "":
+            start_date_in = None
+        if end_date_in == "":
+            end_date_in = None
+        if term_in == "":
+            term_in = None
 
     # turning dates into date objects
-    if start_date_in != None:
-        try:
-            start_date_obj = parse_date_input(start_date_in)
-        except ValueError as e:
-            flag = 2
-            message = str(e)
-    if end_date_in != None:
-        try:
-            end_date_obj = parse_date_input(end_date_in)
-        except ValueError as e:
-            flag = 2
-            message = str(e)
-    # set keywords_in to None if empty
-    if keywords_in == []:
-        keywords_in = None
+    if flag == 1:
+        if start_date_in != None:
+            try:
+                start_date_obj = parse_date_input(start_date_in)
+            except ValueError as e:
+                flag = 2
+                message = str(e)
 
+    if flag == 1:
+        if end_date_in != None:
+            try:
+                end_date_obj = parse_date_input(end_date_in)
+            except ValueError as e:
+                flag = 2
+                message = str(e)
+
+
+    # set keywords_in to None if empty
+    if flag == 1:
+        if keywords_in == []:
+            keywords_in = None
 
 
     '''
