@@ -20,7 +20,7 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-
+"""
 from model.ds.search_filters import SearchFilters
 from model.ds.report_types import ReportResult
 from model.ds.search_filters import KeywordMode
@@ -433,3 +433,4 @@ test_search_no_req_fields = {
 # Run suite. 
 if __name__ == '__main__':
     ut.main()
+"""
