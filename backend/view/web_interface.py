@@ -193,28 +193,31 @@ def valid_dec(dec: str) -> bool:
     return bool_response 
 
 
-def valid_radius(rad: str) -> bool:
-    '''Validates the given radius value to ensure it is a ‘possible’ radius value
+def parse_radius(rad: str) -> float:
+    '''Validates and parses the given radius value.
 
     Args:
-        rad (float): A float value for the radius
+        rad (str): A string value for the radius
     
     Returns:
-        bool: A boolean representing if the value is in the correct range
+        float: A float value representing the radius if the value is in the correct range
 
     '''
     bool_response = True
     if rad == "" or rad == None:
         rad = 10.0
-        
-    rad_float = float(rad)
+    
+    try:
+        rad_float = float(rad)
+    except ValueError:
+        raise ValueError("Invalid radius value.")
 
     # checking validity of the radius with its min max ranges
     if rad_float > 20.0 or rad_float < 0.0:
         bool_response = False
         raise ValueError("Radius value is out of range (0 to 20)")
 
-    return bool_response 
+    return rad_float
 
 
 def parse_keyword_mode(keyword_mode: str) -> KeywordMode: 

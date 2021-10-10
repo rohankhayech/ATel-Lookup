@@ -402,10 +402,9 @@ def search() -> json:
                     msg = str(e)
                 flag = 0 #system error
                 message = msg
-        elif search_mode_in == "coords":
-            radius_float = float(radius)
+        elif search_mode_in == "coords": 
             try:
-                valid_radius(radius)
+                radius_float = parse_radius(radius)
                 reports = search_reports_by_coords(search_filters, date_filter, sky_coord, radius_float)
             except ValueError as e:
                 flag = 2 # user error
