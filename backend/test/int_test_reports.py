@@ -97,7 +97,7 @@ class TestFR2(unittest.TestCase):
         response = self.app.post('/import', json=manual_import_request_fail)
 
         #Check response flag
-        self.assertEqual(response.json.get("flag"), 0)
+        self.assertEqual(response.json.get("flag"), 2)
 
         #check report exists
         self.assertFalse(db.report_exists(99999))
