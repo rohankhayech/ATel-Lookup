@@ -147,7 +147,7 @@ KEYWORD_REGEXES = ['radios?',
                   'variables?',
                   'young stellar objects?',
                   'requests? for observations?',
-                  'comments?',
+                  'comments?'
 ]
 
 # Custom exception
@@ -189,6 +189,30 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     else:
         raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
 
+    # Extracts submission date of ATel report
+    elements = soup.find_all('strong')
+    submission_date = elements[1].get_text(strip=True)
+
+    # Formats submission date
+    formatted_submission_date = None
+
+    try:
+        formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
+    except ValueError:
+        raise MissingReportElementError(f'Submission date is missing in ATel #{str(atel_num)}')
+
+    # Extracts subjects for keywords extractor
+    subjects = ''
+
+    if(soup.find('p', {'class': 'subjects'}) is not None):
+        subjects = soup.find('p', {'class': 'subjects'}).get_text()
+
+    # Extracts referenced by text
+    referenced_by_text = ''
+
+    if(soup.find('div', {'id': 'references'}) is not None):
+        referenced_by_text = soup.find('div', {'id': 'references'}).get_text()
+
     # Extracts the body of ATel report
     body = ''
     div_element = soup.find('div', {'id': 'telegram'})
@@ -208,53 +232,6 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
 
         if(body != ''):
             break
-    
-    # Extracts submission date of ATel report
-    elements = soup.find_all('strong')
-    submission_date = elements[1].get_text(strip=True)
-
-    # Formats submission date
-    formatted_submission_date = None
-
-    try:
-        formatted_submission_date = datetime.strptime(submission_date, '%d %b %Y; %H:%M UT')
-    except ValueError:
-        raise MissingReportElementError(f'Submission date is missing in ATel #{str(atel_num)}')
-
-    # Extracts the number of any ATel reports that referenced the ATel report
-    referenced_by_text = ''
-    referenced_by = []
-
-    if(soup.find('div', {'id': 'references'}) is not None):
-        referenced_by_text = soup.find('div', {'id': 'references'}).get_text()
-        referenced_by = re.findall('\d+', referenced_by_text)
-    
-    referenced_by = list(dict.fromkeys([int(referenced_by_num) for referenced_by_num in referenced_by]))
-
-    # Extracts any links that are in the ATel report
-    referenced_reports = []
-    url_string = 'https://www.astronomerstelegram.org/?read='
-    links = div_element.find_all('a', href=True)
-
-    # Extracts the number of any ATel reports referenced
-    for link in links:
-        if((link['href'].find(url_string) != -1) and (link['href'] != url_string) and (link.get_text() != 'Previous') and (link.get_text() != 'Next')):
-            num = re.search('\d+', link['href'])
-
-            if(num is not None):
-                referenced_reports.append(int(num.group()))
-
-    # Filters out referenced by ATel numbers
-    for referenced_by_num in referenced_by:
-        referenced_reports.remove(referenced_by_num)
-
-    referenced_reports = list(dict.fromkeys(referenced_reports))
-
-    # Extracts subjects for keywords extractor
-    subjects = ''
-
-    if(soup.find('p', {'class': 'subjects'}) is not None):
-        subjects = soup.find('p', {'class': 'subjects'}).get_text()
 
     # Extracts all texts in the ATel report if the body text is still empty
     if(body == ''):
@@ -276,6 +253,29 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     # Truncates body text to 5120 characters
     if(len(body.strip()) > 5120):
         body = body.strip()[:5120]
+
+    # Extracts the number of any ATel reports that referenced the ATel report
+    referenced_by = re.findall('\d+', referenced_by_text)
+    referenced_by = list(dict.fromkeys([int(referenced_by_num) for referenced_by_num in referenced_by]))
+
+    # Extracts any links that are in the ATel report
+    referenced_reports = []
+    url_string = 'https://www.astronomerstelegram.org/?read='
+    links = div_element.find_all('a', href=True)
+
+    # Extracts the number of any ATel reports referenced
+    for link in links:
+        if((link['href'].find(url_string) != -1) and (link['href'] != url_string) and (link.get_text() != 'Previous') and (link.get_text() != 'Next')):
+            num = re.search('\d+', link['href'])
+
+            if(num is not None):
+                referenced_reports.append(int(num.group()))
+
+    # Filters out referenced by ATel numbers
+    for referenced_by_num in referenced_by:
+        referenced_reports.remove(referenced_by_num)
+
+    referenced_reports = list(dict.fromkeys(referenced_reports))
 
     text = f'{title} {body.strip()}'
 
