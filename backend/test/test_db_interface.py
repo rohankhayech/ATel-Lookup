@@ -21,7 +21,7 @@ License Terms and Copyright:
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
 import unittest
-from datetime import datetime
+from datetime import datetime, timedelta
 from astropy import coordinates
 
 import mysql.connector
@@ -185,11 +185,11 @@ class TestReports(unittest.TestCase):
     def testBuildWhereClause(self):
         #Test full query
         sf = SearchFilters("term",["star","planet"],KeywordMode.ANY)
-        df = DateFilter(datetime(2021, 8, 16), datetime(2021, 8, 17))
+        df = DateFilter(datetime(2021, 8, 17), datetime(2021, 8, 17))
         query, data = db._build_where_clause(sf,df)
         self.maxDiff = None
-        self.assertEqual(query, "where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
-        self.assertTupleEqual(data,(df.start_date,df.end_date,sf.term,sf.term,sf.keywords[0],sf.keywords[1]))
+        self.assertEqual(query, "where submissionDate >= %s and submissionDate < %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data,(df.start_date,df.end_date+timedelta(days=1),sf.term,sf.term,sf.keywords[0],sf.keywords[1]))
 
         #Test keyword modes / single filter
         sf2 = SearchFilters(term=None, keywords=["star","planet"], keyword_mode=KeywordMode.ALL)
@@ -229,12 +229,12 @@ class TestReports(unittest.TestCase):
             self.assertListEqual(results,[])
 
             #Test start date
-            results = db.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(start_date=datetime(2021,8,11)))
+            results = db.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(start_date=datetime(2021,8,12)))
             result = results[0]
             self.assertEqual(report,result)
 
             #Test end date
-            results = db.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(end_date=datetime(2021,8,13)))
+            results = db.find_reports_by_object(SearchFilters(term="db_test_b"), DateFilter(end_date=datetime(2021,8,12)))
             result = results[0]
             self.assertEqual(report,result)
 
@@ -473,13 +473,13 @@ class TestObjects(unittest.TestCase):
 
         # Test only filters
         query, data = db._build_report_name_query(sf,df)
-        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
-        self.assertTupleEqual(data, (df.start_date, df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate < %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data, (df.start_date, df.end_date+timedelta(days=1), sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
 
         # Test full query
         query, data = db._build_report_name_query(sf,df,"test_main_id")
-        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
-        self.assertTupleEqual(data, ("test_main_id", df.start_date, df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports inner join ObjectRefs on Reports.atelNum = ObjectRefs.atelNumFK and ObjectRefs.objectIDFK = %s where submissionDate >= %s and submissionDate < %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data, ("test_main_id", df.start_date, df.end_date+timedelta(days=1), sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
 
     def testBuildReportCoordsQuery(self):
         self.maxDiff = None
@@ -501,15 +501,15 @@ class TestObjects(unittest.TestCase):
 
         # Test only filters
         query, data = db._build_report_coords_query(sf, df)
-        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
-        self.assertTupleEqual(data, (df.start_date, df.end_date,
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate from Reports where submissionDate >= %s and submissionDate < %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertTupleEqual(data, (df.start_date, df.end_date+timedelta(days=1),
                               sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
 
         # Test full query
         query, data = db._build_report_coords_query(sf, df, filter_coords=True)
-        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate , ra, declination from Reports inner join ReportCoords on Reports.atelNum = ReportCoords.atelNumFK where submissionDate >= %s and submissionDate <= %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
+        self.assertEqual(query, "select atelNum, title, authors, body, submissionDate , ra, declination from Reports inner join ReportCoords on Reports.atelNum = ReportCoords.atelNumFK where submissionDate >= %s and submissionDate < %s and (title like concat('%', %s, '%') or body like concat('%', %s, '%')) and (FIND_IN_SET(%s, keywords) > 0 or FIND_IN_SET(%s, keywords) > 0) ")
         self.assertTupleEqual(data, (df.start_date,
-                              df.end_date, sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
+                              df.end_date+timedelta(days=1), sf.term, sf.term, sf.keywords[0], sf.keywords[1]))
 
     def testFindByObject(self):
         report = ImportedReport(99999, "db_test_report", "db_test_authors_text","db_test_body_text", datetime(2021, 8, 12), keywords=["star", "radio"], objects=["test_main_id"])
