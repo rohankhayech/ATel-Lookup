@@ -247,22 +247,30 @@ def search() -> json:
 
     #If field blank, set to None
     if flag == 1:
-        if search_mode_in == "":
-            search_mode_in = None
-        if search_mode_in == "name" and search_data_in == "":
-            search_data_in = None
-        if search_mode_in == "coords" and search_data_in == ["","",""]:
-            search_data_in = None
-        if keywords_in == "" or keywords_in == [""]:
-            keywords_in = None
-        if keyword_mode_in == "":
-            keyword_mode_in = None
-        if start_date_in == "":
-            start_date_in = None
-        if end_date_in == "":
-            end_date_in = None
-        if term_in == "":
-            term_in = None
+        search_mode_in, search_data_in = parse_search_mode(search_mode_in, search_data_in)
+        keywords_in, keyword_mode_in = parse_keywords(keywords_in, keyword_mode_in)
+        start_date_in, end_date_in = parse_dates(start_date_in, end_date_in)
+        term_in = parse_term(term_in)
+
+        # if search_mode_in == "":
+        #     search_mode_in = None
+        # if search_mode_in == "name" and search_data_in == "":
+        #     search_data_in = None
+        # if search_mode_in == "coords" and search_data_in == ["","",""]:
+        #     search_data_in = None
+
+        # if keywords_in == "" or keywords_in == [""]:
+        #     keywords_in = None
+        # if keyword_mode_in == "":
+        #     keyword_mode_in = None
+
+        # if start_date_in == "":
+        #     start_date_in = None
+        # if end_date_in == "":
+        #     end_date_in = None
+
+        # if term_in == "":
+        #     term_in = None
 
     # turning dates into date objects
     if flag == 1:

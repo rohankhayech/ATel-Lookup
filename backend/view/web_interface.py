@@ -275,7 +275,7 @@ def req_fields_check(search_data_in: str, keywords_in: str, keyword_mode_in: str
     '''
     bool_response = True
 
-    if (search_data_in == None and keywords_in == None and keyword_mode_in == None and term_in == None):
+    if not (search_data_in and keywords_in and term_in):
         raise ValueError("Required fields not given, provide a free text search, keyword, object name or coordinates.")
 
     return bool_response
@@ -353,3 +353,51 @@ def none_check(term_in: str, search_mode_in: str, search_data_in: str, keywords_
         raise ValueError("Bad JSON request, not all fields recieved")
 
     return bool_response
+
+
+def parse_search_mode(search_mode_in: str, search_data_in: str) -> str:
+    '''
+    '''
+    if search_mode_in == "":
+        search_mode_in = None
+
+    if search_mode_in == "name" and search_data_in == "":
+        search_data_in = None
+
+    if search_mode_in == "coords" and search_data_in == ["","",""]:
+        search_data_in = None
+
+    return search_mode_in, search_data_in
+
+
+def parse_keywords(keywords_in: str, keyword_mode_in: str) -> str:
+    '''
+    '''
+    if keywords_in == "" or keywords_in == [""]:
+        keywords_in = None
+
+    if keyword_mode_in == "":
+        keyword_mode_in = None
+
+    return keywords_in, keyword_mode_in
+
+
+def parse_dates(start_date_in: str, end_date_in: str) -> str:
+    '''
+    '''
+    if start_date_in == "":
+        start_date_in = None
+
+    if end_date_in == "":
+        end_date_in = None
+
+    return start_date_in, end_date_in
+
+
+def parse_term(term_in: str) -> str:
+    '''
+    '''
+    if term_in == "":
+        term_in = None
+
+    return term_in
