@@ -240,6 +240,7 @@ def search() -> json:
         flag = 0
         message = "Bad JSON request, all fields not recieved"
 
+    #checking to make sure atleast one of the required fields has been given - REQUIRED FIELDS CHECK
     if flag == 1:
         try:
             req_fields_check(search_data_in, keywords_in, term_in)
@@ -257,26 +258,6 @@ def search() -> json:
         keywords_in, keyword_mode_in = parse_keywords(keywords_in, keyword_mode_in)
         start_date_in, end_date_in = parse_dates(start_date_in, end_date_in)
         term_in = parse_term(term_in)
-
-        # if search_mode_in == "":
-        #     search_mode_in = None
-        # if search_mode_in == "name" and search_data_in == "":
-        #     search_data_in = None
-        # if search_mode_in == "coords" and search_data_in == ["","",""]:
-        #     search_data_in = None
-
-        # if keywords_in == "" or keywords_in == [""]:
-        #     keywords_in = None
-        # if keyword_mode_in == "":
-        #     keyword_mode_in = None
-
-        # if start_date_in == "":
-        #     start_date_in = None
-        # if end_date_in == "":
-        #     end_date_in = None
-
-        # if term_in == "":
-        #     term_in = None
 
     # turning dates into date objects
     if flag == 1:
@@ -313,16 +294,6 @@ def search() -> json:
         except ValueError as e:
             flag = 0 # system error
             message = str(e)
-
-
-    #checking to make sure atleast one of the required fields has been given - REQUIRED FIELDS CHECK
-    # if flag == 1:
-    #     try:
-    #         req_fields_check(search_data_in, keywords_in, keyword_mode_in, term_in)
-    #     except ValueError as e:
-    #         flag = 2 # user error
-    #         message = str(e)
-
 
     # checking if start date is greater than end date and vice versa - DATE VALIDITY CHECK
     # checking if start date and end date are infact dates in the past - DATE VALIDITY CHECK

@@ -25,6 +25,9 @@ from datetime import datetime
 from multiprocessing import Value
 from astropy.coordinates import SkyCoord
 from typing import Tuple
+from view.web_interface import parse_term
+from view.web_interface import parse_keywords, parse_dates
+from view.web_interface import parse_search_mode
 from view.web_interface import none_check
 from view.web_interface import keyword_mode_check
 from view.web_interface import keywords_check
@@ -349,6 +352,62 @@ class TestNoneCheck(ut.TestCase):
         start_date_in = ""
         end_date_in = None
         self.assertRaises(ValueError, none_check, term_in, search_mode_in, search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in)
+
+class TestBasicParse(ut.TestCase):
+    def test_parse_search_mode(self):
+        search_mode_in = "name"
+        search_data_in = ""
+        search_mode_in, search_data_in = parse_search_mode(search_mode_in, search_data_in)
+        self.assertEqual(search_data_in, None)
+
+        search_mode_in = "coords"
+        search_data_in = ["", "", ""]
+        search_mode_in, search_data_in = parse_search_mode(search_mode_in, search_data_in)
+        self.assertEqual(search_data_in, None)
+
+        search_mode_in = "name"
+        search_data_in = "ObjectTest"
+        search_mode_in, search_data_in = parse_search_mode(search_mode_in, search_data_in)
+        self.assertNotEqual(search_data_in, None)
+
+    def test_parse_keywords(self):
+        keywords_in = ""
+        keyword_mode_in = "all"
+        keywords_in, keyword_mode_in = parse_keywords(keywords_in, keyword_mode_in)
+        self.assertEqual(keywords_in, None)
+
+        keywords_in = [""]
+        keyword_mode_in = "any"
+        keywords_in, keyword_mode_in = parse_keywords(keywords_in, keyword_mode_in)
+        self.assertEqual(keywords_in, None)
+
+        keywords_in = "TestKeyword"
+        keyword_mode_in = "all"
+        keywords_in, keyword_mode_in = parse_keywords(keywords_in, keyword_mode_in)
+        self.assertNotEqual(keywords_in, None)
+
+    def test_parse_dates(self):
+        start_date_in = ""
+        end_date_in = ""
+        start_date_in, end_date_in = parse_dates(start_date_in, end_date_in)
+        self.assertEqual(start_date_in, None)
+        self.assertEqual(end_date_in, None)
+
+        start_date_in = "2020-08-12"
+        end_date_in = ""
+        start_date_in, end_date_in = parse_dates(start_date_in, end_date_in)
+        self.assertNotEqual(start_date_in, None)
+        self.assertEqual(end_date_in, None)
+
+    def test_parse_term(self):
+        term_in = ""
+        term_in = parse_term(term_in)
+        self.assertEqual(term_in, None)
+
+        term_in = "AAAA"
+        term_in = parse_term(term_in)
+        self.assertNotEqual(term_in, None)
+
 
         
 
