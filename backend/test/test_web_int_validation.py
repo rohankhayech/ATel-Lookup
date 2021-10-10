@@ -204,20 +204,29 @@ class TestDeclinationValidation(ut.TestCase):
 
 
 class TestRadiusValidation(ut.TestCase):
-    def test_no_radius_given(self):
+    def test_no_radius_given_success(self):
         try:
             rad = ""
             valid_radius(rad)
             rad = None
             valid_radius(rad)
         except ValueError:
-            self.fail("RADIUS: test_no_radius_given failed")
+            self.fail("RADIUS: test_no_radius_given_success failed")
 
     def test_out_of_range(self):
         rad = 45.0
         self.assertRaises(ValueError, valid_radius, rad)
         rad = -12.65
         self.assertRaises(ValueError, valid_radius, rad)
+
+    def test_correct_radius(self):
+        try:
+            rad = 12.053
+            valid_radius(rad)
+            rad = 0.4
+            valid_radius(rad)
+        except ValueError:
+            self.fail("RADIUS: test_correct_radius failed")
 
 class TestSearchModeCheck(ut.TestCase):
     def test_correct_mode(self):
@@ -339,6 +348,17 @@ class TestNoneCheck(ut.TestCase):
             none_check(term_in, search_mode_in, search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in)
         except ValueError:
             self.fail("NONE CHECK SUCCESS - FAILED")
+
+    def test_unsuccessful_check(self):
+        term_in = "a"
+        search_mode_in = "name"
+        search_data_in = ""
+        keywords_in = [""]
+        keyword_mode_in = ""
+        start_date_in = ""
+        end_date_in = None
+        self.assertRaises(ValueError, none_check, term_in, search_mode_in, search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in)
+
         
 
 
