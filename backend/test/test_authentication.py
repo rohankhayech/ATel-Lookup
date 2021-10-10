@@ -1,11 +1,11 @@
 """
-Testing for importer and parser functions as well as custom exceptions.
+Test for authentication, including user accounts and protected endpoints.
 
 Author:
     Greg Lahaye
 
 License Terms and Copyright:
-    Copyright (C) 2021 Nathan Sutardi
+    Copyright (C) 2021 Greg Lahaye
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
