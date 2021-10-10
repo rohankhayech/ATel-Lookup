@@ -4,6 +4,7 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { ErrorUtilities } from '../error-utilities';
 import { ImportService } from '../import.service';
 import { Metadata } from '../metadata.interface';
 
@@ -32,13 +33,14 @@ export class AdminPageComponent implements OnInit {
 
   importAll() {
     return this.importService.importAll().pipe(
+      ErrorUtilities.handleHttpResponse('Failed to import ATels'),
       tap(() =>
         this.snackBar.open('Started importing ATels', 'Close', {
           duration: 8000,
         })
       ),
       catchError((error) => {
-        this.snackBar.open('Failed to import ATels', 'Close', {
+        this.snackBar.open(error.message, 'Close', {
           duration: 8000,
         });
 
@@ -49,13 +51,14 @@ export class AdminPageComponent implements OnInit {
 
   import() {
     return this.importService.import(this.id).pipe(
+      ErrorUtilities.handleHttpResponse('Failed to import ATel'),
       tap(() =>
         this.snackBar.open('ATel successfully imported', 'Close', {
           duration: 8000,
         })
       ),
       catchError((error) => {
-        this.snackBar.open('Failed to import ATel', 'Close', {
+        this.snackBar.open(error.message, 'Close', {
           duration: 8000,
         });
 

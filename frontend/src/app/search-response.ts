@@ -1,7 +1,7 @@
 import { ApiTelegram } from './api-telegram.interface';
-import { Node, Link } from './network-graph/network-graph.component';
+import { IHttpResponse } from './error-utilities';
 
-export interface SearchResponse {
+export interface SearchResponse extends IHttpResponse {
   report_list: ApiTelegram[];
   node_list: number[];
   edge_list: number[][];
