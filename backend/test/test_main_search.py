@@ -225,7 +225,7 @@ class TestSearchByName(TestSearch):
         mock.check_object_updates.assert_not_called()
         mock.db.get_object_coords.assert_not_called()
         mock.qs.query_simbad_by_name.assert_called_with("name", True)
-        mock.db.add_object.assert_called_with("mainid", self.sample_coords, ["alias1", "alias2"])
+        mock.db.add_object.assert_called_with("mainid", self.sample_coords, ["alias1", "alias2", "name"])
         mock.db.find_reports_by_object.assert_called_with(self.filters, None, "name")
         mock.db.find_reports_in_coord_range.assert_called_with(self.filters, None, self.sample_coords, DEFAULT_RADIUS)
 
@@ -293,7 +293,7 @@ class TestSearchByName(TestSearch):
         mock.check_object_updates.assert_not_called()
         mock.db.get_object_coords.assert_not_called()
         mock.qs.query_simbad_by_name.assert_called_with("nonalias", True)
-        mock.db.add_object.assert_called_with("mainid", self.sample_coords, ["alias1", "alias2"])
+        mock.db.add_object.assert_called_with("mainid", self.sample_coords, ["alias1", "alias2", "nonalias"])
         mock.db.add_aliases.assert_called_with("mainid", ["nonalias"])
         mock.db.find_reports_by_object.assert_called_with(self.filters, None, "nonalias")
         mock.db.find_reports_in_coord_range.assert_called_with(self.filters, None, self.sample_coords, DEFAULT_RADIUS)
