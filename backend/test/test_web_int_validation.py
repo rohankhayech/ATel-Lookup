@@ -77,6 +77,7 @@ class TestParseDateInput(ut.TestCase):
         try:
             test_string = "2020-01-01"
             parse_date_input(test_string)
+            self.assertEqual(parse_date_input(test_string),datetime(2020,1,1))
         except ValueError:
             self.fail("PARSE DATE INPUT: test_correct_date failed")
 
