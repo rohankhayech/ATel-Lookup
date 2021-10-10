@@ -34,7 +34,7 @@ from view.web_interface import keywords_check
 from view.web_interface import valid_date_check
 from view.web_interface import req_fields_check
 from view.web_interface import search_mode_check
-from view.web_interface import valid_radius
+from view.web_interface import parse_radius
 from view.web_interface import valid_dec
 from view.web_interface import valid_ra
 from view.web_interface import parse_date_input, parse_search_coords
@@ -203,24 +203,24 @@ class TestRadiusValidation(ut.TestCase):
     def test_no_radius_given_success(self):
         try:
             rad = ""
-            valid_radius(rad)
+            self.assertEqual(parse_radius(rad),10)
             rad = None
-            valid_radius(rad)
+            self.assertEqual(parse_radius(rad),10)
         except ValueError:
             self.fail("RADIUS: test_no_radius_given_success failed")
 
     def test_out_of_range(self):
-        rad = 45.0
-        self.assertRaises(ValueError, valid_radius, rad)
-        rad = -12.65
-        self.assertRaises(ValueError, valid_radius, rad)
+        rad = "45.0"
+        self.assertRaises(ValueError, parse_radius, rad)
+        rad = "-12.65"
+        self.assertRaises(ValueError, parse_radius, rad)
 
     def test_correct_radius(self):
         try:
-            rad = 12.053
-            valid_radius(rad)
-            rad = 0.4
-            valid_radius(rad)
+            rad = "12.053"
+            self.assertAlmostEqual(parse_radius(rad), 12.053,3)
+            rad = "0.4"
+            self.assertAlmostEqual(parse_radius(rad), 0.4, 1)
         except ValueError:
             self.fail("RADIUS: test_correct_radius failed")
 
