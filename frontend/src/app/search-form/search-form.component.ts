@@ -3,8 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Moment } from 'moment';
-import { EMPTY } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { EMPTY, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Coordinates } from '../coordinates.interface';
 import { Match } from '../match.enum';
@@ -112,6 +112,13 @@ export class SearchFormComponent implements OnInit {
             duration: 8000,
           });
         }
+      }),
+      catchError((error) => {
+        this.snackBar.open(error.message, 'Close', {
+          duration: 8000,
+        });
+
+        return throwError(error);
       })
     );
   }
