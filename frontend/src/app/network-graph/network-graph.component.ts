@@ -44,11 +44,14 @@ export class NetworkGraphComponent implements OnChanges {
   generate() {
     this.clear();
 
+    this.centerGraph();
+
     this.svg = d3
       .select('#network-graph')
       .append('svg')
       .attr('width', '100%')
-      .attr('height', '100%');
+      .attr('height', '100%')
+      .attr('display', 'block');
 
     const rect = this.svg.node()!.getBoundingClientRect();
     const width = rect?.width;
@@ -90,7 +93,9 @@ export class NetworkGraphComponent implements OnChanges {
       .append('title')
       .text(
         (telegram) =>
-          `${telegram.title} (${telegram.date.toLocaleDateString()})`
+          `#${telegram.id} "${
+            telegram.title
+          }", ${telegram.date.toLocaleDateString()}`
       );
 
     simulation.on('tick', () => {
@@ -135,5 +140,13 @@ export class NetworkGraphComponent implements OnChanges {
 
   click(_: unknown, node: Node) {
     this.selectionChange.emit(+node.id);
+  }
+
+  centerGraph() {
+    const container = document.getElementById('container');
+    const element = document.getElementById('network-graph');
+    const top = (element!.offsetHeight - container!.offsetHeight) / 2;
+    const left = (element!.offsetWidth - container!.offsetWidth) / 2;
+    container?.scroll({ top, left });
   }
 }
