@@ -36,4 +36,8 @@ export class AuthenticationService {
       })
       .pipe(tap((token) => (this.token = token)));
   }
+
+  invalidate() {
+    this.token = null;
+  }
 }

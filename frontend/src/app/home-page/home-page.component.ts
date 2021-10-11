@@ -16,6 +16,8 @@ export class HomePageComponent {
   search(result: SearchResult) {
     this.result = result;
 
-    this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    if (this.result.telegrams.length > 0) {
+      this.results?.nativeElement.scrollIntoView({ behavior: 'smooth' });
+    }
   }
 }

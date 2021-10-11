@@ -23,8 +23,7 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-from datetime import date, datetime
-from math import trunc
+from datetime import datetime, timedelta
 import os
 
 from astropy.coordinates import SkyCoord
@@ -600,10 +599,10 @@ def find_reports_in_coord_range(filters:SearchFilters=None, date_range:DateFilte
     Returns:
         list[ReportResult]: A list of reports matching all the search criteria and related to the specified object.
     """
-    if (bool(coords) ^ bool(radius)):
+    if ((coords is not None) ^ (radius is not None)):
         raise TypeError("Must specify both coords and radius, or neither.")
 
-    filter_coords = bool(coords) and bool(radius)
+    filter_coords = (coords is not None) and (radius is not None)
 
     if (filters or filter_coords):
         cn = _connect()
@@ -884,8 +883,8 @@ def _build_where_clause(filters: SearchFilters = None, date_range: DateFilter = 
             data = data + (date_range.start_date,)
 
         if date_range.end_date:
-            clauses.append("submissionDate <= %s ")
-            data = data + (date_range.end_date,)
+            clauses.append("submissionDate < %s ")
+            data = data + (date_range.end_date+timedelta(days=1),)
 
     if filters:
         # Append term clause and data

@@ -214,12 +214,13 @@ class TestReportTypes(unittest.TestCase):
             self.ir.atel_num = 0
 
     def test_invalid_lens(self):
+        self.ir.body = "a"*5120  # Allow minor invalid lengths
         with self.assertRaises(ValueError):
-            self.ir.body = "a"*4001
+            self.ir.body = "a"*5121
         with self.assertRaises(ValueError):
-            self.ir.title = "a"*1025
+            self.ir.title = "a"*2057
         with self.assertRaises(ValueError):
-            self.ir.authors = "a"*1025
+            self.ir.authors = "a"*2057
 
     def test_invalid_keyword(self):
         with self.assertRaises(ValueError):

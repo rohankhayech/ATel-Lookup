@@ -48,15 +48,16 @@ class DownloadFailError(Exception):
 # Importer functions
 def import_report(atel_num: int):
     """
-    Adds new ATel report to the database if it is valid.
+    Adds new ATel report into the database if it is valid.
 
     Args:
         atel_num (int): The ATel number of the new report to be added.
 
     Raises:
-        ReportAlreadyExistsError: Thrown when report with the ATel number has been added to the database previously.
+        ReportAlreadyExistsError: Thrown when report with the ATel number has been added into the database previously.
         ReportNotFoundError: Thrown when report with the ATel number is not found on the AT website.
         ImportFailError: Thrown when report with the ATel number failed to be imported into the database.
+        MissingReportElementError: Thrown when important data could not be extracted or are missing from the ATel report.
     """
 
     # Raises error when ATel report is already imported into the database
@@ -78,16 +79,13 @@ def import_report(atel_num: int):
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
     except DownloadFailError as err:
         raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
-    # Raises error when ATel report import fails due to a missing report element
-    except MissingReportElementError as err:
-        raise ImportFailError(f'Importing ATel #{str(atel_num)} failed: {str(err)}')
     # Raises error when ATel report is already imported into the database
     except ExistingReportError:
         raise ReportAlreadyExistsError(f'ATel #{str(atel_num)} already exists in the database')
 
 def import_all_reports():
     """
-    Adds all new ATel reports to the database starting after the last ATel report imported.
+    Adds all new ATel reports into the database starting after the last ATel report imported.
     """
     
     # Retrieves the number of ATel report to import next
@@ -98,13 +96,15 @@ def import_all_reports():
         while True:
             try:
                 import_report(atel_num)
-                atel_num = atel_num + 1
             except ReportAlreadyExistsError:
-                atel_num = atel_num + 1
-    # Saves the number that detects non-existing ATel report
+                pass
+            except MissingReportElementError:
+                pass
+
+            atel_num = atel_num + 1
+    # Updates the number of ATel report to import next
     except ReportNotFoundError:
         set_next_atel_num(atel_num)
-    # Saves the number of ATel report when importing fails
     except ImportFailError:
         set_next_atel_num(atel_num)
 
@@ -145,11 +145,15 @@ def download_report(atel_num: int) -> str:
             html = None
 
         return html
+    # Raises error when a network failure is encountered
     except ConnectionError as err:
         raise NetworkError(f'Network failure encountered: {str(err)}')
     except HTTPError as err:
         raise NetworkError(f'Network failure encountered: {str(err)}')
+    # Raises error when downloading fails
     except TimeoutError as err:
+        raise DownloadFailError(f'Couldn\'t download HTML: {str(err)}')
+    except Exception as err:
         raise DownloadFailError(f'Couldn\'t download HTML: {str(err)}')
     finally:
         # Closes connection

@@ -1,0 +1,7 @@
+Observations of the black hole candidate binary XTE J1118+480 have been carried out with the 100-m Radio Telescope at Effelsberg (Max Planck Institute for Radio Astronomy).
+
+The observations took place during 2 time slots separated by roughly one day (between JD 2453384.47 and 2453385.41) starting approximately 1 day after the VLA observations. The first set has been carried out under unstable weather conditions whereas the second part under considerably good ones. Â
+
+The source has been observed repeatedly at both frequencies. The weighted measured values are as follows:
+
+XTE J1118+480 was also targeted with the 32 GHz receiver but unfortunately the bad weather prevented us from carrying out reliable measurements at this frequency. Nevertheless, weather permitted, future observations at these band will be attempted.

@@ -1,28 +1,9 @@
-We present the results of preliminary spectral fits to the first 130  
-ksec INTEGRAL ToO observation of GX 339-4 (see ATel #980, #986),   
-obtained between 2007, Jan 30, 15:56 and Feb 01, 06:11.    
-We made joint spectral fits to spectra obtained with  
-the JEM-X (5-20 keV) and IBIS/ISGRI (23-300 keV) instruments.  
-  
-The model that best phenomenologically fits the joint spectrum consists of an absorbed  
-multi-color black-body disk plus a powerlaw with a high-energy cut-off  
-at 22 +/- 5 keV and a folding energy of 68 +/- 5 keV.  The presence of  
-curvature between 20-30 keV and line-like residuals revealed between  
-6-8 keV, is likely due to disk reflection.  We will explore fits with  
-reflection models in future work.  
-  
-The presence of the radiation coming from the disk is significant, and  
-we find a color temperature of the inner disk of T = 1.5 +/- 0.1 keV.  
-The powerlaw has a photon index of 1.67 +/- 0.07.  These parameters are   
-broadly consistent with rising hard states. The implied luminosity of the   
-source in the 5-300 keV band was L = 1.3-1.7 E+38 erg/s, calculated taking into account a  
-distance to the source of 8.5 kpc.  
-  
-We examined the JEM-X and IBIS/ISGRI light curves with a time binning of 1000 sec,  
-in the 3-6, 6-10, 10-15, 15-35, 20-40, 40-60, 60-100, 100-200 keV  
-energy ranges. The source was slowly increasing its brightness since the  
-beginning of the observation in the overall energy range of 3-200 keV.  
-   
-PostScript figures of the preliminary spectral fit results, as well as the JEM-X   
-and IBIS/ISGRI light curves, can be found at   
-http://isdc.unige.ch/~kuulkers/GX339-4/.
+We present the results of preliminary spectral fits to the first 130 ksec INTEGRAL ToO observation of GX 339-4 (see ATel #980, #986), obtained between 2007, Jan 30, 15:56 and Feb 01, 06:11. We made joint spectral fits to spectra obtained with the JEM-X (5-20 keV) and IBIS/ISGRI (23-300 keV) instruments.
+
+The model that best phenomenologically fits the joint spectrum consists of an absorbed multi-color black-body disk plus a powerlaw with a high-energy cut-off at 22 +/- 5 keV and a folding energy of 68 +/- 5 keV. The presence of curvature between 20-30 keV and line-like residuals revealed between 6-8 keV, is likely due to disk reflection. We will explore fits with reflection models in future work.
+
+The presence of the radiation coming from the disk is significant, and we find a color temperature of the inner disk of T = 1.5 +/- 0.1 keV. The powerlaw has a photon index of 1.67 +/- 0.07. These parameters are broadly consistent with rising hard states. The implied luminosity of the source in the 5-300 keV band was L = 1.3-1.7 E+38 erg/s, calculated taking into account a distance to the source of 8.5 kpc.
+
+We examined the JEM-X and IBIS/ISGRI light curves with a time binning of 1000 sec, in the 3-6, 6-10, 10-15, 15-35, 20-40, 40-60, 60-100, 100-200 keV energy ranges. The source was slowly increasing its brightness since the beginning of the observation in the overall energy range of 3-200 keV.
+
+PostScript figures of the preliminary spectral fit results, as well as the JEM-X and IBIS/ISGRI light curves, can be found at http://isdc.unige.ch/~kuulkers/GX339-4/.

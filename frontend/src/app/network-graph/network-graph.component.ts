@@ -13,6 +13,7 @@ import {
   SimulationLinkDatum,
   SimulationNodeDatum,
 } from 'd3';
+import { ColorUtilities } from '../color-utilities';
 import { Telegram } from '../telegram.interface';
 
 export interface Node extends SimulationNodeDatum, Telegram {}
@@ -43,11 +44,14 @@ export class NetworkGraphComponent implements OnChanges {
   generate() {
     this.clear();
 
+    this.centerGraph();
+
     this.svg = d3
       .select('#network-graph')
       .append('svg')
       .attr('width', '100%')
-      .attr('height', '100%');
+      .attr('height', '100%')
+      .attr('display', 'block');
 
     const rect = this.svg.node()!.getBoundingClientRect();
     const width = rect?.width;
@@ -78,11 +82,21 @@ export class NetworkGraphComponent implements OnChanges {
       .selectAll('circle')
       .data(this.nodes)
       .join('circle')
+      .style('fill', function (d) {
+        return ColorUtilities.stringToColor(d.title);
+      })
       .attr('r', 5)
       .on('click', this.click.bind(this))
       .call((simulation: any) => this.drag(simulation));
 
-    node.append('title').text((d) => d.title);
+    node
+      .append('title')
+      .text(
+        (telegram) =>
+          `#${telegram.id} "${
+            telegram.title
+          }", ${telegram.date.toLocaleDateString()}`
+      );
 
     simulation.on('tick', () => {
       link
@@ -126,5 +140,13 @@ export class NetworkGraphComponent implements OnChanges {
 
   click(_: unknown, node: Node) {
     this.selectionChange.emit(+node.id);
+  }
+
+  centerGraph() {
+    const container = document.getElementById('container');
+    const element = document.getElementById('network-graph');
+    const top = (element!.offsetHeight - container!.offsetHeight) / 2;
+    const left = (element!.offsetWidth - container!.offsetWidth) / 2;
+    container?.scroll({ top, left });
   }
 }

@@ -12,6 +12,7 @@ import { SearchResponse } from './search-response';
 import { Moment } from 'moment';
 import { SearchResult } from './search-result';
 import { Link } from './network-graph/network-graph.component';
+import { ErrorUtilities } from './error-utilities';
 
 @Injectable({
   providedIn: 'root',
@@ -26,6 +27,7 @@ export class SearchService {
         ...params,
       })
       .pipe(
+        ErrorUtilities.handleHttpResponse('Search failed'),
         switchMap((response): Observable<SearchResult> => {
           const telegrams = response.report_list.map(this.deserializeTelegram);
           const nodes = telegrams.filter((telegram) =>
@@ -47,14 +49,14 @@ export class SearchService {
         parameters.mode === SearchMode.Name
           ? parameters.name
           : [
-              parameters.coordinates.declination,
               parameters.coordinates.ra,
+              parameters.coordinates.declination,
               parameters.coordinates.radius,
             ],
       keyword_mode: parameters.match,
       keywords: parameters.keywords,
-      start_date: this.serializeDate(parameters.start),
-      end_date: this.serializeDate(parameters.end),
+      start_date: this.serializeDate(parameters.start) ?? '',
+      end_date: this.serializeDate(parameters.end) ?? '',
     };
   }
 

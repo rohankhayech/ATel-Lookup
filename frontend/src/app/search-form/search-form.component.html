@@ -7,7 +7,7 @@
     </p>
 
     <form>
-      <section class="section">
+      <section class="section" style="padding-top: 1.6rem">
         <mat-form-field appearance="fill" class="wide">
           <mat-label>Free-text Search</mat-label>
           <input
@@ -36,6 +36,7 @@
             *ngSwitchCase="SearchMode.Name"
             appearance="fill"
             class="wide"
+            style="margin: 0 5px"
           >
             <mat-label>Object Name</mat-label>
             <input
@@ -46,8 +47,12 @@
             />
           </mat-form-field>
 
-          <ng-container *ngSwitchCase="SearchMode.Coordinate">
-            <mat-form-field appearance="fill" class="wide">
+          <div *ngSwitchCase="SearchMode.Coordinate" fxLayout="row">
+            <mat-form-field
+              appearance="fill"
+              class="wide"
+              style="margin: 0 5px"
+            >
               <mat-label>Right Ascension</mat-label>
               <input
                 matInput
@@ -57,7 +62,11 @@
               />
             </mat-form-field>
 
-            <mat-form-field appearance="fill" class="wide">
+            <mat-form-field
+              appearance="fill"
+              class="wide"
+              style="margin: 0 5px"
+            >
               <mat-label>Declination</mat-label>
               <input
                 matInput
@@ -67,20 +76,25 @@
               />
             </mat-form-field>
 
-            <mat-form-field appearance="fill" class="wide">
-              <mat-label>Radius</mat-label>
+            <mat-form-field
+              appearance="fill"
+              class="wide"
+              style="margin: 0 5px"
+            >
+              <mat-label>Radius (default: 10, maximum: 20)</mat-label>
               <input
                 matInput
                 [(ngModel)]="radius"
                 name="radius"
-                placeholder="def 10.0000"
+                placeholder="10.0000 arcseconds"
+                [max]="20"
               />
             </mat-form-field>
-          </ng-container>
+          </div>
         </ng-container>
       </section>
 
-      <section class="section">
+      <section class="section" style="padding-bottom: 1.6rem">
         <mat-form-field appearance="standard">
           <mat-select [(value)]="match" class="bold">
             <mat-option [value]="Match.Any" class="bold"
@@ -95,49 +109,53 @@
 
         <span class="bold"> the following keywords:</span>
 
-        <div class="grey-card">
-          <mat-checkbox
-            *ngFor="let keyword of metadata?.keywords"
-            [(ngModel)]="keywords[keyword]"
-            [name]="keyword"
-            class="checkbox"
-            >{{ keyword }}</mat-checkbox
-          >
+        <div class="keywords" fxLayout="row" fxLayoutAlign="space-between">
+          <div *ngFor="let keywordsColumn of keywordColumns" fxLayout="column">
+            <mat-checkbox
+              *ngFor="let keyword of keywordsColumn"
+              [(ngModel)]="keywords[keyword]"
+              [name]="keyword"
+              class="checkbox capitalized"
+              >{{ keyword }}</mat-checkbox
+            >
+          </div>
         </div>
       </section>
 
-      <section class="section">
-        <p>Filter by submission date:</p>
+      <section class="section" style="padding-top: 1.6rem">
+        <label><b>Filter by submission date:</b></label>
 
-        <mat-form-field appearance="fill" class="wide">
-          <mat-label>Start Date</mat-label>
-          <input
-            matInput
-            [(ngModel)]="start"
-            [matDatepicker]="startPicker"
-            name="startPicker"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="startPicker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #startPicker></mat-datepicker>
-        </mat-form-field>
+        <div fxLayout="row">
+          <mat-form-field appearance="fill" class="wide" style="margin: 0 5px">
+            <mat-label>Start Date</mat-label>
+            <input
+              matInput
+              [(ngModel)]="start"
+              [matDatepicker]="startPicker"
+              name="startPicker"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="startPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #startPicker></mat-datepicker>
+          </mat-form-field>
 
-        <mat-form-field appearance="fill" class="wide">
-          <mat-label>End Date</mat-label>
-          <input
-            matInput
-            [(ngModel)]="end"
-            [matDatepicker]="endPicker"
-            name="endPicker"
-          />
-          <mat-datepicker-toggle
-            matSuffix
-            [for]="endPicker"
-          ></mat-datepicker-toggle>
-          <mat-datepicker #endPicker></mat-datepicker>
-        </mat-form-field>
+          <mat-form-field appearance="fill" class="wide" style="margin: 0 5px">
+            <mat-label>End Date</mat-label>
+            <input
+              matInput
+              [(ngModel)]="end"
+              [matDatepicker]="endPicker"
+              name="endPicker"
+            />
+            <mat-datepicker-toggle
+              matSuffix
+              [for]="endPicker"
+            ></mat-datepicker-toggle>
+            <mat-datepicker #endPicker></mat-datepicker>
+          </mat-form-field>
+        </div>
       </section>
 
       <button
@@ -151,4 +169,10 @@
       </button>
     </form>
   </mat-card-content>
+
+  <mat-card-footer style="text-align: center; margin-bottom: 8px">
+    <strong>
+      Disclaimer: This website is not affiliated with The Astronomer's Telegram
+    </strong>
+  </mat-card-footer>
 </mat-card>
