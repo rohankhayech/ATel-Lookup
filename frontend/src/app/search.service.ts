@@ -55,8 +55,8 @@ export class SearchService {
             ],
       keyword_mode: parameters.match,
       keywords: parameters.keywords,
-      start_date: this.serializeDate(parameters.start),
-      end_date: this.serializeDate(parameters.end),
+      start_date: this.serializeDate(parameters.start) ?? '',
+      end_date: this.serializeDate(parameters.end) ?? '',
     };
   }
 
