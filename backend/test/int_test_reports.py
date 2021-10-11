@@ -95,8 +95,8 @@ class TestFR2(unittest.TestCase):
         # Send import request
         response = self.app.post('/import', json=manual_import_request_fail)
 
-        # Check response flag
-        self.assertEqual(response.json.get("flag"), 0)
+        #Check response flag
+        self.assertEqual(response.json.get("flag"), 2)
 
         # Check report exists
         self.assertFalse(db.report_exists(99999))
@@ -338,21 +338,33 @@ class TestFR4(unittest.TestCase):
             cn.close()
 
 all_keyword_search_request = {
+    "term": "",
+    "search_data": "",
     "search_mode": "name",
     "keywords": ["transient", "supernovae"],
     "keyword_mode": "all",
+    "start_date": "",
+    "end_date": ""
 }
 
 any_keyword_search_request = {
+    "term": "",
+    "search_data": "",
     "search_mode": "name",
     "keywords": ["transient", "supernovae"],
     "keyword_mode": "any",
+    "start_date": "",
+    "end_date": ""
 }
 
 none_keyword_search_request = {
+    "term": "",
+    "search_data": "",
     "search_mode": "name",
     "keywords": ["transient", "supernovae"],
     "keyword_mode": "none",
+    "start_date": "",
+    "end_date": ""
 }
 
 class TestFR5(unittest.TestCase):
@@ -368,8 +380,6 @@ class TestFR5(unittest.TestCase):
         try:
             # Send all search request
             response = self.app.post('/search', json=all_keyword_search_request)
-
-            # Raise ValueError(str(response.json))
 
             reports = response.json.get("report_list")
             self.assertIn({
@@ -450,6 +460,11 @@ class TestFR8:
 term_search_request = {
     "term": "db_test_term",
     "search_mode": "name",
+    "search_data": "",
+    "keywords": [],
+    "keyword_mode": "any",
+    "start_date": "",
+    "end_date": ""
 }
 
 class TestFR9(unittest.TestCase): 
