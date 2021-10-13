@@ -44,6 +44,11 @@ manual_import_request_fail = {
     "atel_num": 99999
 }
 
+manual_import_request_fail_two = {
+    "import_mode": "manual",
+    "atel_num": 6079
+}
+
 class TestFR2(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
@@ -92,14 +97,55 @@ class TestFR2(unittest.TestCase):
             cn.close()
 
     def test_manual_import_fail(self):
+        # ReportAlreadyExistsError
+        # Delete report if already exists
+        cn = db._connect()
+        cur = cn.cursor()
+        cur.execute("delete from Reports where atelNum = 10000")
+        cur.close()
+        cn.commit()
+        cn.close()
+
+        # Send import request for ATel #10000
+        response = self.app.post('/import', json=manual_import_request)
+        self.assertEqual(response.json.get("flag"), 1)
+
+        # Check report exists
+        self.assertTrue(db.report_exists(10000))
+
+        # Send same import request
+        response = self.app.post('/import', json=manual_import_request)
+
+        # Check response flag
+        self.assertEqual(response.json.get("flag"), 2)
+
+        # Delete report
+        cn = db._connect()
+        cur = cn.cursor()
+        cur.execute("delete from Reports where atelNum = 10000")
+        cur.close()
+        cn.commit()
+        cn.close()
+
+        # ReportNotFoundError
         # Send import request
         response = self.app.post('/import', json=manual_import_request_fail)
 
-        #Check response flag
+        # Check response flag
         self.assertEqual(response.json.get("flag"), 2)
 
         # Check report exists
         self.assertFalse(db.report_exists(99999))
+
+        # MissingReportElementError
+        # Send import request
+        response = self.app.post('/import', json=manual_import_request_fail_two)
+
+        # Check response flag
+        self.assertEqual(response.json.get("flag"), 0)
+
+        # Check report exists
+        self.assertFalse(db.report_exists(6079))
 
 class TestFR3:
     pass #NYI
@@ -114,14 +160,14 @@ manual_import_request_three = {
     "atel_num": 14000
 }
 
-search_by_name = {
+search_by_name_request = {
     "term": "",
     "search_mode": "name",
     "search_data": "IGR J17591-2342",
     "keywords": [],
     "keyword_mode": "none",
-    "start_date": None,
-    "end_date": None
+    "start_date": "",
+    "end_date": ""
 }
 
 class TestFR4(unittest.TestCase):
@@ -152,7 +198,7 @@ class TestFR4(unittest.TestCase):
         self.assertEqual(response.json.get("flag"), 1)
 
         # Send search request
-        response = self.app.post('/search', json=search_by_name)
+        response = self.app.post('/search', json=search_by_name_request)
         self.assertEqual(response.json.get("flag"), 1)
 
         # Check report exists
@@ -230,7 +276,7 @@ class TestFR4(unittest.TestCase):
             # Test object IDs
             cur.execute("select objectIDFK from ObjectRefs where atelNumFK = 12000")
             results = cur.fetchall()
-            self.assertEqual(results[0][0].lower(), "igr j17591-2342")
+            self.assertCountEqual(results, [("IGR J17591-2342",)])
 
             # Test coordinates
             cur.execute("select ra, declination from ReportCoords where atelNumFK = 12000")
