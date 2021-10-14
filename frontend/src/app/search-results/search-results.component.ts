@@ -1,3 +1,4 @@
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import {
   Component,
   Input,
@@ -28,9 +29,29 @@ export class SearchResultsComponent implements OnChanges {
 
   public page = 0;
 
+  public isSmall = false;
+
+  constructor(private breakpointObserver: BreakpointObserver) {
+    this.breakpointObserver
+      .observe([
+        Breakpoints.XSmall,
+        Breakpoints.Small,
+        Breakpoints.Medium,
+        Breakpoints.Large,
+        Breakpoints.XLarge,
+      ])
+      .subscribe(() => this.setIsSmall());
+  }
+
   get view() {
     const index = this.page * this.pageSize;
     return this.result?.telegrams?.slice(index, index + this.pageSize);
+  }
+
+  setIsSmall() {
+    this.isSmall =
+      this.breakpointObserver.isMatched(Breakpoints.XSmall) ||
+      this.breakpointObserver.isMatched(Breakpoints.Small);
   }
 
   ngOnChanges() {
