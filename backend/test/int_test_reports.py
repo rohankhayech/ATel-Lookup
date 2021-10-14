@@ -60,9 +60,8 @@ class TestFR2(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-
     @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
-    def test_manual_import(self,verify_jwt_in_request):
+    def test_manual_import(self, verify_jwt_in_request):
         verify_jwt_in_request.return_value = True
 
         # Delete report if already exists
@@ -111,16 +110,18 @@ class TestFR2(unittest.TestCase):
     def test_manual_import_fail(self, verify_jwt_in_request):
         verify_jwt_in_request.return_value = True
 
-        # ReportAlreadyExistsError
-        # Delete report if already exists
+        # Delete reports if already exist
         cn = db._connect()
         cur = cn.cursor()
         cur.execute("delete from Reports where atelNum = 10000")
+        cur.execute("delete from Reports where atelNum = 99999")
+        cur.execute("delete from Reports where atelNum = 6079")
         cur.close()
         cn.commit()
         cn.close()
 
-        # Send import request for ATel #10000
+        # ReportAlreadyExistsError
+        # Send import request
         response = self.app.post('/import', json=manual_import_request)
         self.assertEqual(response.json.get("flag"), 1)
 
@@ -133,18 +134,10 @@ class TestFR2(unittest.TestCase):
         # Check response flag
         self.assertEqual(response.json.get("flag"), 2)
         
-        #Check an error message has been returned
+        # Check an error message has been returned
         message = response.json.get("message")
         self.assertIsNotNone(message)
         self.assertNotEqual(message, "")
-
-        # Delete report
-        cn = db._connect()
-        cur = cn.cursor()
-        cur.execute("delete from Reports where atelNum = 10000")
-        cur.close()
-        cn.commit()
-        cn.close()
 
         # ReportNotFoundError
         # Send import request
@@ -165,6 +158,16 @@ class TestFR2(unittest.TestCase):
 
         # Check report exists
         self.assertFalse(db.report_exists(6079))
+
+        # Delete reports
+        cn = db._connect()
+        cur = cn.cursor()
+        cur.execute("delete from Reports where atelNum = 10000")
+        cur.execute("delete from Reports where atelNum = 99999")
+        cur.execute("delete from Reports where atelNum = 6079")
+        cur.close()
+        cn.commit()
+        cn.close()
 
 class TestFR3:
     pass #NYI
@@ -196,6 +199,9 @@ class TestFR4_NFR1_NFR2(unittest.TestCase):
     The software will parse the title and body text for any terms matching predefined keywords, known aliases or common formats for dates, ATel references and coordinates (in common representations of both decimal degrees and sexagesimal formats). 
     If coordinates are found the system must query SIMBAD for the object and its aliases and add these to the database. 
     The report is then categorised with all extracted fields, before being saved in the database.
+
+    The software must sanitise the title and body fields parsed from ATel source files prior to entering these fields into the database or displaying these fields on any page of the website. 
+    All script and other HTML tags must be removed and any special characters that could be used in an SQL injection attack must be escaped.
     """
     def setUp(self):
         self.app = app.test_client()
@@ -443,6 +449,10 @@ none_keyword_search_request = {
 }
 
 class TestFR5(unittest.TestCase):
+    """
+    The software must allow the user to search for ATels by keyword.
+    The software returns a list of all the ATels categorised with/without the selected keywords, depending on search mode.
+    """
     def setUp(self):
         self.app = app.test_client()
 
@@ -509,7 +519,6 @@ class TestFR5(unittest.TestCase):
                 "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
-            
         finally:
             # Delete reports
             cn = db._connect()
@@ -531,7 +540,6 @@ class TestFR7:
 class TestFR8:
     pass #NYI
 
-
 term_search_request = {
     "term": "db_test_term",
     "search_mode": "name",
@@ -543,6 +551,11 @@ term_search_request = {
 }
 
 class TestFR9(unittest.TestCase):
+    """
+    The software must allow the user to search for ATels by free text.
+    The user inputs a free-text search string.
+    The software returns a list of all the ATels containing the search string in the title and/or body.
+    """
     def setUp(self):
         self.app = app.test_client()
 
@@ -572,7 +585,6 @@ class TestFR9(unittest.TestCase):
                 "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
-
         finally:
             # Delete reports
             cn = db._connect()
@@ -585,9 +597,6 @@ class TestFR9(unittest.TestCase):
 
 class TestFR10:
     pass #Partially implemented.
-
-class TestFR14:
-    pass #NYI
 
 
 if __name__ == '__main__':
