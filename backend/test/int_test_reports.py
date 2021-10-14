@@ -110,16 +110,18 @@ class TestFR2(unittest.TestCase):
     def test_manual_import_fail(self, verify_jwt_in_request):
         verify_jwt_in_request.return_value = True
 
-        # ReportAlreadyExistsError
-        # Delete report if already exists
+        # Delete reports if already exist
         cn = db._connect()
         cur = cn.cursor()
         cur.execute("delete from Reports where atelNum = 10000")
+        cur.execute("delete from Reports where atelNum = 99999")
+        cur.execute("delete from Reports where atelNum = 6079")
         cur.close()
         cn.commit()
         cn.close()
 
-        # Send import request for ATel #10000
+        # ReportAlreadyExistsError
+        # Send import request
         response = self.app.post('/import', json=manual_import_request)
         self.assertEqual(response.json.get("flag"), 1)
 
