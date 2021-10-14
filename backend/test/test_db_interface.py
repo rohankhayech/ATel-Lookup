@@ -307,7 +307,26 @@ class TestObjects(unittest.TestCase):
 
         # add test object
         self.ex_coords = SkyCoord("13h36m50s", "30d20m20s", frame="icrs", unit=("hourangle", "deg"))
-        db.add_object("test_main_id", self.ex_coords, ["test-alias-1", "test-alias-2"])
+        
+        # connect to database
+        cn = db._connect()
+        cur: MySQLCursor = cn.cursor()
+
+        # setup query
+        query = ("insert into Objects"
+                 " (objectID, ra, declination, lastUpdated)"
+                 " values (%s, %s, %s, %s)")
+
+        data = ("test_main_id", round(self.ex_coords.ra.deg, 10), round(self.ex_coords.dec.deg, 10), datetime(2020,1,1))
+
+        # execute query and handle errors
+        cur.execute(query, data)
+        cn.commit()
+        cur.close()
+        cn.close()
+
+        # Add aliases
+        db.add_aliases("test_main_id", ["test-alias-1","test-alias-2"])
 
     def testAddObject(self):
         cn = db._connect()
@@ -353,6 +372,16 @@ class TestObjects(unittest.TestCase):
         self.assertEqual(result1[1], "test_main_id")
         self.assertEqual(result2[0], "test-alias-4")
         self.assertEqual(result2[1], "test_main_id")
+        cn.commit()
+        cur.close()
+        cn.close()
+
+        cn = db._connect()
+        cur: MySQLCursor = cn.cursor()
+        cur.execute("select lastUpdated from Objects where objectID like 'test_main_id'")
+        results = cur.fetchone()
+        self.assertIsNotNone(results)
+        self.assertNotEqual(result1[0], datetime(2020,1,1))
         cn.commit()
         cur.close()
         cn.close()
