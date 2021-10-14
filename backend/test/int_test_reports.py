@@ -60,9 +60,8 @@ class TestFR2(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-
     @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
-    def test_manual_import(self,verify_jwt_in_request):
+    def test_manual_import(self, verify_jwt_in_request):
         verify_jwt_in_request.return_value = True
 
         # Delete report if already exists
@@ -111,16 +110,18 @@ class TestFR2(unittest.TestCase):
     def test_manual_import_fail(self, verify_jwt_in_request):
         verify_jwt_in_request.return_value = True
 
-        # ReportAlreadyExistsError
-        # Delete report if already exists
+        # Delete reports if already exist
         cn = db._connect()
         cur = cn.cursor()
         cur.execute("delete from Reports where atelNum = 10000")
+        cur.execute("delete from Reports where atelNum = 99999")
+        cur.execute("delete from Reports where atelNum = 6079")
         cur.close()
         cn.commit()
         cn.close()
 
-        # Send import request for ATel #10000
+        # ReportAlreadyExistsError
+        # Send import request
         response = self.app.post('/import', json=manual_import_request)
         self.assertEqual(response.json.get("flag"), 1)
 
@@ -133,18 +134,10 @@ class TestFR2(unittest.TestCase):
         # Check response flag
         self.assertEqual(response.json.get("flag"), 2)
         
-        #Check an error message has been returned
+        # Check an error message has been returned
         message = response.json.get("message")
         self.assertIsNotNone(message)
         self.assertNotEqual(message, "")
-
-        # Delete report
-        cn = db._connect()
-        cur = cn.cursor()
-        cur.execute("delete from Reports where atelNum = 10000")
-        cur.close()
-        cn.commit()
-        cn.close()
 
         # ReportNotFoundError
         # Send import request
@@ -165,6 +158,16 @@ class TestFR2(unittest.TestCase):
 
         # Check report exists
         self.assertFalse(db.report_exists(6079))
+
+        # Delete reports
+        cn = db._connect()
+        cur = cn.cursor()
+        cur.execute("delete from Reports where atelNum = 10000")
+        cur.execute("delete from Reports where atelNum = 99999")
+        cur.execute("delete from Reports where atelNum = 6079")
+        cur.close()
+        cn.commit()
+        cn.close()
 
 class TestFR3:
     pass #NYI
@@ -516,7 +519,6 @@ class TestFR5(unittest.TestCase):
                 "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
-            
         finally:
             # Delete reports
             cn = db._connect()
@@ -537,7 +539,6 @@ class TestFR7:
 
 class TestFR8:
     pass #NYI
-
 
 term_search_request = {
     "term": "db_test_term",
@@ -584,7 +585,6 @@ class TestFR9(unittest.TestCase):
                 "submission_date": "2021-01-01 00:00:00",
                 "title": "T"
             }, reports)
-
         finally:
             # Delete reports
             cn = db._connect()
@@ -597,7 +597,6 @@ class TestFR9(unittest.TestCase):
 
 class TestFR10:
     pass #Partially implemented.
-
 
 
 if __name__ == '__main__':
