@@ -540,12 +540,18 @@ class TestCustomExceptions(unittest.TestCase):
 
         with self.assertRaises(MissingReportElementError):
             parse_report(1, '<h1 class=\'title\'></h1>')
+
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'>Test</h1>')
         
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'></div><strong></strong>')
+            parse_report(1, '<h1 class=\'title\'>Test</h1><strong></strong><div id=\'telegram\'></div><strong></strong>')
+
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'>Test</h1><strong>Test</strong><div id=\'telegram\'></div><strong></strong>')
         
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'><em><em></em></em></div><strong>01 Jan 1999; 00:00 UT</strong>')
+            parse_report(1, '<h1 class=\'title\'>Test</h1><strong>Test</strong><div id=\'telegram\'>Tweet<em><em></em></em></div><strong>01 Jan 1999; 00:00 UT</strong>')
 
 if __name__ == "__main__":
     unittest.main()
