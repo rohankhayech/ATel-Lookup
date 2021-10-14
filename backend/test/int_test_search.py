@@ -155,7 +155,7 @@ class TestFR7(ut.TestCase):
                 " (objectID, ra, declination, lastUpdated)" 
                 " values (%s, %s, %s, %s)")
 
-        data = ("DB_TEST_OBJECT", round(test_coords.ra.deg, 10), round(test_coords.dec.deg, 10), "2018-01-01")
+        data = ("DB_TEST_OBJECT", round(test_coords.ra.deg, 10), round(test_coords.dec.deg, 10), datetime(2020, 1, 1))
 
         # execute query and handle errors
         try:
@@ -172,7 +172,7 @@ class TestFR7(ut.TestCase):
 
         exists, prev_last_updated = db.object_exists('DB_TEST_OBJECT') 
         self.assertTrue(exists)
-        self.assertEqual(prev_last_updated, datetime(2018, 1, 1))
+        self.assertEqual(prev_last_updated, datetime(2020, 1, 1))
 
         db.add_aliases('DB_TEST_OBJECT', ['TEST1', 'TEST2'])
 
@@ -209,9 +209,9 @@ class TestFR8(ut.TestCase):
 
         cur.execute(query)
 
-        results = cur.fetchall()[:25] # First 25 coordinate results
-        if len(results) != 25:
-            self.fail('Need at least 25 coordinates in the database for this test.')
+        results = cur.fetchall()[:10] # First 10 coordinate results
+        if len(results) != 10:
+            self.fail('Need at least 10 coordinates in the database for this test.')
 
         if results:
             for result in results:
