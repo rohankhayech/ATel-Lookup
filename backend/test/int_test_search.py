@@ -28,16 +28,12 @@ from mysql.connector.cursor import MySQLCursor
 
 from datetime import datetime
 import unittest as ut
-from unittest import mock
-from unittest.mock import MagicMock
 
 from astropy.coordinates.sky_coordinate import SkyCoord
 
 from app import app
-from model.ds.report_types import ReportResult
 from controller.importer.importer import ReportAlreadyExistsError 
 from controller.importer import importer
-from controller.search import search
 import model.db.db_interface as db
 
 
@@ -220,6 +216,7 @@ class TestFR8(ut.TestCase):
                 self.coords.append(SkyCoord(ra, dec, frame='icrs', unit=('deg', 'deg')))
         else:
             self.fail('The database has no coordinate entries. Import ATels before runnning the test.')
+
 
     def test_coordinate_search(self):
         for coord in self.coords:
