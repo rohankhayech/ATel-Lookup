@@ -39,14 +39,24 @@ class TestFR6(ut.TestCase):
 
         # Pre-requisites: ATel #76, #79, #82 imported in db.
         self.test_data_A = {
+            "term": "",
             "search_mode": "name",
             "search_data": "M31",
+            "keywords": [], 
+            "keyword_mode": "any",
+            "start_date": "",
+            "end_date": ""
         }
 
         # Pre-requisites: ATel #87, #90, #91 imported in db. 
         self.test_data_B = {
+            "term": "",
             "search_mode": "name",
-            "search_data": "XTE J1751-305"
+            "search_data": "XTE J1751-305",
+            "keywords": [], 
+            "keyword_mode": "any",
+            "start_date": "",
+            "end_date": ""
         }
 
         try:
