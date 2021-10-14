@@ -47,7 +47,11 @@
             />
           </mat-form-field>
 
-          <div *ngSwitchCase="SearchMode.Coordinate" fxLayout="row">
+          <div
+            *ngSwitchCase="SearchMode.Coordinate"
+            fxLayout="row"
+            fxLayout.lt-md="column"
+          >
             <mat-form-field
               appearance="fill"
               class="wide"
@@ -125,7 +129,7 @@
       <section class="section" style="padding-top: 1.6rem">
         <label><b>Filter by submission date:</b></label>
 
-        <div fxLayout="row">
+        <div fxLayout="row" fxLayout.lt-md="column">
           <mat-form-field appearance="fill" class="wide" style="margin: 0 5px">
             <mat-label>Start Date</mat-label>
             <input
