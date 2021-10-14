@@ -196,6 +196,9 @@ class TestFR4_NFR1_NFR2(unittest.TestCase):
     The software will parse the title and body text for any terms matching predefined keywords, known aliases or common formats for dates, ATel references and coordinates (in common representations of both decimal degrees and sexagesimal formats). 
     If coordinates are found the system must query SIMBAD for the object and its aliases and add these to the database. 
     The report is then categorised with all extracted fields, before being saved in the database.
+
+    The software must sanitise the title and body fields parsed from ATel source files prior to entering these fields into the database or displaying these fields on any page of the website. 
+    All script and other HTML tags must be removed and any special characters that could be used in an SQL injection attack must be escaped.
     """
     def setUp(self):
         self.app = app.test_client()
@@ -443,6 +446,10 @@ none_keyword_search_request = {
 }
 
 class TestFR5(unittest.TestCase):
+    """
+    The software must allow the user to search for ATels by keyword.
+    The software returns a list of all the ATels categorised with/without the selected keywords, depending on search mode.
+    """
     def setUp(self):
         self.app = app.test_client()
 
@@ -533,6 +540,11 @@ term_search_request = {
 }
 
 class TestFR9(unittest.TestCase):
+    """
+    The software must allow the user to search for ATels by free text.
+    The user inputs a free-text search string.
+    The software returns a list of all the ATels containing the search string in the title and/or body.
+    """
     def setUp(self):
         self.app = app.test_client()
 
