@@ -250,10 +250,3 @@ class TestFR8(ut.TestCase):
 
             self.assertIsNotNone(all_results)
             self.assertFalse(len(all_results) == 0)
-
-
-class TestFR10(ut.TestCase):
-    ''' Functional Requirement 10:
-        Description: The software must allow the user to search for ATels with any combination of a free-text 
-        string, keyword selection and object (either object ID or coordinates) within a single query.
-    '''

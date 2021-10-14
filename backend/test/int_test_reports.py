@@ -586,6 +586,9 @@ class TestFR9(unittest.TestCase):
             cn.commit()
             cn.close()
 
+class TestFR10:
+    pass #NYI
+
 class TestFR14:
     pass #NYI
 
