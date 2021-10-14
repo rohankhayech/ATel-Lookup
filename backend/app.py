@@ -470,9 +470,17 @@ def background_import():
 
 
 def background_import_task():
-    lock.acquire()
-    import_all_reports()
-    lock.release()
+    print("Acquiring lock", flush=True)
+    if lock.acquire(timeout=30):
+        print("Acquired lock", flush=True)
+
+        try:
+            import_all_reports()
+        finally:
+            print("Releasing lock", flush=True)
+            lock.release()
+    else:
+        print("Failed to acquire lock", flush=True)
 
 
 """
@@ -481,6 +489,9 @@ Application Main Line
 """
 # Initialise the database
 init_db()
+
+print("Force releasing lock", flush=True)
+lock.release(forceRelease=True)
 
 if __name__ == "__main__":
     # Run the application
