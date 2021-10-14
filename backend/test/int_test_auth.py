@@ -1,11 +1,14 @@
 """
-Backend integration test for authentication requirements.
+Test for authentication, including user accounts and protected endpoints.
 
 Author:
+    Greg Lahaye
+
+Contributors:
     Rohan Khayech
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech
+    Copyright (C) 2021 Greg Lahaye, Rohan Khayech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -20,89 +23,93 @@ License Terms and Copyright:
     You should have received a copy of the GNU Affero General Public License
     along with this program. If not, see <https://www.gnu.org/licenses/>.
 """
-from flask_jwt_extended.utils import create_access_token
-from model.db.db_interface import get_hashed_password, user_exists
+from model.db.db_interface import get_hashed_password
 from model.db import db_init, db_interface
-from controller.authentication import InvalidCredentialsError, add_admin_user
+from controller.authentication import add_admin_user
+from controller.authentication import add_admin_user
+from app import app
+
 import unittest
 
 import mysql.connector
+from mysql.connector.cursor import MySQLCursor
 
-from app import app
-
-class TestFR1(unittest.TestCase):
+class TestFR1_NFR15(unittest.TestCase):
     """
-    Authenticate a user as an admin before offering admin portal functions.
+    The software must authenticate a user as an administrator before offering any of the below admin portal functions.
+    The system must be extendible to allow a maintainer to add new administrator accounts when required.
     """
-    def setUp(self):
-        self.client = app.test_client()
-        add_admin_user("test_user", "password")
-    
-    def test_admin_not_authenticated(self):
-        """Currently manually tested on frontend."""
+    test_username = "test_username"
+    test_password = "test_password"
 
-    def test_admin_authenticated(self):
-        """Currently manually tested on frontend."""
+    def test_add_admin_user(self):
+        add_admin_user(self.test_username, self.test_password)
+        self.assertTrue(db_interface.user_exists(self.test_username))
 
     def test_login(self):
-        response = self.client.post("/authenticate",json=login_json)
-        self.assertNotEqual(response.json, "Invalid credentials")
+        self.test_add_admin_user()
 
-    def invalid_login(self):
-        response = self.client.post("/authenticate", json=incorrect_login_json)
-        self.assertEqual(response.json, "Invalid credentials")
-        self.assertEqual(response.status_code,401)
+        with app.test_client() as client:
+            response = client.post(
+                "/authenticate",
+                json={
+                    "username": self.test_username,
+                    "password": self.test_password,
+                },
+            )
+
+            self.assertIsNotNone(response.json)
+
+    def test_import_unauthorized(self):
+        with app.test_client() as client:
+            response = client.post("/import")
+
+            self.assertEqual(response.json.get("msg"), "Missing Authorization Header")
+
+    def test_import(self):
+        self.test_add_admin_user()
+
+        with app.test_client() as client:
+            response = client.post(
+                "/authenticate",
+                json={
+                    "username": self.test_username,
+                    "password": self.test_password,
+                },
+            )
+
+            token = response.json
+
+            json = {"import_mode": "manual", "atel_num": 1}
+            headers = {"Authorization": f"Bearer {token}"}
+            response = client.post("/import", json=json, headers=headers)
+
+            self.assertIsNotNone(response.json.get("flag"))
 
     def tearDown(self):
-        delete_user("test_user")
+        connection = db_interface._connect()
+        cursor: MySQLCursor = connection.cursor()
+        cursor.execute(
+            "DELETE FROM AdminUsers WHERE username = %s", (self.test_username,)
+        )
+        cursor.close()
+        connection.commit()
+        connection.close()
 
 class TestNFR13(unittest.TestCase):
     """
     Must store admin credentials securly, ensuring passwords are stored as a hashed value.
     """
+
     def setUp(self):
         add_admin_user("test_user", "password")
 
     def test_password_hashed(self):
-        self.assertNotEqual(get_hashed_password("test_user"),"password") # Ensure password stored in database is not in plain text.
+        # Ensure password stored in database is not in plain text.
+        self.assertNotEqual(get_hashed_password("test_user"), "password")
 
     def tearDown(self):
         delete_user("test_user")
-
-class TestNFR15(unittest.TestCase):
-    """
-    Must be extendible to allow a maintainer to add new admin accounts when required.
-
-    Will be changed to test using CLI when implemented.
-    """
-    
-    def test_add_account(self):
-        #Test add user
-        add_admin_user("test_user","password")
-        self.assertTrue(user_exists("test_user"))
-
-        #Fail on duplicate user
-        with self.assertRaises(InvalidCredentialsError):
-            add_admin_user("test_user", "password")
-
-        # Clean up user
-        delete_user("test_user")
-
-
-import_json = {
-        "import_mode": "manual",
-        "atel_num": 1
-}
-
-login_json = {
-    "username": "test_user",
-    "password": "password"
-}
-
-incorrect_login_json = {
-    "username": "test_user",
-    "password": "wordpass"
-}
 
 #helper functions
 def delete_user(user):
@@ -112,10 +119,13 @@ def delete_user(user):
 
     # execute query and handle errors
     try:
-        cur.execute("delete from AdminUsers where username = %s;",(user,))
+        cur.execute("delete from AdminUsers where username = %s;", (user,))
     except mysql.connector.Error as e:
         raise e
     finally:
         cn.commit()
         cur.close()
         cn.close()
+
+if __name__ == "__main__":
+    unittest.main()
