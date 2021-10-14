@@ -164,10 +164,10 @@ def imports() -> json:
 
     if import_mode_in != "manual" and import_mode_in != "auto":  # check if import mode not named correctly
         flag = 0
-        message = "Import mode was not manual or auto"
+        message = "Import mode was not manual or auto."
     elif import_mode_in == "manual" and valid_atel_num(atel_num_in) == False:  # check if import mode set to manual but correct atel number was not provided
         flag = 2
-        message = "The ATel number provided is invalid"
+        message = "The ATel number provided is invalid."
 
     if flag == 1: # if all tests have passed so far
         try:
@@ -239,7 +239,7 @@ def search() -> json:
         none_check(term_in, search_mode_in, search_data_in, keywords_in, keyword_mode_in, start_date_in, end_date_in)
     except ValueError as e:
         flag = 0
-        message = "Bad JSON request, all fields not recieved"
+        message = "Bad JSON request, all fields not recieved."
 
     #checking to make sure atleast one of the required fields has been given - REQUIRED FIELDS CHECK
     if flag == 1:
@@ -366,7 +366,7 @@ def search() -> json:
 
             else:
                 flag = 0 # system error
-                message = "Bad JSON request, full coordinates field not provided"
+                message = "Bad JSON request, full coordinates field not provided."
 
 
     #CREATING SEARCH FILTERS OBJECT
