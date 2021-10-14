@@ -531,15 +531,6 @@ class TestFR5(unittest.TestCase):
             cn.commit()
             cn.close()    
 
-class TestFR6:
-    pass #NYI
-
-class TestFR7:
-    pass #NYI
-
-class TestFR8:
-    pass #NYI
-
 term_search_request = {
     "term": "db_test_term",
     "search_mode": "name",
@@ -596,8 +587,10 @@ class TestFR9(unittest.TestCase):
             cn.close()
 
 class TestFR10:
-    pass #Partially implemented.
+    pass #NYI
 
+class TestFR14:
+    pass #NYI
 
 if __name__ == '__main__':
     unittest.main()
