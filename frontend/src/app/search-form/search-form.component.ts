@@ -52,16 +52,34 @@ export class SearchFormComponent implements OnInit {
     private breakpointObserver: BreakpointObserver
   ) {
     this.breakpointObserver
-      .observe([Breakpoints.XSmall, Breakpoints.Small])
-      .subscribe(() => (this.keywordsLength = 2));
-
-    this.breakpointObserver
-      .observe([Breakpoints.Medium, Breakpoints.Large, Breakpoints.XLarge])
-      .subscribe(() => (this.keywordsLength = 4));
+      .observe([
+        Breakpoints.XSmall,
+        Breakpoints.Small,
+        Breakpoints.Medium,
+        Breakpoints.Large,
+        Breakpoints.XLarge,
+      ])
+      .subscribe(() => this.setKeywordsLength());
   }
 
   ngOnInit() {
     this.fetchMetadata();
+  }
+
+  setKeywordsLength() {
+    if (this.breakpointObserver.isMatched(Breakpoints.XSmall)) {
+      this.keywordsLength = 1;
+    } else if (this.breakpointObserver.isMatched(Breakpoints.Small)) {
+      this.keywordsLength = 2;
+    } else if (this.breakpointObserver.isMatched(Breakpoints.Medium)) {
+      this.keywordsLength = 3;
+    } else if (this.breakpointObserver.isMatched(Breakpoints.Large)) {
+      this.keywordsLength = 4;
+    } else if (this.breakpointObserver.isMatched(Breakpoints.XLarge)) {
+      this.keywordsLength = 5;
+    } else {
+      this.keywordsLength = 4;
+    }
   }
 
   fetchMetadata() {
@@ -69,7 +87,7 @@ export class SearchFormComponent implements OnInit {
       .get<Metadata>(`${environment.apiUrl}/metadata`)
       .subscribe((metadata) => {
         this.metadata = metadata;
-        this.keywordsLength = 4;
+        this.setKeywordsLength();
 
         for (const keyword of this.metadata.keywords) {
           this.keywords[keyword] = false;
