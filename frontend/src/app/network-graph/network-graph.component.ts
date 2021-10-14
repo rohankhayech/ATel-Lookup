@@ -34,6 +34,11 @@ export class NetworkGraphComponent implements OnChanges {
   @Input() public links: Link[] = [];
 
   private svg?: Selection<SVGSVGElement, unknown, HTMLElement, any>;
+  private g?: Selection<SVGGElement, unknown, HTMLElement, any>;
+
+  private minZoom = 0.25;
+  private maxZoom = 2.5;
+  private panningMargin = 50;
 
   constructor() {}
 
@@ -55,15 +60,7 @@ export class NetworkGraphComponent implements OnChanges {
     const width = rect?.width;
     const height = rect?.height;
 
-    const g = this.svg.append('g');
-
-    const zoom = d3.zoom().on('zoom', (event) => {
-      console.log(event);
-
-      g.attr('transform', event.transform);
-    });
-
-    zoom(this.svg as unknown as Selection<Element, unknown, HTMLElement, any>);
+    this.g = this.svg.append('g');
 
     const simulation = d3
       .forceSimulation<Node>(this.nodes)
@@ -74,7 +71,7 @@ export class NetworkGraphComponent implements OnChanges {
       .force('charge', d3.forceManyBody().strength(-5))
       .force('center', d3.forceCenter(width / 2, height / 2));
 
-    const link = g
+    const link = this.g
       .append('g')
       .attr('stroke', '#999')
       .attr('stroke-opacity', 0.6)
@@ -83,7 +80,7 @@ export class NetworkGraphComponent implements OnChanges {
       .join('line')
       .attr('stroke-width', 1);
 
-    const node = g
+    const node = this.g
       .append('g')
       .attr('stroke', '#fff')
       .attr('stroke-width', 1.5)
@@ -107,6 +104,8 @@ export class NetworkGraphComponent implements OnChanges {
       );
 
     simulation.on('tick', () => {
+      this.setZoom();
+
       link
         .attr('x1', (d) => (d.source as Node).x!)
         .attr('y1', (d) => (d.source as Node).y!)
@@ -114,6 +113,10 @@ export class NetworkGraphComponent implements OnChanges {
         .attr('y2', (d) => (d.target as Node).y!);
 
       node.attr('cx', (d) => d.x!).attr('cy', (d) => d.y!);
+    });
+
+    simulation.on('end', () => {
+      this.setZoom();
     });
   }
 
@@ -140,6 +143,29 @@ export class NetworkGraphComponent implements OnChanges {
       .on('start', dragStarted)
       .on('drag', dragged)
       .on('end', dragEnded);
+  }
+
+  setZoom() {
+    const boundingBox = this.g!.node()!.getBBox();
+
+    const start: [number, number] = [
+      boundingBox.x - this.panningMargin,
+      boundingBox.y - this.panningMargin,
+    ];
+    const end: [number, number] = [
+      boundingBox.x + boundingBox.width + this.panningMargin,
+      boundingBox.y + boundingBox.height + this.panningMargin,
+    ];
+
+    const zoom = d3
+      .zoom()
+      .scaleExtent([this.minZoom, this.maxZoom])
+      .translateExtent([start, end])
+      .on('zoom', (event) => {
+        this.g!.attr('transform', event.transform);
+      });
+
+    zoom(this.svg as unknown as Selection<Element, unknown, HTMLElement, any>);
   }
 
   clear() {
