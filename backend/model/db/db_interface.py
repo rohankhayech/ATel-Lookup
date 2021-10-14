@@ -480,6 +480,7 @@ def add_aliases(object_id: str, aliases: list[str]):
                     cn.close()
                     raise e
             
+            cn.commit()
             cur.close()
             cn.close()
 
@@ -488,9 +489,7 @@ def add_aliases(object_id: str, aliases: list[str]):
         else:
             raise ObjectNotFoundError("The specified object ID is not stored in the database.")
     else:
-        raise ValueError(
-            "Specified object_id must be valid lengths and non-empty."
-        )
+        raise ValueError("Specified object_id must be valid lengths and non-empty.")
 
 
 
