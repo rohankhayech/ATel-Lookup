@@ -1,9 +1,10 @@
+import { BreakpointObserver, Breakpoints } from '@angular/cdk/layout';
 import { HttpClient } from '@angular/common/http';
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { Moment } from 'moment';
-import { EMPTY } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { EMPTY, throwError } from 'rxjs';
+import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
 import { Coordinates } from '../coordinates.interface';
 import { Match } from '../match.enum';
@@ -42,12 +43,22 @@ export class SearchFormComponent implements OnInit {
   public end?: Moment;
 
   public keywordColumns: string[][] = [];
+  private _keywordsLength = 4;
 
   constructor(
     private http: HttpClient,
     private searchService: SearchService,
-    private snackBar: MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar,
+    private breakpointObserver: BreakpointObserver
+  ) {
+    this.breakpointObserver
+      .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .subscribe(() => (this.keywordsLength = 2));
+
+    this.breakpointObserver
+      .observe([Breakpoints.Medium, Breakpoints.Large, Breakpoints.XLarge])
+      .subscribe(() => (this.keywordsLength = 4));
+  }
 
   ngOnInit() {
     this.fetchMetadata();
@@ -58,7 +69,7 @@ export class SearchFormComponent implements OnInit {
       .get<Metadata>(`${environment.apiUrl}/metadata`)
       .subscribe((metadata) => {
         this.metadata = metadata;
-        this.keywordColumns = this.splitArray(this.metadata.keywords, 4);
+        this.keywordsLength = 4;
 
         for (const keyword of this.metadata.keywords) {
           this.keywords[keyword] = false;
@@ -101,6 +112,13 @@ export class SearchFormComponent implements OnInit {
             duration: 8000,
           });
         }
+      }),
+      catchError((error) => {
+        this.snackBar.open(error.message, 'Close', {
+          duration: 8000,
+        });
+
+        return throwError(error);
       })
     );
   }
@@ -110,7 +128,7 @@ export class SearchFormComponent implements OnInit {
       this.query ||
       this.keywordList?.length ||
       (this.mode === SearchMode.Coordinate
-        ? this.ra && this.declination && this.radius
+        ? this.ra && this.declination
         : this.name)
     );
   }
@@ -120,10 +138,24 @@ export class SearchFormComponent implements OnInit {
   }
 
   private splitArray<T>(array: T[], n: number) {
+    array = [...array];
     let result = [];
     for (let i = n; i > 0; i--) {
       result.push(array.splice(0, Math.ceil(array.length / i)));
     }
     return result;
+  }
+
+  get keywordsLength() {
+    return this._keywordsLength;
+  }
+
+  set keywordsLength(value: number) {
+    this._keywordsLength = value;
+
+    this.keywordColumns = this.splitArray(
+      this.metadata?.keywords ?? [],
+      this.keywordsLength
+    );
   }
 }

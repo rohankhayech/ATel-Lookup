@@ -175,6 +175,7 @@ def search_reports_by_name(
                 # There is a result from the SIMBAD search. 
                 # Add the object to the local database.
                 main_id, coordinates, aliases = query_result
+                aliases.append(name)
                 try:
                     db.add_object(main_id, coordinates, aliases)
                 except db.ExistingObjectError:
