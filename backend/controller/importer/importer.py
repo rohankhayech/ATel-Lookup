@@ -87,7 +87,7 @@ def import_all_reports():
     """
     Adds all new ATel reports into the database starting after the last ATel report imported.
     """
-    
+
     # Retrieves the number of ATel report to import next
     atel_num = get_next_atel_num()
 
@@ -96,17 +96,19 @@ def import_all_reports():
         while True:
             try:
                 import_report(atel_num)
+                print(f'ATel #{atel_num} successfully imported', flush=True)
             except ReportAlreadyExistsError:
-                pass
+                print(f'ATel #{atel_num} already imported into the database', flush=True)
             except MissingReportElementError:
-                pass
+                print(f'ATel #{atel_num} could not be imported due to it missing important data', flush=True)
 
             atel_num = atel_num + 1
+            set_next_atel_num(atel_num)
     # Updates the number of ATel report to import next
     except ReportNotFoundError:
-        set_next_atel_num(atel_num)
+        print('Importing completed', flush=True)
     except ImportFailError:
-        set_next_atel_num(atel_num)
+        print('Importing stopped due to a network issue', flush=True)
 
 def download_report(atel_num: int) -> str:
     """
