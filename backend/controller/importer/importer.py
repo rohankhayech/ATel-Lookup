@@ -103,12 +103,11 @@ def import_all_reports():
                 print(f'ATel #{atel_num} could not be imported due to it missing important data', flush=True)
 
             atel_num = atel_num + 1
+            set_next_atel_num(atel_num)
     # Updates the number of ATel report to import next
     except ReportNotFoundError:
-        set_next_atel_num(atel_num)
         print('Importing completed', flush=True)
     except ImportFailError:
-        set_next_atel_num(atel_num)
         print('Importing stopped due to a network issue', flush=True)
 
 def download_report(atel_num: int) -> str:
