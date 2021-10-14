@@ -22,7 +22,7 @@ export class SearchResultsComponent implements OnChanges {
   cards?: QueryList<TelegramCardComponent>;
 
   @ViewChild(MatPaginator)
-  paginator!: MatPaginator;
+  paginator?: MatPaginator;
 
   public readonly pageSize = 10;
 
@@ -56,7 +56,9 @@ export class SearchResultsComponent implements OnChanges {
 
   updatePage(page: number) {
     this.page = page;
-    this.paginator.pageIndex = this.page;
+    if (this.paginator) {
+      this.paginator.pageIndex = this.page;
+    }
     this.cards?.first.scroll();
   }
 
