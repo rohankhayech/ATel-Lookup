@@ -23,10 +23,14 @@ License Terms and Copyright:
 
 
 import unittest as ut
+from astropy.coordinates.sky_coordinate import SkyCoord
+
+from mysql.connector.cursor import MySQLCursor
 
 from app import app
 from controller.importer.importer import ReportAlreadyExistsError 
 from controller.importer import importer
+import model.db.db_interface as db
 
 
 class TestFR6(ut.TestCase):
@@ -120,7 +124,7 @@ class TestFR6(ut.TestCase):
         self.assertIn(91, atel_nums)
 
 
-class TestFR7:
+class TestFR7(ut.TestCase):
     ''' Functional Requirement 7:
         Description: The software must retrieve and store object aliases and coordinates from SIMBAD when 
         an unknown object ID is entered as a search term, or 60 days have elapsed since the last update 
@@ -130,15 +134,68 @@ class TestFR7:
     pass #NYI
 
 
-class TestFR8:
+class TestFR8(ut.TestCase):
     ''' Functional Requirement 8:
         Description: The software must allow the user to search for ATels by
         a coordinate range.
     '''
-    pass #NYI
+    def setUp(self):
+        # Set up test client 
+        self.app = app.test_client() 
 
+        # Fetch all the coordinate entires in the database. 
+        self.coords = [] 
 
-class TestFR10:
+        cn = db._connect()
+        cur: MySQLCursor = cn.cursor()
+
+        query = ("select ra, declination from Objects")
+
+        cur.execute(query)
+
+        results = cur.fetchall()[:25] # First 25 coordinate results
+        if len(results) != 25:
+            self.fail('Need at least 25 coordinates in the database for this test.')
+
+        if results:
+            for result in results:
+                ra = result[0]
+                dec = result[1]
+                self.coords.append(SkyCoord(ra, dec, frame='icrs', unit=('deg', 'deg')))
+        else:
+            self.fail('The database has no coordinate entries. Import ATels before runnning the test.')
+
+    def test_coordinate_search(self):
+        for coord in self.coords:
+
+            ra_str = "{}:{}:{}".format(int(coord.ra.hms.h), abs(int(coord.ra.hms.m)), abs(coord.ra.hms.s))
+            dec_str = "{}:{}:{}".format(int(coord.dec.dms.d), abs(int(coord.dec.dms.m)), abs(coord.dec.dms.s))
+            radius_str = "10.0" # Default radius
+
+            test_data = {
+                "term": "",
+                "search_mode": "coords",
+                "search_data": [ra_str, dec_str, radius_str],
+                "keywords": [], 
+                "keyword_mode": "any",
+                "start_date": "",
+                "end_date": ""
+            }
+
+            all_results = []
+
+            response = self.app.post('/search', json=test_data)
+            try:
+                # Assert the coordinates were valid. 
+                self.assertEqual(response.json.get('flag'), 1)
+                all_results.append(r for r in response.json.get('report_list'))
+            except AssertionError as e:
+                raise AssertionError(str(e) + ' for coordinates ' + ra_str + ', ' + dec_str)
+
+            self.assertIsNotNone(all_results)
+            self.assertFalse(len(all_results) == 0)
+
+class TestFR10(ut.TestCase):
     ''' Functional Requirement 10:
         Description: The software must allow the user to search for ATels with any combination of a free-text 
         string, keyword selection and object (either object ID or coordinates) within a single query.
