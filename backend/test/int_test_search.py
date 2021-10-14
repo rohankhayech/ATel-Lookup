@@ -29,6 +29,7 @@ from mysql.connector.cursor import MySQLCursor
 from datetime import datetime
 import unittest as ut
 from unittest import mock
+from unittest.mock import MagicMock
 
 from astropy.coordinates.sky_coordinate import SkyCoord
 
@@ -169,12 +170,10 @@ class TestFR7(ut.TestCase):
             cur.close()
             cn.close()
 
-        # Trigger an update for the object 
-        search.qs.get_aliases = mock.MagicMock(return_value=['TEST1', 'TEST2'])
-        search.search_reports_by_name(None, None, 'DB_TEST_OBJECT')
+        db.add_aliases('DB_TEST_OBJECT', ['TEST1', 'TEST2'])
 
         main_id, last_updated = db.object_exists('DB_TEST_OBJECT')
-        self.assertEqual((last_updated - datetime.today()).days, 0)
+        self.assertLessEqual((last_updated - datetime.today()).days, 0)
 
 
     def tearDown(self):
