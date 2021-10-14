@@ -103,8 +103,8 @@ def import_all_reports():
                 print(f'ATel #{atel_num} could not be imported due to it missing important data', flush=True)
 
             atel_num = atel_num + 1
+            # Updates the number of ATel report to import next
             set_next_atel_num(atel_num)
-    # Updates the number of ATel report to import next
     except ReportNotFoundError:
         print('Importing completed', flush=True)
     except ImportFailError:
