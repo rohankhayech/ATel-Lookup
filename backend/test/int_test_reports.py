@@ -31,6 +31,7 @@ from model.ds.report_types import ImportedReport, ReportResult
 from datetime import datetime
 from model.ds.search_filters import SearchFilters, DateFilter
 import unittest
+from unittest import mock
 
 from model.db import db_interface as db
 from app import app
@@ -59,7 +60,11 @@ class TestFR2(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-    def test_manual_import(self):
+
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_manual_import(self,verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
+
         # Delete report if already exists
         cn = db._connect()
         cur = cn.cursor()
@@ -102,7 +107,10 @@ class TestFR2(unittest.TestCase):
             cn.commit()
             cn.close()
 
-    def test_manual_import_fail(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_manual_import_fail(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
+
         # ReportAlreadyExistsError
         # Delete report if already exists
         cn = db._connect()
@@ -192,7 +200,10 @@ class TestFR4_NFR1_NFR2(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
-    def test_categorisation(self):
+    @mock.patch("flask_jwt_extended.view_decorators.verify_jwt_in_request")
+    def test_categorisation(self, verify_jwt_in_request):
+        verify_jwt_in_request.return_value = True
+
         # Delete records if already exist
         cn = db._connect()
         cur = cn.cursor()
