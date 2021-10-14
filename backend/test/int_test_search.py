@@ -142,8 +142,7 @@ class TestFR7(ut.TestCase):
         self.app = app.test_client()
 
 
-    @mock.patch('controller.search.query_simbad.get_aliases', return_value=['TEST1', 'TEST2'])
-    def test_object_update(self, mock): 
+    def test_object_update(self): 
         test_coords = SkyCoord(0.0, 0.0, frame='icrs', unit=('deg','deg'))
 
         # connect to database
@@ -171,16 +170,17 @@ class TestFR7(ut.TestCase):
             cn.close()
 
         # Trigger an update for the object 
+        search.qs.get_aliases = mock.MagicMock(return_value=['TEST1', 'TEST2'])
         search.search_reports_by_name(None, None, 'DB_TEST_OBJECT')
 
-        mock.assert_called_with('DB_TEST_OBJECT')
-
         main_id, last_updated = db.object_exists('DB_TEST_OBJECT')
-        self.assertEqual((last_updated - datetime.today()).days == 0)
+        self.assertEqual((last_updated - datetime.today()).days, 0)
 
+
+    def tearDown(self):
         cn = db._connect()
         cur = cn.cursor()
-        cur.execute("delete from Objects where objectID = DB_TEST_OBJECT")
+        cur.execute("delete from Objects where objectID = \"DB_TEST_OBJECT\"")
         cur.close()
         cn.commit()
         cn.close()
