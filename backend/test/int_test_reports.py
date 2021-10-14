@@ -1,15 +1,16 @@
 """
 Backend integration test for report import/output requirements.
 
-Author:
+Authors:
     Rohan Khayech
+    Nathan Sutardi
 
 Contributors:
     Tully Slattery
-    Nathan Sutardi
+    
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech, Tully Slattery, Nathan Sutardi
+    Copyright (C) 2021 Rohan Khayech, Nathan Sutardi, Tully Slattery
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -50,6 +51,11 @@ manual_import_request_fail_two = {
 }
 
 class TestFR2(unittest.TestCase):
+    """
+    The software must allow an administrator to import new reports by ATel number from The Astronomer’s Telegram website into the database.
+
+    If the ATel exists, complete database entry for the report is created and user informed of successful entry. If the ATel does not exist, display an error message to the user.
+    """
     def setUp(self):
         self.app = app.test_client()
 
@@ -118,6 +124,11 @@ class TestFR2(unittest.TestCase):
 
         # Check response flag
         self.assertEqual(response.json.get("flag"), 2)
+        
+        #Check an error message has been returned
+        message = response.json.get("message")
+        self.assertIsNotNone(message)
+        self.assertNotEqual(message, "")
 
         # Delete report
         cn = db._connect()
@@ -170,7 +181,14 @@ search_by_name_request = {
     "end_date": ""
 }
 
-class TestFR4(unittest.TestCase):
+class TestFR4_NFR1_NFR2(unittest.TestCase):
+    """
+    The software must categorise imported ATels based on predefined keywords, observation dates, known aliases, object coordinates and referenced ATels.
+
+    The software will parse the title and body text for any terms matching predefined keywords, known aliases or common formats for dates, ATel references and coordinates (in common representations of both decimal degrees and sexagesimal formats). 
+    If coordinates are found the system must query SIMBAD for the object and its aliases and add these to the database. 
+    The report is then categorised with all extracted fields, before being saved in the database.
+    """
     def setUp(self):
         self.app = app.test_client()
 
@@ -184,7 +202,7 @@ class TestFR4(unittest.TestCase):
         cur.execute("delete from Reports where atelNum = 14000")
         cur.execute("delete from ReportRefs where atelNum = 14000")
         cur.execute("delete from ReportRefs where refReport = 14000")
-        cur.execute("delete from Objects where objectID = \'IGR J17591-2342\'")
+        cur.execute("delete from Objects where objectID = 'IGR J17591-2342'")
         cur.close()
         cn.commit()
         cn.close()
@@ -513,7 +531,7 @@ term_search_request = {
     "end_date": ""
 }
 
-class TestFR9(unittest.TestCase): 
+class TestFR9(unittest.TestCase):
     def setUp(self):
         self.app = app.test_client()
 
