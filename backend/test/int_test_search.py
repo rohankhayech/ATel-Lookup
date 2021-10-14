@@ -1,11 +1,11 @@
 """
-Backend integration test for search requirements. (FR...)
+Backend integration test for search requirements. (FR6, 7, 8, 10)
 
 Author:
     Ryan Martin
 
 License Terms and Copyright:
-    Copyright (C) 2021 Rohan Khayech, Tully Slattery, Nathan Sutardi
+    Copyright (C) 2021 Ryan Martin
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU Affero General Public License as published
@@ -22,14 +22,21 @@ License Terms and Copyright:
 """
 
 
-import unittest as ut
-from astropy.coordinates.sky_coordinate import SkyCoord
-
+import mysql
+from mysql.connector import errorcode
 from mysql.connector.cursor import MySQLCursor
 
+from datetime import datetime
+import unittest as ut
+from unittest import mock
+
+from astropy.coordinates.sky_coordinate import SkyCoord
+
 from app import app
+from model.ds.report_types import ReportResult
 from controller.importer.importer import ReportAlreadyExistsError 
 from controller.importer import importer
+from controller.search import search
 import model.db.db_interface as db
 
 
@@ -131,7 +138,52 @@ class TestFR7(ut.TestCase):
         for the specified object. The software must also link all reports that reference the specified 
         object.
     '''
-    pass #NYI
+    def setUp(self):
+        self.app = app.test_client()
+
+
+    @mock.patch('controller.search.query_simbad.get_aliases', return_value=['TEST1', 'TEST2'])
+    def test_object_update(self, mock): 
+        test_coords = SkyCoord(0.0, 0.0, frame='icrs', unit=('deg','deg'))
+
+        # connect to database
+        cn = db._connect()
+        cur: MySQLCursor = cn.cursor()
+
+        # setup query
+        query = ("insert into Objects" 
+                " (objectID, ra, declination, lastUpdated)" 
+                " values (%s, %s, %s, %s)")
+
+        data = ("DB_TEST_OBJECT", round(test_coords.ra.deg, 10), round(test_coords.dec.deg, 10), datetime(2000, 1, 1))
+
+        # execute query and handle errors
+        try:
+            cur.execute(query, data)
+        except mysql.connector.Error as e:
+            if e.errno == errorcode.ER_DUP_ENTRY:
+                pass
+            else:
+                raise e
+        finally:
+            cn.commit()
+            cur.close()
+            cn.close()
+
+        # Trigger an update for the object 
+        search.search_reports_by_name(None, None, 'DB_TEST_OBJECT')
+
+        mock.assert_called_with('DB_TEST_OBJECT')
+
+        main_id, last_updated = db.object_exists('DB_TEST_OBJECT')
+        self.assertEqual((last_updated - datetime.today()).days == 0)
+
+        cn = db._connect()
+        cur = cn.cursor()
+        cur.execute("delete from Objects where objectID = DB_TEST_OBJECT")
+        cur.close()
+        cn.commit()
+        cn.close()
 
 
 class TestFR8(ut.TestCase):
@@ -195,9 +247,9 @@ class TestFR8(ut.TestCase):
             self.assertIsNotNone(all_results)
             self.assertFalse(len(all_results) == 0)
 
+
 class TestFR10(ut.TestCase):
     ''' Functional Requirement 10:
         Description: The software must allow the user to search for ATels with any combination of a free-text 
         string, keyword selection and object (either object ID or coordinates) within a single query.
     '''
-    pass #Partially implemented.
