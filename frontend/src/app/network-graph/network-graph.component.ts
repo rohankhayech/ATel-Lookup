@@ -44,8 +44,6 @@ export class NetworkGraphComponent implements OnChanges {
   generate() {
     this.clear();
 
-    this.centerGraph();
-
     this.svg = d3
       .select('#network-graph')
       .append('svg')
@@ -57,6 +55,16 @@ export class NetworkGraphComponent implements OnChanges {
     const width = rect?.width;
     const height = rect?.height;
 
+    const g = this.svg.append('g');
+
+    const zoom = d3.zoom().on('zoom', (event) => {
+      console.log(event);
+
+      g.attr('transform', event.transform);
+    });
+
+    zoom(this.svg as unknown as Selection<Element, unknown, HTMLElement, any>);
+
     const simulation = d3
       .forceSimulation<Node>(this.nodes)
       .force(
@@ -66,7 +74,7 @@ export class NetworkGraphComponent implements OnChanges {
       .force('charge', d3.forceManyBody().strength(-5))
       .force('center', d3.forceCenter(width / 2, height / 2));
 
-    const link = this.svg
+    const link = g
       .append('g')
       .attr('stroke', '#999')
       .attr('stroke-opacity', 0.6)
@@ -75,7 +83,7 @@ export class NetworkGraphComponent implements OnChanges {
       .join('line')
       .attr('stroke-width', 1);
 
-    const node = this.svg
+    const node = g
       .append('g')
       .attr('stroke', '#fff')
       .attr('stroke-width', 1.5)
@@ -140,13 +148,5 @@ export class NetworkGraphComponent implements OnChanges {
 
   click(_: unknown, node: Node) {
     this.selectionChange.emit(+node.id);
-  }
-
-  centerGraph() {
-    const container = document.getElementById('container');
-    const element = document.getElementById('network-graph');
-    const top = (element!.offsetHeight - container!.offsetHeight) / 2;
-    const left = (element!.offsetWidth - container!.offsetWidth) / 2;
-    container?.scroll({ top, left });
   }
 }
