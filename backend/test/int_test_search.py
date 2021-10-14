@@ -155,7 +155,7 @@ class TestFR7(ut.TestCase):
                 " (objectID, ra, declination, lastUpdated)" 
                 " values (%s, %s, %s, %s)")
 
-        data = ("DB_TEST_OBJECT", round(test_coords.ra.deg, 10), round(test_coords.dec.deg, 10), datetime(2000, 1, 1))
+        data = ("DB_TEST_OBJECT", round(test_coords.ra.deg, 10), round(test_coords.dec.deg, 10), "2018-01-01")
 
         # execute query and handle errors
         try:
@@ -170,10 +170,15 @@ class TestFR7(ut.TestCase):
             cur.close()
             cn.close()
 
+        exists, prev_last_updated = db.object_exists('DB_TEST_OBJECT') 
+        self.assertTrue(exists)
+        self.assertEqual(prev_last_updated, datetime(2018, 1, 1))
+
         db.add_aliases('DB_TEST_OBJECT', ['TEST1', 'TEST2'])
 
-        main_id, last_updated = db.object_exists('DB_TEST_OBJECT')
+        exists, last_updated = db.object_exists('DB_TEST_OBJECT')
         self.assertLessEqual((last_updated - datetime.today()).days, 0)
+        self.assertNotEqual(prev_last_updated, last_updated)
 
 
     def tearDown(self):
