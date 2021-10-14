@@ -449,7 +449,7 @@ def extract_dates(text: str) -> list[str]:
     # Finds all dates that are in the above date formats in the text of ATel report
     for regex in DATE_REGEXES:
         # Attempts to find all dates that are in a certain date format in the text using regex
-        date_regex = re.compile(f'[^\d|^a-z]{regex}[^\d]')
+        date_regex = re.compile(f'[^\d|^a-z|^:]{regex}[^\d|^:]')
         dates_found = date_regex.findall(f' {text.lower()} ')
 
         # Removes any leading and/or trailing characters that are not part of the date format
