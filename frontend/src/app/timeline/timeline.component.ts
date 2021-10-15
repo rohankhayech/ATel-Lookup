@@ -5,6 +5,7 @@ import {
   OnChanges,
   OnInit,
   Output,
+  ViewEncapsulation,
 } from '@angular/core';
 import { fromEvent } from 'rxjs';
 import { ColorUtilities } from '../color-utilities';
@@ -18,6 +19,7 @@ interface Timeline extends google.visualization.Timeline {
   selector: 'app-timeline',
   templateUrl: './timeline.component.html',
   styleUrls: ['./timeline.component.scss'],
+  encapsulation: ViewEncapsulation.None,
 })
 export class TimelineComponent implements OnInit, OnChanges {
   @Output() public selectionChange = new EventEmitter<number>();

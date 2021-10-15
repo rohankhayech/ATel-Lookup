@@ -180,6 +180,9 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
         title = str(soup.find('h1', {'class': 'title'}).get_text(strip=True))
     else:
         raise MissingReportElementError(f'Title is missing in ATel #{str(atel_num)}')
+
+    if(title == ''):
+        raise MissingReportElementError(f'Title is missing in ATel #{str(atel_num)}')
     
     # Extracts authors of ATel report
     authors = ''
@@ -187,6 +190,9 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
     if(soup.find('strong') is not None):
         authors = str(soup.find('strong').get_text(strip=True))
     else:
+        raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
+
+    if(authors == ''):
         raise MissingReportElementError(f'Authors section is missing in ATel #{str(atel_num)}')
 
     # Extracts submission date of ATel report
@@ -247,6 +253,12 @@ def parse_report(atel_num: int, html_string: str) -> ImportedReport:
         body = body.replace('\n', ' ').strip()
         body = re.sub(' +', ' ', body.strip())
 
+    # Removes 'Tweet' at the beginning of the body text if it exist
+    if(len(body) >= 5):
+        if(body[:5] == 'Tweet'):
+            body = body[5:]
+            body = body.strip()
+    
     if(body == ''):
         raise MissingReportElementError(f'Body section is missing in ATel #{str(atel_num)}')
 
@@ -449,7 +461,7 @@ def extract_dates(text: str) -> list[str]:
     # Finds all dates that are in the above date formats in the text of ATel report
     for regex in DATE_REGEXES:
         # Attempts to find all dates that are in a certain date format in the text using regex
-        date_regex = re.compile(f'[^\d|^a-z]{regex}[^\d]')
+        date_regex = re.compile(f'[^\d|^a-z|^:]{regex}[^\d|^:]')
         dates_found = date_regex.findall(f' {text.lower()} ')
 
         # Removes any leading and/or trailing characters that are not part of the date format

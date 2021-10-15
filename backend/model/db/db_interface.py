@@ -443,15 +443,15 @@ def add_aliases(object_id: str, aliases: list[str]):
             cur: MySQLCursor = cn.cursor()
 
             # setup query
-            query = ("insert into Aliases"
+            add_query = ("insert into Aliases"
                     " (alias, objectIDFK)"
                     " values (%s, %s);")
 
             for alias in aliases:
-                data = (alias, object_id)
+                add_data = (alias, object_id)
                 # execute query and handle errors
                 try:
-                    cur.execute(query, data)
+                    cur.execute(add_query, add_data)
                 except mysql.connector.Error as e:
                     if e.errno == errorcode.ER_DUP_ENTRY:
                         pass #ignore any duplicate aliases
@@ -459,6 +459,27 @@ def add_aliases(object_id: str, aliases: list[str]):
                         cur.close()
                         cn.close()
                         raise e  
+            
+            cn.commit()
+
+            # setup query
+            update_query = ("update Objects "
+                            "set lastUpdated = now() "
+                            "where objectID = %s;")
+
+            update_data = (object_id,)
+
+            # execute query and handle errors
+            try:
+                cur.execute(update_query, update_data)
+            except mysql.connector.Error as e:
+                if e.errno == errorcode.ER_DUP_ENTRY:
+                    pass  # ignore any duplicate aliases
+                else:
+                    cur.close()
+                    cn.close()
+                    raise e
+            
             cn.commit()
             cur.close()
             cn.close()
@@ -468,9 +489,7 @@ def add_aliases(object_id: str, aliases: list[str]):
         else:
             raise ObjectNotFoundError("The specified object ID is not stored in the database.")
     else:
-        raise ValueError(
-            "Specified object_id must be valid lengths and non-empty."
-        )
+        raise ValueError("Specified object_id must be valid lengths and non-empty.")
 
 
 

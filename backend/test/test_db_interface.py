@@ -301,6 +301,7 @@ class TestObjects(unittest.TestCase):
         cn = db._connect()
         cur = cn.cursor()
         cur.execute("delete from Objects where objectID like 'test_main_id'")
+        cur.execute("delete from Objects where objectID like 'test_add_aliases'")
         cn.commit()
         cur.close()
         cn.close()
@@ -340,22 +341,49 @@ class TestObjects(unittest.TestCase):
             db.add_object("A"*257, self.ex_coords, [])
 
     def testAddAliases(self):
-        db.add_aliases("test_main_id",["test-alias-3","test-alias-4"])
-
+        #Add test objectW
+        # connect to database
         cn = db._connect()
         cur: MySQLCursor = cn.cursor()
-        cur.execute("select * from Aliases where objectIDFK like 'test_main_id'")
-        results = cur.fetchall()
-        self.assertIsNotNone(results)
-        result1 = results[2]
-        result2 = results[3]
-        self.assertEqual(result1[0], "test-alias-3")
-        self.assertEqual(result1[1], "test_main_id")
-        self.assertEqual(result2[0], "test-alias-4")
-        self.assertEqual(result2[1], "test_main_id")
+
+        # setup query
+        query = ("insert into Objects"
+                 " (objectID, ra, declination, lastUpdated)"
+                 " values (%s, %s, %s, %s)")
+
+        data = ("test_add_aliases", round(self.ex_coords.ra.deg, 10),
+                round(self.ex_coords.dec.deg, 10), datetime(2020, 1, 1))
+
+        # execute query and handle errors
+        cur.execute(query, data)
         cn.commit()
         cur.close()
         cn.close()
+
+        # check original date was added correctly on test object.
+        exists, updated = db.object_exists("test_add_aliases")
+        self.assertEqual(updated, datetime(2020, 1, 1))
+
+        db.add_aliases("test_add_aliases",["test-alias-3","test-alias-4"])
+
+        cn = db._connect()
+        cur: MySQLCursor = cn.cursor()
+        cur.execute("select * from Aliases where objectIDFK like 'test_add_aliases'")
+        results = cur.fetchall()
+        self.assertIsNotNone(results)
+        result1 = results[0]
+        result2 = results[1]
+        self.assertEqual(result1[0], "test-alias-3")
+        self.assertEqual(result1[1], "test_add_aliases")
+        self.assertEqual(result2[0], "test-alias-4")
+        self.assertEqual(result2[1], "test_add_aliases")
+        cn.commit()
+        cur.close()
+        cn.close()
+
+        # Check last updated date was updated
+        exists, updated = db.object_exists("test_add_aliases")
+        self.assertNotEqual(updated, datetime(2020,1,1))
 
         with self.assertRaises(db.ObjectNotFoundError):
             db.add_aliases("test-invalid-id",["test-alias"])

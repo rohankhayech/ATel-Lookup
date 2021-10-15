@@ -74,7 +74,7 @@ class TestImporterFunctions(unittest.TestCase):
     def test_auto_import(self, mock_get_next_atel_num, mock_import_report, mock_set_next_atel_num):
         # Expected function calls
         expected_import_report_calls = [call(1), call(2), call(3), call(4), call(5)]
-        expected_set_next_atel_num_call = [call(5)]
+        expected_set_next_atel_num_calls = [call(2), call(3), call(4), call(5)]
 
         mock_get_next_atel_num.return_value = 1
         mock_import_report.side_effect = [None, None, ReportAlreadyExistsError, None, ReportNotFoundError]
@@ -82,7 +82,7 @@ class TestImporterFunctions(unittest.TestCase):
         # Checks for expected import_report and set_next_atel_num function calls
         import_all_reports()
         mock_import_report.assert_has_calls(expected_import_report_calls)
-        mock_set_next_atel_num.assert_has_calls(expected_set_next_atel_num_call)
+        mock_set_next_atel_num.assert_has_calls(expected_set_next_atel_num_calls)
 
         # Checks that import_report was not called with the argument 6
         try:
@@ -95,7 +95,7 @@ class TestImporterFunctions(unittest.TestCase):
 
         # Expected function calls
         expected_import_report_calls = [call(6), call(7), call(8)]
-        expected_set_next_atel_num_call = [call(8)]
+        expected_set_next_atel_num_calls = [call(7), call(8)]
 
         mock_get_next_atel_num.return_value = 6
         mock_import_report.side_effect = [MissingReportElementError, None, ImportFailError]
@@ -103,7 +103,7 @@ class TestImporterFunctions(unittest.TestCase):
         # Checks for expected import_report and set_next_atel_num function calls
         import_all_reports()
         mock_import_report.assert_has_calls(expected_import_report_calls)
-        mock_set_next_atel_num.assert_has_calls(expected_set_next_atel_num_call)
+        mock_set_next_atel_num.assert_has_calls(expected_set_next_atel_num_calls)
 
         # Checks that import_report was not called with the argument 9
         try:
@@ -540,12 +540,18 @@ class TestCustomExceptions(unittest.TestCase):
 
         with self.assertRaises(MissingReportElementError):
             parse_report(1, '<h1 class=\'title\'></h1>')
+
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'>Test</h1>')
         
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'></div><strong></strong>')
+            parse_report(1, '<h1 class=\'title\'>Test</h1><strong></strong><div id=\'telegram\'></div><strong></strong>')
+
+        with self.assertRaises(MissingReportElementError):
+            parse_report(1, '<h1 class=\'title\'>Test</h1><strong>Test</strong><div id=\'telegram\'></div><strong></strong>')
         
         with self.assertRaises(MissingReportElementError):
-            parse_report(1, '<h1 class=\'title\'></h1><strong></strong><div id=\'telegram\'><em><em></em></em></div><strong>01 Jan 1999; 00:00 UT</strong>')
+            parse_report(1, '<h1 class=\'title\'>Test</h1><strong>Test</strong><div id=\'telegram\'>Tweet<em><em></em></em></div><strong>01 Jan 1999; 00:00 UT</strong>')
 
 if __name__ == "__main__":
     unittest.main()
