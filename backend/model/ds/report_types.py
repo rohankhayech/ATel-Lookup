@@ -30,7 +30,7 @@ from model.constants import valid_keyword
 
 #Constants
 REPORT_TITLE_CHAR_LIM:int = 2056   # Max chars for title field.
-REPORT_AUTHOR_CHAR_LIM:int = 2056  # Max chars for authors field.
+REPORT_AUTHOR_CHAR_LIM:int = 8192  # Max chars for authors field.
 REPORT_BODY_CHAR_LIM:int = 5120    # Max chars for body field.
 
 class ReportResult:
@@ -134,7 +134,7 @@ class ReportResult:
             self._title = title_str
         else:
             raise ValueError(
-                f"Body must be <= {REPORT_TITLE_CHAR_LIM} characters.")
+                f"Title must be <= {REPORT_TITLE_CHAR_LIM} characters.")
 
     @property
     def authors(self)->str:
@@ -155,7 +155,7 @@ class ReportResult:
         if(len(authors_str)<=REPORT_AUTHOR_CHAR_LIM):
             self._authors = authors_str
         else:
-            raise ValueError(f"Body must be <= {REPORT_AUTHOR_CHAR_LIM} characters.")
+            raise ValueError(f"Authors must be <= {REPORT_AUTHOR_CHAR_LIM} characters.")
 
     @property
     def body(self)->str:
