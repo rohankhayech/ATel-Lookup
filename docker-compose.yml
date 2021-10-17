@@ -6,7 +6,7 @@ services:
     ports:
       - 3307:3306
     environment:
-      MYSQL_ROOT_PASSWORD: p@ssw0rd1 #change me
+      MYSQL_ROOT_PASSWORD: p@ssw0rd1 # Change this to a unique, strong password for added security.
       MYSQL_DATABASE: db
     volumes:
       - mysql-data:/var/lib/mysql
@@ -22,9 +22,9 @@ services:
     environment:
       MYSQL_HOST: mysql
       MYSQL_USER: root
-      MYSQL_PASSWORD: p@ssw0rd1
+      MYSQL_PASSWORD: p@ssw0rd1 # Change this to a unique, strong password for added security.
       MYSQL_DB: db
-      JWT_SECRET_KEY: s3cr3tk3y
+      JWT_SECRET_KEY: s3cr3tk3y # Change this to a unique, strong key for added security.
 
   frontend:
     build: ./frontend
