@@ -1,9 +1,15 @@
-import { HttpClient } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpStatusCode,
+} from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { Router } from '@angular/router';
 import { throwError } from 'rxjs';
 import { catchError, tap } from 'rxjs/operators';
 import { environment } from 'src/environments/environment';
+import { AuthenticationService } from '../authentication.service';
 import { ErrorUtilities } from '../error-utilities';
 import { ImportService } from '../import.service';
 import { Metadata } from '../metadata.interface';
@@ -24,7 +30,9 @@ export class AdminPageComponent implements OnInit {
   constructor(
     private http: HttpClient,
     private importService: ImportService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private authenticationService: AuthenticationService,
+    private router: Router
   ) {}
 
   ngOnInit() {
@@ -40,6 +48,14 @@ export class AdminPageComponent implements OnInit {
         })
       ),
       catchError((error) => {
+        if (
+          error instanceof HttpErrorResponse &&
+          error.status === HttpStatusCode.Unauthorized
+        ) {
+          this.authenticationService.invalidate();
+          return this.router.navigate(['/authenticate']);
+        }
+
         this.snackBar.open(error.message, 'Close', {
           duration: 8000,
         });
@@ -58,6 +74,14 @@ export class AdminPageComponent implements OnInit {
         })
       ),
       catchError((error) => {
+        if (
+          error instanceof HttpErrorResponse &&
+          error.status === HttpStatusCode.Unauthorized
+        ) {
+          this.authenticationService.invalidate();
+          return this.router.navigate(['/authenticate']);
+        }
+
         this.snackBar.open(error.message, 'Close', {
           duration: 8000,
         });

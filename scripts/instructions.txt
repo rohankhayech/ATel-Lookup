@@ -1,0 +1,9 @@
+Windows
+./CreateDatabaseBackup.ps1
+
+./RestoreDatabaseBackup.ps1
+
+Linux/Mac
+./create_database_backup.sh <mysql_container_name> <mysql_password>
+
+./restore_database_backup.sh <mysql_container_name> <mysql_password>
