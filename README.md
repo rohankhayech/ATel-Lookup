@@ -20,6 +20,24 @@ The application was developed as part of a final year Capstone project at Curtin
 
 The project was commissioned by researcher Dr. Arash Bahramian and Director of Science, Professor James Miller-Jones at CIRA, the Curtin Institute of Radio Astronomy. CIRA consists of a multi-disciplinary team of both engineers and scientists focused on the field of radio astronomy. 
 
+### Screenshots
+<details>
+    <summary>
+        View Screenshots
+    </summary>
+<br>
+
+![image](https://user-images.githubusercontent.com/49182055/227155074-9f3da04d-8d66-4f2f-bbbd-92e185eea8ab.png)
+
+![image](https://user-images.githubusercontent.com/49182055/227156670-505090a3-2400-4b78-bd32-072cfdc411f6.png)
+    
+![image](https://user-images.githubusercontent.com/49182055/227155209-c4a20f54-44a4-4670-878c-8b21e06c47c1.png)
+
+![image](https://user-images.githubusercontent.com/49182055/227156721-79cdd1d6-2274-42aa-a4ab-01550a3f76e1.png)
+
+</details>
+
+
 ## Licence and Copyright
 Copyright 2021 Rohan Khayech, Ryan Martin, Nathan Sutardi, Greg Lahaye and Tully Slattery.
 
