@@ -1,6 +1,6 @@
 # ATel Lookup
 
-Powerful web-based search interface for intelligently querying and visualisng ATel reports from [The Astronomer's Telegram](https://astronomerstelegram.org/).
+Powerful web-based search interface for intelligently querying and visualising ATel reports from [The Astronomer's Telegram](https://astronomerstelegram.org/).
 
 **Authors:** Rohan Khayech, Ryan Martin, Nathan Sutardi, Greg Lahaye and Tully Slattery.
 
