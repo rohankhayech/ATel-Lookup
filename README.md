@@ -41,7 +41,7 @@ The project was commissioned by researcher Dr. Arash Bahramian and Director of S
 ## Licence and Copyright
 Copyright 2021 Rohan Khayech, Ryan Martin, Nathan Sutardi, Greg Lahaye and Tully Slattery.
 
-ATel Lookup is licensed under the GNU Affero General Public License v3.
+ATel Lookup is licensed under the GNU Affero General Public License v3.0.
 See the full licence terms [here](LICENSE).
 
     Copyright (C) 2021 Rohan Khayech, Ryan Martin, Nathan Sutardi, Greg Lahaye and Tully Slattery
