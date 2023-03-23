@@ -49,6 +49,8 @@ ___
     2. Download the source code of the latest release.
     3. Extract the .zip file into the desired folder on a local computer.
 
+**Latest Release:** [v1.0.1](https://github.com/rohankhayech/ATel-Lookup/releases/latest)
+
 **Docker Installation Guide:** [Windows](https://docs.docker.com/desktop/windows/install) | [Mac](https://docs.docker.com/desktop/mac/install)
 
 
